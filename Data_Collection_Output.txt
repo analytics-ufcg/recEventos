@@ -1,0 +1,697 @@
+CITY: manaus
+    Find Groups by City...
+        Fetching URL...
+        Processing data (1 group(s)): DONE
+    Get Members by Group...
+        Group 2388891 (1/1)
+            Fetching URL...(1/1)
+            Processing data (24 member(s)): DONE
+    Get Events by Group...
+        Groups (1 to 1/1)
+            Fetching URL...(1/1)
+            Processing data (22 event(s)): DONE
+    Get GroupTopics by Group...
+        Groups (1 to 1/1)
+            Fetching URL...(1/1)
+CITY: joinville
+    Find Groups by City...
+        Fetching URL...
+        Processing data (2 group(s)): DONE
+    Get Members by Group...
+        Group 1892101 (1/2)
+            Fetching URL...(1/1)
+            Processing data (196 member(s)): DONE
+        Group 6311022 (2/2)
+            Fetching URL...(1/1)
+            Processing data (9 member(s)): DONE
+    Get Events by Group...
+        Groups (1 to 2/2)
+            Fetching URL...(1/1)
+            Processing data (4 event(s)): DONE
+    Get GroupTopics by Group...
+        Groups (1 to 2/2)
+            Fetching URL...(1/1)
+CITY: porto alegre
+    Find Groups by City...
+        Fetching URL...
+        Processing data (2 group(s)): DONE
+    Get Members by Group...
+        Group 5007762 (1/2)
+            Fetching URL...(1/1)
+            Processing data (9 member(s)): DONE
+        Group 5553322 (2/2)
+            Fetching URL...(1/1)
+            Processing data (17 member(s)): DONE
+    Get Events by Group...
+        Groups (1 to 2/2)
+            Fetching URL...(0/0)
+            Processing data (0 event(s)): DONE
+    Get GroupTopics by Group...
+        Groups (1 to 2/2)
+            Fetching URL...(1/1)
+CITY: curitiba
+    Find Groups by City...
+        Fetching URL...
+        Processing data (2 group(s)): DONE
+    Get Members by Group...
+        Group 3257122 (1/2)
+            Fetching URL...(1/1)
+            Processing data (93 member(s)): DONE
+        Group 5421492 (2/2)
+            Fetching URL...(1/1)
+            Processing data (22 member(s)): DONE
+    Get Events by Group...
+        Groups (1 to 2/2)
+            Fetching URL...(1/1)
+            Processing data (10 event(s)): DONE
+    Get GroupTopics by Group...
+        Groups (1 to 2/2)
+            Fetching URL...(1/1)
+CITY: campinas
+    Find Groups by City...
+        Fetching URL...
+        Processing data (3 group(s)): DONE
+    Get Members by Group...
+        Group 2004711 (1/3)
+            Fetching URL...(1/2)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(2/2)
+            Processing data (44 member(s)): DONE
+        Group 3277832 (2/3)
+            Fetching URL...(1/1)
+            Processing data (14 member(s)): DONE
+        Group 4368742 (3/3)
+            Fetching URL...(1/1)
+            Processing data (33 member(s)): DONE
+    Get Events by Group...
+        Groups (1 to 3/3)
+            Fetching URL...(1/1)
+            Processing data (2 event(s)): DONE
+    Get GroupTopics by Group...
+        Groups (1 to 3/3)
+            Fetching URL...(1/1)
+CITY: belo horizonte
+    Find Groups by City...
+        Fetching URL...
+        Processing data (3 group(s)): DONE
+    Get Members by Group...
+        Group 2312701 (1/3)
+            Fetching URL...(1/1)
+            Processing data (31 member(s)): DONE
+        Group 4156492 (2/3)
+            Fetching URL...(0/0)
+            Processing data (0 member(s)): DONE
+        Group 6922872 (3/3)
+            Fetching URL...(1/1)
+            Processing data (1 member(s)): DONE
+    Get Events by Group...
+        Groups (1 to 3/3)
+            Fetching URL...(1/1)
+            Processing data (1 event(s)): DONE
+    Get GroupTopics by Group...
+        Groups (1 to 3/3)
+            Fetching URL...(1/1)
+CITY: rio de janeiro
+    Find Groups by City...
+        Fetching URL...
+        Processing data (24 group(s)): DONE
+    Get Members by Group...
+        Group 760409 (1/24)
+            Fetching URL...(1/6)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(2/6)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(3/6)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(4/6)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(5/6)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(6/6)
+            Processing data (35 member(s)): DONE
+        Group 1477572 (2/24)
+            Fetching URL...(1/1)
+            Processing data (81 member(s)): DONE
+        Group 1575579 (3/24)
+            Fetching URL...(1/1)
+            Processing data (159 member(s)): DONE
+        Group 1608799 (4/24)
+            Fetching URL...(1/1)
+            Processing data (41 member(s)): DONE
+        Group 1611033 (5/24)
+            Fetching URL...(0/0)
+            Processing data (0 member(s)): DONE
+        Group 1689775 (6/24)
+            Fetching URL...(1/3)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(2/3)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(3/3)
+            Processing data (4 member(s)): DONE
+        Group 1979001 (7/24)
+            Fetching URL...(1/2)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(2/2)
+            Processing data (1 member(s)): DONE
+        Group 3070612 (8/24)
+            Fetching URL...(1/1)
+            Processing data (27 member(s)): DONE
+        Group 3191882 (9/24)
+            Fetching URL...(1/2)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(2/2)
+            Processing data (12 member(s)): DONE
+        Group 3939212 (10/24)
+            Fetching URL...(1/1)
+            Processing data (69 member(s)): DONE
+        Group 4179302 (11/24)
+            Fetching URL...(1/1)
+            Processing data (7 member(s)): DONE
+        Group 4214042 (12/24)
+            Fetching URL...(1/1)
+            Processing data (32 member(s)): DONE
+        Group 4459502 (13/24)
+            Fetching URL...(1/1)
+            Processing data (8 member(s)): DONE
+        Group 4472022 (14/24)
+            Fetching URL...(1/1)
+            Processing data (20 member(s)): DONE
+        Group 4803042 (15/24)
+            Fetching URL...(1/1)
+            Processing data (8 member(s)): DONE
+        Group 4931852 (16/24)
+            Fetching URL...(1/1)
+            Processing data (117 member(s)): DONE
+        Group 5268472 (17/24)
+            Fetching URL...(1/1)
+            Processing data (10 member(s)): DONE
+        Group 5279442 (18/24)
+            Fetching URL...(0/0)
+            Processing data (0 member(s)): DONE
+        Group 5318872 (19/24)
+            Fetching URL...(1/1)
+            Processing data (4 member(s)): DONE
+        Group 5402952 (20/24)
+            Fetching URL...(1/1)
+            Processing data (3 member(s)): DONE
+        Group 5505422 (21/24)
+            Fetching URL...(1/1)
+            Processing data (11 member(s)): DONE
+        Group 5773972 (22/24)
+            Fetching URL...(1/1)
+            Processing data (40 member(s)): DONE
+        Group 5932012 (23/24)
+            Fetching URL...(1/1)
+            Processing data (6 member(s)): DONE
+        Group 7005062 (24/24)
+            Fetching URL...(1/1)
+            Processing data (1 member(s)): DONE
+    Get Events by Group...
+        Groups (1 to 11/24)
+            Fetching URL...(1/2)
+            Processing data (200 event(s)): DONE
+            Fetching URL...(2/2)
+            Processing data (145 event(s)): DONE
+        Groups (12 to 22/24)
+            Fetching URL...(1/1)
+            Processing data (146 event(s)): DONE
+        Groups (23 to 24/24)
+            Fetching URL...(1/1)
+            Processing data (1 event(s)): DONE
+    Get GroupTopics by Group...
+        Groups (1 to 24/24)
+            Fetching URL...(1/1)
+CITY: sao paulo
+    Find Groups by City...
+        Fetching URL...
+        Processing data (57 group(s)): DONE
+    Get Members by Group...
+        Group 1233533 (1/57)
+            Fetching URL...(1/5)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(2/5)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(3/5)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(4/5)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(5/5)
+            Processing data (89 member(s)): DONE
+        Group 1332379 (2/57)
+            Fetching URL...(1/7)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(2/7)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(3/7)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(4/7)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(5/7)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(6/7)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(7/7)
+            Processing data (23 member(s)): DONE
+        Group 1567777 (3/57)
+            Fetching URL...(1/2)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(2/2)
+            Processing data (2 member(s)): DONE
+        Group 1620776 (4/57)
+            Fetching URL...(1/1)
+            Processing data (142 member(s)): DONE
+        Group 1651161 (5/57)
+            Fetching URL...(0/0)
+            Processing data (0 member(s)): DONE
+        Group 1674635 (6/57)
+            Fetching URL...(1/2)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(2/2)
+            Processing data (11 member(s)): DONE
+        Group 1744269 (7/57)
+            Fetching URL...(1/16)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(2/16)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(3/16)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(4/16)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(5/16)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(6/16)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(7/16)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(8/16)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(9/16)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(10/16)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(11/16)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(12/16)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(13/16)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(14/16)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(15/16)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(16/16)
+            Processing data (168 member(s)): DONE
+        Group 2000281 (8/57)
+            Fetching URL...(1/1)
+            Processing data (92 member(s)): DONE
+        Group 2127241 (9/57)
+            Fetching URL...(1/1)
+            Processing data (103 member(s)): DONE
+        Group 2295141 (10/57)
+            Fetching URL...(1/1)
+            Processing data (133 member(s)): DONE
+        Group 2420342 (11/57)
+            Fetching URL...(1/1)
+            Processing data (14 member(s)): DONE
+        Group 2492512 (12/57)
+            Fetching URL...(1/1)
+            Processing data (87 member(s)): DONE
+        Group 2515642 (13/57)
+            Fetching URL...(1/2)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(2/2)
+            Processing data (71 member(s)): DONE
+        Group 2639892 (14/57)
+            Fetching URL...(1/1)
+            Processing data (74 member(s)): DONE
+        Group 2750332 (15/57)
+            Fetching URL...(1/1)
+            Processing data (178 member(s)): DONE
+        Group 2914382 (16/57)
+            Fetching URL...(1/1)
+            Processing data (140 member(s)): DONE
+        Group 3357012 (17/57)
+            Fetching URL...(1/1)
+            Processing data (76 member(s)): DONE
+        Group 3572292 (18/57)
+            Fetching URL...(0/0)
+            Processing data (0 member(s)): DONE
+        Group 3773192 (19/57)
+            Fetching URL...(1/1)
+            Processing data (32 member(s)): DONE
+        Group 3781722 (20/57)
+            Fetching URL...(1/1)
+            Processing data (152 member(s)): DONE
+        Group 3803562 (21/57)
+            Fetching URL...(1/2)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(2/2)
+            Processing data (164 member(s)): DONE
+        Group 3896952 (22/57)
+            Fetching URL...(1/1)
+            Processing data (16 member(s)): DONE
+        Group 4031122 (23/57)
+            Fetching URL...(1/1)
+            Processing data (102 member(s)): DONE
+        Group 4052832 (24/57)
+            Fetching URL...(1/1)
+            Processing data (120 member(s)): DONE
+        Group 4266302 (25/57)
+            Fetching URL...(1/1)
+            Processing data (56 member(s)): DONE
+        Group 4271482 (26/57)
+            Fetching URL...(1/2)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(2/2)
+            Processing data (42 member(s)): DONE
+        Group 4327872 (27/57)
+            Fetching URL...(1/1)
+            Processing data (12 member(s)): DONE
+        Group 4471772 (28/57)
+            Fetching URL...(1/1)
+            Processing data (45 member(s)): DONE
+        Group 4557102 (29/57)
+            Fetching URL...(1/1)
+            Processing data (64 member(s)): DONE
+        Group 4563692 (30/57)
+            Fetching URL...(1/1)
+            Processing data (33 member(s)): DONE
+        Group 4784182 (31/57)
+            Fetching URL...(1/1)
+            Processing data (29 member(s)): DONE
+        Group 4902112 (32/57)
+            Fetching URL...(1/2)
+            Processing data (200 member(s)): DONE
+            Fetching URL...(2/2)
+            Processing data (35 member(s)): DONE
+        Group 5417552 (33/57)
+            Fetching URL...(1/1)
+            Processing data (27 member(s)): DONE
+        Group 5440232 (34/57)
+            Fetching URL...(1/1)
+            Processing data (42 member(s)): DONE
+        Group 5541132 (35/57)
+            Fetching URL...(1/1)
+            Processing data (1 member(s)): DONE
+        Group 5573092 (36/57)
+            Fetching URL...(1/1)
+            Processing data (2 member(s)): DONE
+        Group 5574142 (37/57)
+            Fetching URL...(1/1)
+            Processing data (12 member(s)): DONE
+        Group 5593812 (38/57)
+            Fetching URL...(1/1)
+            Processing data (31 member(s)): DONE
+        Group 5600032 (39/57)
+            Fetching URL...(1/1)
+            Processing data (1 member(s)): DONE
+        Group 5656352 (40/57)
+            Fetching URL...(1/1)
+            Processing data (11 member(s)): DONE
+        Group 5719442 (41/57)
+            Fetching URL...(1/1)
+            Processing data (22 member(s)): DONE
+        Group 5812262 (42/57)
+            Fetching URL...(1/1)
+            Processing data (106 member(s)): DONE
+        Group 5903122 (43/57)
+            Fetching URL...(1/1)
+            Processing data (8 member(s)): DONE
+        Group 6143792 (44/57)
+            Fetching URL...(1/1)
+            Processing data (8 member(s)): DONE
+        Group 6194952 (45/57)
+            Fetching URL...(1/1)
+            Processing data (17 member(s)): DONE
+        Group 6251052 (46/57)
+            Fetching URL...(1/1)
+            Processing data (34 member(s)): DONE
+        Group 6359052 (47/57)
+            Fetching URL...(1/1)
+            Processing data (6 member(s)): DONE
+        Group 6410402 (48/57)
+            Fetching URL...(0/0)
+            Processing data (0 member(s)): DONE
+        Group 6456312 (49/57)
+            Fetching URL...(1/1)
+            Processing data (9 member(s)): DONE
+        Group 6643182 (50/57)
+            Fetching URL...(1/1)
+            Processing data (10 member(s)): DONE
+        Group 6710462 (51/57)
+            Fetching URL...(0/0)
+            Processing data (0 member(s)): DONE
+        Group 6784572 (52/57)
+            Fetching URL...(1/1)
+            Processing data (67 member(s)): DONE
+        Group 6787582 (53/57)
+            Fetching URL...(1/1)
+            Processing data (18 member(s)): DONE
+        Group 6916982 (54/57)
+            Fetching URL...(1/1)
+            Processing data (16 member(s)): DONE
+        Group 6974822 (55/57)
+            Fetching URL...(1/1)
+            Processing data (31 member(s)): DONE
+        Group 7071932 (56/57)
+            Fetching URL...(1/1)
+            Processing data (11 member(s)): DONE
+        Group 7074052 (57/57)
+            Fetching URL...(1/1)
+            Processing data (19 member(s)): DONE
+    Get Events by Group...
+        Groups (1 to 11/57)
+            Fetching URL...(1/2)
+            Processing data (200 event(s)): DONE
+            Fetching URL...(2/2)
+            Processing data (54 event(s)): DONE
+        Groups (12 to 22/57)
+            Fetching URL...(1/1)
+            Processing data (72 event(s)): DONE
+        Groups (23 to 33/57)
+            Fetching URL...(1/1)
+            Processing data (40 event(s)): DONE
+        Groups (34 to 44/57)
+            Fetching URL...(1/1)
+            Processing data (11 event(s)): DONE
+        Groups (45 to 55/57)
+            Fetching URL...(1/1)
+            Processing data (14 event(s)): DONE
+        Groups (56 to 57/57)
+            Fetching URL...(0/0)
+            Processing data (0 event(s)): DONE
+    Get GroupTopics by Group...
+        Groups (1 to 26/57)
+            Fetching URL...(1/1)
+        Groups (27 to 52/57)
+            Fetching URL...(1/1)
+        Groups (53 to 57/57)
+            Fetching URL...(1/1)
+All Cities:
+    Get RSVPs by Events...
+        RSVPs (1 to 25/922)
+            Fetching URL...(1/3)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/3)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(3/3)
+            Processing data (26 rsvp(s)): DONE
+        RSVPs (26 to 50/922)
+            Fetching URL...(1/2)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/2)
+            Processing data (15 rsvp(s)): DONE
+        RSVPs (51 to 75/922)
+            Fetching URL...(1/2)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/2)
+            Processing data (138 rsvp(s)): DONE
+        RSVPs (76 to 100/922)
+            Fetching URL...(1/2)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/2)
+            Processing data (196 rsvp(s)): DONE
+        RSVPs (101 to 125/922)
+            Fetching URL...(1/2)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/2)
+            Processing data (65 rsvp(s)): DONE
+        RSVPs (126 to 150/922)
+            Fetching URL...(1/4)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/4)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(3/4)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(4/4)
+            Processing data (88 rsvp(s)): DONE
+        RSVPs (151 to 175/922)
+            Fetching URL...(1/4)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/4)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(3/4)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(4/4)
+            Processing data (33 rsvp(s)): DONE
+        RSVPs (176 to 200/922)
+            Fetching URL...(1/4)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/4)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(3/4)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(4/4)
+            Processing data (25 rsvp(s)): DONE
+        RSVPs (201 to 225/922)
+            Fetching URL...(1/4)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/4)
+            Processing data (200 rsvp(s)): DONE
+
+>>>  API Key augusto_ccc: Call Limit Exceeded
+>>>  New API Key: augusto_gmail
+
+            Fetching URL...(3/4)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(4/4)
+            Processing data (45 rsvp(s)): DONE
+        RSVPs (226 to 250/922)
+            Fetching URL...(1/2)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/2)
+            Processing data (152 rsvp(s)): DONE
+        RSVPs (251 to 275/922)
+            Fetching URL...(1/5)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/5)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(3/5)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(4/5)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(5/5)
+            Processing data (145 rsvp(s)): DONE
+        RSVPs (276 to 300/922)
+            Fetching URL...(1/4)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/4)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(3/4)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(4/4)
+            Processing data (166 rsvp(s)): DONE
+        RSVPs (301 to 325/922)
+            Fetching URL...(1/3)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/3)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(3/3)
+            Processing data (24 rsvp(s)): DONE
+        RSVPs (326 to 350/922)
+            Fetching URL...(1/3)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/3)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(3/3)
+            Processing data (147 rsvp(s)): DONE
+        RSVPs (351 to 375/922)
+            Fetching URL...(1/3)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/3)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(3/3)
+            Processing data (122 rsvp(s)): DONE
+        RSVPs (376 to 400/922)
+            Fetching URL...(1/3)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/3)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(3/3)
+            Processing data (196 rsvp(s)): DONE
+        RSVPs (401 to 425/922)
+            Fetching URL...(1/3)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/3)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(3/3)
+            Processing data (66 rsvp(s)): DONE
+        RSVPs (426 to 450/922)
+            Fetching URL...(1/3)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/3)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(3/3)
+            Processing data (175 rsvp(s)): DONE
+        RSVPs (451 to 475/922)
+            Fetching URL...(1/3)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/3)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(3/3)
+            Processing data (102 rsvp(s)): DONE
+        RSVPs (476 to 500/922)
+            Fetching URL...(1/2)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/2)
+            Processing data (61 rsvp(s)): DONE
+        RSVPs (501 to 525/922)
+            Fetching URL...(1/2)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/2)
+            Processing data (68 rsvp(s)): DONE
+        RSVPs (526 to 550/922)
+            Fetching URL...(1/1)
+            Processing data (199 rsvp(s)): DONE
+        RSVPs (551 to 575/922)
+            Fetching URL...(1/2)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/2)
+            Processing data (2 rsvp(s)): DONE
+        RSVPs (576 to 600/922)
+            Fetching URL...(1/1)
+            Processing data (148 rsvp(s)): DONE
+        RSVPs (601 to 625/922)
+            Fetching URL...(1/2)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/2)
+            Processing data (127 rsvp(s)): DONE
+        RSVPs (626 to 650/922)
+            Fetching URL...(1/1)
+            Processing data (41 rsvp(s)): DONE
+        RSVPs (651 to 675/922)
+            Fetching URL...(1/1)
+            Processing data (74 rsvp(s)): DONE
+        RSVPs (676 to 700/922)
+            Fetching URL...(1/1)
+            Processing data (85 rsvp(s)): DONE
+        RSVPs (701 to 725/922)
+            Fetching URL...(1/1)
+            Processing data (75 rsvp(s)): DONE
+        RSVPs (726 to 750/922)
+            Fetching URL...(1/1)
+            Processing data (72 rsvp(s)): DONE
+        RSVPs (751 to 775/922)
+            Fetching URL...(1/2)
+            Processing data (200 rsvp(s)): DONE
+            Fetching URL...(2/2)
+            Processing data (133 rsvp(s)): DONE
+        RSVPs (776 to 800/922)
+            Fetching URL...(1/1)
+            Processing data (84 rsvp(s)): DONE
+        RSVPs (801 to 825/922)
+            Fetching URL...(1/1)
+            Processing data (48 rsvp(s)): DONE
+        RSVPs (826 to 850/922)
+            Fetching URL...(1/1)
+            Processing data (75 rsvp(s)): DONE
+        RSVPs (851 to 875/922)
+            Fetching URL...(1/1)
+            Processing data (50 rsvp(s)): DONE
+        RSVPs (876 to 900/922)
+            Fetching URL...(1/1)
+            Processing data (48 rsvp(s)): DONE
+        RSVPs (901 to 922/922)
+            Fetching URL...(1/1)
+            Processing data (107 rsvp(s)): DONE
+FINISHED! =D
