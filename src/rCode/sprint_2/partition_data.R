@@ -4,6 +4,7 @@ library(lubridate)
 library(plyr)
 library(ggplot2)
 
+
 ######################################################
 ## DATA PARTITIONS CREATION                         ##
 ## Partitioning the events by CITY, CHRONOLOGICALLY ##
