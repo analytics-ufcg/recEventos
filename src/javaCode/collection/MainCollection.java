@@ -80,7 +80,7 @@ public class MainCollection {
 		String key = "";
 		do {
 			// Check and stop for 1 hour, if needed
-			key = ApiKeysManager.getKey();
+			key = ApiKeysManager.getKey(urlConn);
 
 			// Parse the JSON object directly from the URL
 			println("Fetching URL...");
@@ -190,7 +190,7 @@ public class MainCollection {
 
 			do {
 				// Check and stop for 1 hour, if needed
-				key = ApiKeysManager.getKey();
+				key = ApiKeysManager.getKey(urlConn);
 
 				print("Fetching URL...");
 
@@ -311,7 +311,7 @@ public class MainCollection {
 			boolean hasMoreData = true;
 			do {
 				// Check and stop for 1 hour, if needed
-				key = ApiKeysManager.getKey();
+				key = ApiKeysManager.getKey(urlConn);
 
 				print("Fetching URL...");
 
@@ -419,7 +419,7 @@ public class MainCollection {
 			boolean hasMoreData = true;
 			do {
 				// Check and stop for 1 hour, if needed
-				key = ApiKeysManager.getKey();
+				key = ApiKeysManager.getKey(urlConn);
 
 				// Read all the members of the group
 				print("Fetching URL...");
@@ -507,7 +507,7 @@ public class MainCollection {
 			boolean hasMoreData = true;
 			do {
 				// Check and stop for 1 hour at most, if needed
-				key = ApiKeysManager.getKey();
+				key = ApiKeysManager.getKey(urlConn);
 
 				print("Fetching URL...");
 				urlConn = new URL(URLManager.getRSVPsURLByEvents(key, eventIds,
