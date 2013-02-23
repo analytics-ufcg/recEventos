@@ -6,6 +6,7 @@ import javaCode.collection.MainCollection;
 public class URLManager {
 
 	public static final int PAGE_SIZE = 200;
+	public static final int MAX_OFFSET = 200;
 
 	private static final String GROUP_ATTRIBUTES = "id,name,urlname,created,city,country,join_mode,visibility,lat,lon,members,organizer.id,category";
 	private static final String MEMBER_ATTRIBUTES = "id,name,city,country,lon,lat,joined,topics.id,topics.name";

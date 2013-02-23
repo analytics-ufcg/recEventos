@@ -83,7 +83,7 @@ public class MainCollection {
 			key = ApiKeysManager.getKey();
 
 			// Parse the JSON object directly from the URL
-			println("        Fetching URL...");
+			println("Fetching URL...");
 
 			urlConn = new URL(URLManager.getFindGroupsURLByCity(key, cityIndex,
 					offset)).openConnection();
@@ -122,8 +122,11 @@ public class MainCollection {
 					offset);
 
 			// Checks if there is any more data to fetch
-			if (groupArray.length > 200) {
-				offset++;
+			if (groupArray.length >= URLManager.PAGE_SIZE
+					&& offset < (URLManager.MAX_OFFSET * 200)) {
+				// The find groups has a different behavior for the offset (we
+				// have to sum the page size to get new objects)
+				offset += URLManager.PAGE_SIZE;
 			} else {
 				keepFetching = false;
 			}
@@ -189,7 +192,7 @@ public class MainCollection {
 				// Check and stop for 1 hour, if needed
 				key = ApiKeysManager.getKey();
 
-				print("            Fetching URL...");
+				print("Fetching URL...");
 
 				urlConn = new URL(URLManager.getMembersURLByGroup(key, groupId,
 						offset)).openConnection();
@@ -243,7 +246,8 @@ public class MainCollection {
 				Tracer.writeTraceFile(cityIndex, Tracer.MEMBERS_BYGROUP_INDEX,
 						groupIndex, 0, 0, offset);
 
-				if (memberResults.getMeta().getTotal_count() > (URLManager.PAGE_SIZE * (offset + 1))) {
+				if (memberResults.getMeta().getTotal_count() > (URLManager.PAGE_SIZE * (offset + 1))
+						&& offset < URLManager.MAX_OFFSET) {
 					offset++;
 				} else {
 					hasMoreData = false;
@@ -309,7 +313,7 @@ public class MainCollection {
 				// Check and stop for 1 hour, if needed
 				key = ApiKeysManager.getKey();
 
-				print("            Fetching URL...");
+				print("Fetching URL...");
 
 				// Parse the JSON object directly from the URL
 				urlConn = new URL(URLManager.getEventsURLByGroup(key, groupIds,
@@ -352,7 +356,8 @@ public class MainCollection {
 						groupIndex, 0, 0, offset);
 
 				// Checks if there is more data to fetch
-				if (eventResults.getMeta().getTotal_count() > (URLManager.PAGE_SIZE * (offset + 1))) {
+				if (eventResults.getMeta().getTotal_count() > (URLManager.PAGE_SIZE * (offset + 1))
+						&& offset < URLManager.MAX_OFFSET) {
 					offset++;
 				} else {
 					hasMoreData = false;
@@ -417,7 +422,7 @@ public class MainCollection {
 				key = ApiKeysManager.getKey();
 
 				// Read all the members of the group
-				print("            Fetching URL...");
+				print("Fetching URL...");
 
 				urlConn = new URL(URLManager.getGroupsURLByGroupId(key,
 						groupIds, offset)).openConnection();
@@ -448,7 +453,8 @@ public class MainCollection {
 						offset);
 
 				// Checks if there is more data to fetch
-				if (groupTopicsResults.getMeta().getTotal_count() > (URLManager.PAGE_SIZE * (offset + 1))) {
+				if (groupTopicsResults.getMeta().getTotal_count() > (URLManager.PAGE_SIZE * (offset + 1))
+						&& offset < URLManager.MAX_OFFSET) {
 					offset++;
 				} else {
 					hasMoreData = false;
@@ -503,7 +509,7 @@ public class MainCollection {
 				// Check and stop for 1 hour at most, if needed
 				key = ApiKeysManager.getKey();
 
-				print("            Fetching URL...");
+				print("Fetching URL...");
 				urlConn = new URL(URLManager.getRSVPsURLByEvents(key, eventIds,
 						offset)).openConnection();
 				Results<RSVP> rsvpResults = mapper.readValue(
@@ -534,7 +540,8 @@ public class MainCollection {
 						0, eventIndex, offset);
 
 				// Checks if there is more data to fetch
-				if (rsvpResults.getMeta().getTotal_count() > (URLManager.PAGE_SIZE * (offset + 1))) {
+				if (rsvpResults.getMeta().getTotal_count() > (URLManager.PAGE_SIZE * (offset + 1))
+						&& offset < URLManager.MAX_OFFSET) {
 					offset++;
 				} else {
 					hasMoreData = false;
