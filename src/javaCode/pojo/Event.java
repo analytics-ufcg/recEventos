@@ -4,13 +4,10 @@ public class Event {
 
 	private String id;
 	private long rsvp_limit;
-	private long maybe_rsvp_count;
-	private long yes_rsvp_count;
 	private String visibility;
 	private String status;
 	private long utc_offset;
 	private long time;
-	private long waitlist_count;
 	private long created;
 	private String name;
 	private long headcount;
@@ -31,22 +28,6 @@ public class Event {
 
 	public void setRsvp_limit(long rsvp_limit) {
 		this.rsvp_limit = rsvp_limit;
-	}
-
-	public long getMaybe_rsvp_count() {
-		return maybe_rsvp_count;
-	}
-
-	public void setMaybe_rsvp_count(long maybe_rsvp_count) {
-		this.maybe_rsvp_count = maybe_rsvp_count;
-	}
-
-	public long getYes_rsvp_count() {
-		return yes_rsvp_count;
-	}
-
-	public void setYes_rsvp_count(long yes_rsvp_count) {
-		this.yes_rsvp_count = yes_rsvp_count;
 	}
 
 	public String getVisibility() {
@@ -79,14 +60,6 @@ public class Event {
 
 	public void setTime(long time) {
 		this.time = time;
-	}
-
-	public long getWaitlist_count() {
-		return waitlist_count;
-	}
-
-	public void setWaitlist_count(long waitlist_count) {
-		this.waitlist_count = waitlist_count;
 	}
 
 	public long getCreated() {
@@ -129,4 +102,3 @@ public class Event {
 		this.group = group;
 	}
 }
-

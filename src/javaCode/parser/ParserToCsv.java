@@ -336,18 +336,6 @@ public class ParserToCsv {
 					if ((new Long(event.getRsvp_limit()) != null)) {
 						eventData[8] = String.valueOf(event.getRsvp_limit());
 					}
-					if ((new Long(event.getMaybe_rsvp_count()) != null)) {
-						eventData[9] = String.valueOf(event
-								.getMaybe_rsvp_count());
-					}
-					if (new Long(event.getYes_rsvp_count()) != null) {
-						eventData[10] = String.valueOf(event
-								.getYes_rsvp_count());
-					}
-					if (new Long(event.getWaitlist_count()) != null) {
-						eventData[11] = String.valueOf(event
-								.getWaitlist_count());
-					}
 					if (event.getVenue() != null) {
 						String[] venueArray = checkAttributesVenue(event
 								.getVenue());

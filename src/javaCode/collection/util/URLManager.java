@@ -10,7 +10,7 @@ public class URLManager {
 
 	private static final String GROUP_ATTRIBUTES = "id,name,urlname,created,city,country,join_mode,visibility,lat,lon,members,organizer.id,category";
 	private static final String MEMBER_ATTRIBUTES = "id,name,city,country,lon,lat,joined,topics.id,topics.name";
-	private static final String EVENT_ATTRIBUTES = "id,rsvp_limit,maybe_rsvp_count,yes_rsvp_count,waitlist_count,visibility,status,utc_offset,time,created,name,headcount,group.id,venue.id,venue.lon,venue.lat,venue.name,venue.address_1,venue.address_2,venue.address_3,venue.city,venue.country,venue.rating,venue.rating_count";
+	private static final String EVENT_ATTRIBUTES = "id,rsvp_limit,visibility,status,utc_offset,time,created,name,headcount,group.id,venue.id,venue.lon,venue.lat,venue.name,venue.address_1,venue.address_2,venue.address_3,venue.city,venue.country,venue.rating,venue.rating_count";
 	private static final String GROUPTOPIC_ATTRIBUTES = "id,topics.id,topics.name";
 	private static final String VENUE_ATTRIBUTES = "id,lon,lat,name,address_1,address_2,address_3,city,country,rating,rating_count";
 	private static final String RSVP_ATTRIBUTES = "rsvp_id,created,mtime,member.member_id,response,event.id";
