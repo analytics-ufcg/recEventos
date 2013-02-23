@@ -77,16 +77,16 @@ public class MainCollection {
 			groupIdsPerCity = new TreeSet<Long>();
 		}
 
+		String key = "";
 		do {
 			// Check and stop for 1 hour, if needed
-			ApiKeysManager.checkApiCallLimit(urlConn);
+			key = ApiKeysManager.getKey();
 
 			// Parse the JSON object directly from the URL
 			println("        Fetching URL...");
 
-			urlConn = new URL(URLManager.getFindGroupsURLByCity(
-					ApiKeysManager.getKey(), cityIndex, offset))
-					.openConnection();
+			urlConn = new URL(URLManager.getFindGroupsURLByCity(key, cityIndex,
+					offset)).openConnection();
 
 			Group[] groupArray = mapper.readValue(
 					new InputStreamReader(urlConn.getInputStream(),
@@ -171,6 +171,8 @@ public class MainCollection {
 			memberIdsPerCity = new TreeSet<Long>();
 		}
 
+		String key = "";
+
 		// Foreach groupId of the given city do...
 		int i = 0;
 		for (Long groupId : groupIdsPerCity) {
@@ -185,13 +187,12 @@ public class MainCollection {
 
 			do {
 				// Check and stop for 1 hour, if needed
-				ApiKeysManager.checkApiCallLimit(urlConn);
+				key = ApiKeysManager.getKey();
 
 				print("            Fetching URL...");
 
-				urlConn = new URL(URLManager.getMembersURLByGroup(
-						ApiKeysManager.getKey(), groupId, offset))
-						.openConnection();
+				urlConn = new URL(URLManager.getMembersURLByGroup(key, groupId,
+						offset)).openConnection();
 				Results<Member> memberResults = mapper.readValue(
 						new InputStreamReader(urlConn.getInputStream(),
 								IOManager.CHAR_SET),
@@ -290,6 +291,7 @@ public class MainCollection {
 			allEventIds = new TreeSet<String>();
 		}
 
+		String key = "";
 		final int groupsPerCall = 10;
 
 		// Foreach group do...
@@ -305,13 +307,13 @@ public class MainCollection {
 			boolean hasMoreData = true;
 			do {
 				// Check and stop for 1 hour, if needed
-				ApiKeysManager.checkApiCallLimit(urlConn);
+				key = ApiKeysManager.getKey();
 
 				print("            Fetching URL...");
+
 				// Parse the JSON object directly from the URL
-				urlConn = new URL(URLManager.getEventsURLByGroup(
-						ApiKeysManager.getKey(), groupIds, offset))
-						.openConnection();
+				urlConn = new URL(URLManager.getEventsURLByGroup(key, groupIds,
+						offset)).openConnection();
 				Results<Event> eventResults = mapper.readValue(
 						new InputStreamReader(urlConn.getInputStream(),
 								IOManager.CHAR_SET),
@@ -397,9 +399,8 @@ public class MainCollection {
 		int offset = Tracer.getOffset();
 
 		ObjectMapper mapper = new ObjectMapper();
-
+		String key = "";
 		final int groupsPerCall = 25;
-
 		// Foreach group do...
 		for (; groupIndex < groupIdsPerCity.size();) {
 			int lastIndex = Math.min(groupIndex + groupsPerCall,
@@ -413,14 +414,13 @@ public class MainCollection {
 			boolean hasMoreData = true;
 			do {
 				// Check and stop for 1 hour, if needed
-				ApiKeysManager.checkApiCallLimit(urlConn);
+				key = ApiKeysManager.getKey();
 
 				// Read all the members of the group
 				print("            Fetching URL...");
 
-				urlConn = new URL(URLManager.getGroupsURLByGroupId(
-						ApiKeysManager.getKey(), groupIds, offset))
-						.openConnection();
+				urlConn = new URL(URLManager.getGroupsURLByGroupId(key,
+						groupIds, offset)).openConnection();
 				Results<GroupTopics> groupTopicsResults = mapper.readValue(
 						new InputStreamReader(urlConn.getInputStream(),
 								IOManager.CHAR_SET),
@@ -484,7 +484,7 @@ public class MainCollection {
 		int offset = Tracer.getOffset();
 
 		ObjectMapper mapper = new ObjectMapper();
-
+		String key = "";
 		final int eventsPerCall = 24;
 
 		// Foreach member do...
@@ -501,12 +501,11 @@ public class MainCollection {
 			boolean hasMoreData = true;
 			do {
 				// Check and stop for 1 hour at most, if needed
-				ApiKeysManager.checkApiCallLimit(urlConn);
+				key = ApiKeysManager.getKey();
 
 				print("            Fetching URL...");
-				urlConn = new URL(URLManager.getRSVPsURLByEvents(
-						ApiKeysManager.getKey(), eventIds, offset))
-						.openConnection();
+				urlConn = new URL(URLManager.getRSVPsURLByEvents(key, eventIds,
+						offset)).openConnection();
 				Results<RSVP> rsvpResults = mapper.readValue(
 						new InputStreamReader(urlConn.getInputStream(),
 								IOManager.CHAR_SET),
@@ -568,7 +567,7 @@ public class MainCollection {
 	/*
 	 * READ PROPERTIES
 	 */
-	private static void readPropertiesFile() throws FileNotFoundException {
+	public static void readPropertiesFile() throws FileNotFoundException {
 		Scanner sc = new Scanner(new File("properties.txt"));
 		String[] entries = null, newKeys = null, keyNames = null;
 		while (sc.hasNext()) {

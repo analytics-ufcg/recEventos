@@ -119,8 +119,16 @@ partition.member.count <- merge(event.partitions, rsvp.members.per.event,
                                 by="event_id", all.x = T)
 partition.member.count[is.na(partition.member.count$member_count),"member_count"] <- 0
 
-# Image with the Members Count per (city, partition and data_split)
-png("data_output/data_partition_analysis-member_count.png", width=1000, height=800)
+# Image with the Events Count per (city, partition and data_split)
+png("data_output/data_partition_analysis-event_count.png", width=1000, height=800)
+print(ggplot(partition.member.count, aes(x = partition, fill = data_split)) + 
+        geom_bar(position = "dodge", width = .65) + 
+        facet_wrap(~ city, scales="free_y") + 
+        xlab("time percentage partition") + ylab("members count"))
+dev.off()
+
+# TODO (augusto): Image with the Members Count per (city, partition and data_split)
+png("data_output/data_partition_analysis-event_count.png", width=1000, height=800)
 print(ggplot(partition.member.count, aes(x = partition, fill = data_split)) + 
         geom_bar(position = "dodge", width = .65) + 
         facet_wrap(~ city, scales="free_y") + 
