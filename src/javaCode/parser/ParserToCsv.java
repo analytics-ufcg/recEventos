@@ -171,19 +171,29 @@ public class ParserToCsv {
 			String memberCsvFilename, String topicCsvFilename,
 			String memberTopicCsvFilename) throws IOException {
 
-		CSVWriter memberWriter = new CSVWriter(
-				new FileWriter(memberCsvFilename), CSV_SEPARATOR);
+		CSVWriter memberWriter = null;
 		CSVWriter topicWriter = new CSVWriter(new FileWriter(topicCsvFilename),
 				CSV_SEPARATOR);
 		CSVWriter memberTopicWriter = new CSVWriter(new FileWriter(
 				memberTopicCsvFilename), CSV_SEPARATOR);
 
-		memberWriter.writeNext(new String[] { "id", "name", "city", "country",
-				"lon", "lat", "joined" });
 		topicWriter.writeNext(new String[] { "id", "name" });
 		memberTopicWriter.writeNext(new String[] { "member_id", "topic_id" });
 
+		Arrays.sort(memberJsonFiles, new JsonFilenameComparator());
+
+		int i = 0;
 		for (File f : memberJsonFiles) {
+
+			if (i++ % 5 == 0) {
+				if (memberWriter != null) {
+					memberWriter.close();
+				}
+				memberWriter = new CSVWriter(new FileWriter(memberCsvFilename
+						+ "_" + (((i - 1) / 5) + 1) + ".csv"), CSV_SEPARATOR);
+				memberWriter.writeNext(new String[] { "id", "name", "city",
+						"country", "lon", "lat", "joined" });
+			}
 
 			Scanner sc = new Scanner(f, CHAR_SET);
 
@@ -287,9 +297,7 @@ public class ParserToCsv {
 						+ "_" + (((i - 1) / 5) + 1) + ".csv"), CSV_SEPARATOR);
 				eventWriter.writeNext(new String[] { "id", "name", "created",
 						"time", "utc_offset", "status", "visibility",
-						"headCount", "rsvp_limit", "maybe_rsvp_count",
-						"yes_rsvp_count", "waitlist_count", "venue_id",
-						"group_id" });
+						"headCount", "rsvp_limit", "venue_id", "group_id" });
 			}
 
 			Scanner sc = new Scanner(file, CHAR_SET);
@@ -307,7 +315,7 @@ public class ParserToCsv {
 
 					eventIds.add(event.getId());
 
-					String[] eventData = new String[14];
+					String[] eventData = new String[11];
 
 					if (event.getId() != null) {
 						eventData[0] = event.getId();
@@ -339,7 +347,7 @@ public class ParserToCsv {
 					if (event.getVenue() != null) {
 						String[] venueArray = checkAttributesVenue(event
 								.getVenue());
-						eventData[12] = venueArray[0];
+						eventData[9] = venueArray[0];
 
 						// Adiciona venues do event no arquivo .csv
 						if (!venueIds.contains(event.getVenue().getId())) {
@@ -348,7 +356,7 @@ public class ParserToCsv {
 						}
 					}
 					if (new Long(event.getGroup().getId()) != null) {
-						eventData[13] = String
+						eventData[10] = String
 								.valueOf(event.getGroup().getId());
 
 						groupEventWriter.writeNext(new String[] {
@@ -421,8 +429,8 @@ public class ParserToCsv {
 		groupTopicWriter.close();
 	}
 
-	public static void createCsvFromRSVP(File[] rsvpJsonFiles, String rsvpCsvFilename)
-			throws IOException {
+	public static void createCsvFromRSVP(File[] rsvpJsonFiles,
+			String rsvpCsvFilename) throws IOException {
 
 		ObjectMapper mapper = new ObjectMapper();
 		CSVWriter rsvpWriter = null;

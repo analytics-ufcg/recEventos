@@ -126,7 +126,7 @@ public class ApiKeysManager {
 				if (diffMillis >= CALL_INTERVAL_CHANGE_TIME_IN_MINUTES
 						* (60 * 1000)) {
 
-					if (callIntervalInMillis >= MIN_CALL_INTERVAL) {
+					if (callIntervalInMillis > MIN_CALL_INTERVAL) {
 
 						callIntervalInMillis -= CALL_INTERVAL_DECREASE_STEP_IN_MILLIS;
 
@@ -176,32 +176,32 @@ public class ApiKeysManager {
 
 	}
 
-//	public static void main(String[] args) throws MalformedURLException,
-//			IOException {
-//		MainCollection.readPropertiesFile();
-//
-//		 URLConnection urlConn = new URL(URLManager.getEventsURLByMember(
-//		 "4c5f7a107b7624226a67794025897c", new Long(10341972), 0))
-//		 .openConnection();
-//
-////		URLConnection urlConn = new URL(
-////				"https://api.meetup.com/ew/events?key=7f422a3a6e6d253c7e62585b722a6&sign=true&page=20")
-////				.openConnection();
-//
-//		System.out.println(urlConn.getHeaderFields());
-//		System.out.println(((HttpURLConnection) urlConn).getResponseCode());
-//
-//		// BufferedReader br = new BufferedReader(new
-//		// InputStreamReader(urlConn.getInputStream()));
-//		// System.out.println(br.readLine());
-//
-//		for (int i = 0; i < 2000; i++) {
-//			getKey();
-//			System.out.println();
-//			if (!checkConnectionCondition(urlConn))
-//				continue;
-//
-//			System.out.println();
-//		}
-//	}
+	public static void main(String[] args) throws MalformedURLException,
+			IOException {
+		MainCollection.readPropertiesFile();
+
+		URLConnection urlConn = new URL(URLManager.getEventsURLByMember(
+				"4c5f7a107b7624226a67794025897c", new Long(10341972), 0))
+				.openConnection();
+
+		// URLConnection urlConn = new URL(
+		// "https://api.meetup.com/ew/events?key=7f422a3a6e6d253c7e62585b722a6&sign=true&page=20")
+		// .openConnection();
+
+		System.out.println(urlConn.getHeaderFields());
+		System.out.println(((HttpURLConnection) urlConn).getResponseCode());
+
+		// BufferedReader br = new BufferedReader(new
+		// InputStreamReader(urlConn.getInputStream()));
+		// System.out.println(br.readLine());
+
+		for (int i = 0; i < 2000; i++) {
+			getKey();
+			System.out.println();
+			if (!checkConnectionCondition(urlConn))
+				continue;
+
+			System.out.println();
+		}
+	}
 }

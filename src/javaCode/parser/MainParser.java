@@ -48,7 +48,7 @@ public class MainParser {
 		ParserToCsv.createCsvFromMemberWithTopics(new File(dataDir
 				+ MainCollection.MEMBER + "s")
 				.listFiles(new JsonFilenameFilter(MainCollection.MEMBER)),
-				dataCsvDir + MainCollection.MEMBER + "s.csv", dataCsvDir
+				dataCsvDir + MainCollection.MEMBER + "s", dataCsvDir
 						+ MainCollection.TOPIC + "s.csv", dataCsvDir
 						+ "member_topics.csv");
 
@@ -68,8 +68,8 @@ public class MainParser {
 						+ "group_topics.csv");
 
 		System.out.println("    RSVPs...");
-		ParserToCsv.createCsvFromRSVP(new File(dataDir + MainCollection.RSVP + "s")
-				.listFiles(new JsonFilenameFilter(MainCollection.RSVP)),
+		ParserToCsv.createCsvFromRSVP(new File(dataDir + MainCollection.RSVP
+				+ "s").listFiles(new JsonFilenameFilter(MainCollection.RSVP)),
 				dataCsvDir + MainCollection.RSVP + "s");
 
 		System.out.println("Finished!");
