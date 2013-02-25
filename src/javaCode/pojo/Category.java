@@ -1,5 +1,5 @@
 package javaCode.pojo;
-
+//mod
 public class Category {
 
 	private long id;
