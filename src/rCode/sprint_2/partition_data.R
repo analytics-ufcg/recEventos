@@ -140,14 +140,9 @@ write.csv(event.partitions, file = "data_output/data_partitions.csv", row.names 
 
 # Image with the Members Count per (city, partition and data_split)
 print(noquote("Generating bar charts by city with the member count per partitions and data_split"))
-png("data_output/data_partition_analysis-member_count.png", width=3000, height=1600)
+png("data_output/data_partition_analysis-member_count.png", width=4000, height=2000)
 print(ggplot(event.partitions, aes(x = partition, fill = data_split)) + 
         geom_bar(aes(weight = member_count), position = "dodge", width = .6) + 
         facet_wrap(~ city, , scales="free_y")  + 
         xlab("time percentage partition") + ylab("members count"))
 dev.off()
-
-# a <- event.partitions[event.partitions$city == "Boulder Creek" &
-#                               event.partitions$partition == '0.2',]
-# sum(a[a$data_split == "train",]$member_count)
-# sum(a[a$data_split == "test",]$member_count)
