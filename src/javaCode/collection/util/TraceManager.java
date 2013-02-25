@@ -6,7 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
 
-public class Tracer {
+public class TraceManager {
 
 	private final static String TRACE_FILENAME = "data/trace.txt";
 	private final static String VAR_SEPARATOR = ",";
@@ -101,6 +101,6 @@ public class Tracer {
 	}
 
 	public static void setEventIndex(int eventIndex) {
-		Tracer.eventIndex = eventIndex;
+		TraceManager.eventIndex = eventIndex;
 	}
 }

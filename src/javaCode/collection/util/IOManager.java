@@ -246,19 +246,6 @@ public class IOManager {
 		outJsonPerCity.close();
 	}
 
-	public static void appendJsonEventRelations(String objectType, Long id,
-			TreeSet<String> idList) throws IOException {
-		OutputStreamWriter outJsonPerCity = new OutputStreamWriter(
-				new FileOutputStream(new File(
-						getObjectAllIdsFilename(objectType)), true), CHAR_SET);
-
-		// Append a new line to the city file
-		outJsonPerCity.append(id + FIELD_SEPARATOR
-				+ idList.toString().replace(" ", "") + LINE_SEPARATOR);
-
-		outJsonPerCity.close();
-	}
-
 	/*
 	 * EVENT ID METHODS, STRING PROBLEM
 	 */

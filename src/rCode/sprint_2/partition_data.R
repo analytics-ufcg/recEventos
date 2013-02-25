@@ -124,12 +124,12 @@ png("data_output/data_partition_analysis-event_count.png", width=1000, height=80
 print(ggplot(partition.member.count, aes(x = partition, fill = data_split)) + 
         geom_bar(position = "dodge", width = .65) + 
         facet_wrap(~ city, scales="free_y") + 
-        xlab("time percentage partition") + ylab("members count"))
+        xlab("time percentage partition") + ylab("events count"))
 dev.off()
 
 # TODO (augusto): Image with the Members Count per (city, partition and data_split)
-png("data_output/data_partition_analysis-event_count.png", width=1000, height=800)
-print(ggplot(partition.member.count, aes(x = partition, fill = data_split)) + 
+png("data_output/data_partition_analysis-member_count.png", width=1000, height=800)
+print(ggplot(partition.member.count, aes(x = partition, y = member_count, fill = data_split)) + 
         geom_bar(position = "dodge", width = .65) + 
         facet_wrap(~ city, scales="free_y") + 
         xlab("time percentage partition") + ylab("members count"))

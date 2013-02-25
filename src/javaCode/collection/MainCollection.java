@@ -12,7 +12,7 @@ import java.util.Scanner;
 import java.util.TreeSet;
 import javaCode.collection.util.ApiKeysManager;
 import javaCode.collection.util.IOManager;
-import javaCode.collection.util.Tracer;
+import javaCode.collection.util.TraceManager;
 import javaCode.collection.util.URLManager;
 import javaCode.pojo.Event;
 import javaCode.pojo.Group;
@@ -50,7 +50,7 @@ public class MainCollection {
 	private static void findGroupsByCity(int cityIndex) throws IOException {
 
 		// Set the initial offset
-		int offset = Tracer.getOffset();
+		int offset = TraceManager.getOffset();
 
 		ObjectMapper mapper = new ObjectMapper();
 
@@ -80,13 +80,16 @@ public class MainCollection {
 		String key = "";
 		do {
 			// Check and stop for 1 hour, if needed
-			key = ApiKeysManager.getKey(urlConn);
+			key = ApiKeysManager.getKey();
 
 			// Parse the JSON object directly from the URL
 			println("Fetching URL...");
 
 			urlConn = new URL(URLManager.getFindGroupsURLByCity(key, cityIndex,
 					offset)).openConnection();
+
+			if (!ApiKeysManager.checkConnectionCondition(urlConn))
+				continue;
 
 			Group[] groupArray = mapper.readValue(
 					new InputStreamReader(urlConn.getInputStream(),
@@ -118,8 +121,8 @@ public class MainCollection {
 			}
 
 			// Rewrite the trace file
-			Tracer.writeTraceFile(cityIndex, Tracer.FINDGROUPS_INDEX, 0, 0, 0,
-					offset);
+			TraceManager.writeTraceFile(cityIndex,
+					TraceManager.FINDGROUPS_INDEX, 0, 0, 0, offset);
 
 			// Checks if there is any more data to fetch
 			if (groupArray.length >= URLManager.PAGE_SIZE
@@ -148,10 +151,10 @@ public class MainCollection {
 		}
 
 		// Set the initial groupIndex
-		int groupIndex = Tracer.getGroupIndex();
+		int groupIndex = TraceManager.getGroupIndex();
 
 		// Set the initial offset
-		int offset = Tracer.getOffset();
+		int offset = TraceManager.getOffset();
 
 		ObjectMapper mapper = new ObjectMapper();
 
@@ -162,16 +165,6 @@ public class MainCollection {
 		} catch (IOException e) {
 			// There is no id yet...
 			allMemberIds = new TreeSet<Long>();
-		}
-
-		// Read the member id's per city already stored
-		TreeSet<Long> memberIdsPerCity;
-		try {
-			memberIdsPerCity = IOManager
-					.readObjectIdsPerCity(cityIndex, MEMBER);
-		} catch (IOException e) {
-			// There is no id yet...
-			memberIdsPerCity = new TreeSet<Long>();
 		}
 
 		String key = "";
@@ -190,12 +183,16 @@ public class MainCollection {
 
 			do {
 				// Check and stop for 1 hour, if needed
-				key = ApiKeysManager.getKey(urlConn);
+				key = ApiKeysManager.getKey();
 
 				print("Fetching URL...");
 
 				urlConn = new URL(URLManager.getMembersURLByGroup(key, groupId,
 						offset)).openConnection();
+
+				if (!ApiKeysManager.checkConnectionCondition(urlConn))
+					continue;
+
 				Results<Member> memberResults = mapper.readValue(
 						new InputStreamReader(urlConn.getInputStream(),
 								IOManager.CHAR_SET),
@@ -220,7 +217,6 @@ public class MainCollection {
 					if (!allMemberIds.contains(member.getId())) {
 
 						allMemberIds.add(member.getId());
-						memberIdsPerCity.add(member.getId());
 						newMembers.add(member);
 					}// else clause {Ignores the repeated object}
 				}
@@ -229,22 +225,21 @@ public class MainCollection {
 				// Rewrite the all member ids file
 				IOManager.writeObjectAllIds(MEMBER, allMemberIds);
 
-				// Rewrite the member ids file per city
-				IOManager.writeObjectIdsPerCity(cityIndex, MEMBER,
-						memberIdsPerCity);
-
 				// Persist the new json objects, if there is any
 				if (!newMembers.isEmpty()) {
 					IOManager.appendJsonObjects(MEMBER, newMembers.toArray());
 				}
 
 				// Persist the json relation between group and members
-				IOManager.appendJsonRelations(GROUP_MEMBER, groupId,
-						groupMemberIds);
+				if (!groupMemberIds.isEmpty()) {
+					IOManager.appendJsonRelations(GROUP_MEMBER, groupId,
+							groupMemberIds);
+				}
 
 				// Rewrite the trace file
-				Tracer.writeTraceFile(cityIndex, Tracer.MEMBERS_BYGROUP_INDEX,
-						groupIndex, 0, 0, offset);
+				TraceManager.writeTraceFile(cityIndex,
+						TraceManager.MEMBERS_BYGROUP_INDEX, groupIndex, 0, 0,
+						offset);
 
 				if (memberResults.getMeta().getTotal_count() > (URLManager.PAGE_SIZE * (offset + 1))
 						&& offset < URLManager.MAX_OFFSET) {
@@ -278,10 +273,10 @@ public class MainCollection {
 		}
 
 		// Set the initial groupIndex
-		int groupIndex = Tracer.getGroupIndex();
+		int groupIndex = TraceManager.getGroupIndex();
 
 		// Set the initial offset
-		int offset = Tracer.getOffset();
+		int offset = TraceManager.getOffset();
 
 		ObjectMapper mapper = new ObjectMapper();
 
@@ -296,7 +291,7 @@ public class MainCollection {
 		}
 
 		String key = "";
-		final int groupsPerCall = 10;
+		final int groupsPerCall = 24;
 
 		// Foreach group do...
 		for (; groupIndex < groupIdsPerCity.size();) {
@@ -311,13 +306,17 @@ public class MainCollection {
 			boolean hasMoreData = true;
 			do {
 				// Check and stop for 1 hour, if needed
-				key = ApiKeysManager.getKey(urlConn);
+				key = ApiKeysManager.getKey();
 
 				print("Fetching URL...");
 
 				// Parse the JSON object directly from the URL
 				urlConn = new URL(URLManager.getEventsURLByGroup(key, groupIds,
 						offset)).openConnection();
+
+				if (!ApiKeysManager.checkConnectionCondition(urlConn))
+					continue;
+
 				Results<Event> eventResults = mapper.readValue(
 						new InputStreamReader(urlConn.getInputStream(),
 								IOManager.CHAR_SET),
@@ -352,8 +351,9 @@ public class MainCollection {
 				}
 
 				// Rewrite the trace file
-				Tracer.writeTraceFile(cityIndex, Tracer.EVENTS_BYGROUP_INDEX,
-						groupIndex, 0, 0, offset);
+				TraceManager.writeTraceFile(cityIndex,
+						TraceManager.EVENTS_BYGROUP_INDEX, groupIndex, 0, 0,
+						offset);
 
 				// Checks if there is more data to fetch
 				if (eventResults.getMeta().getTotal_count() > (URLManager.PAGE_SIZE * (offset + 1))
@@ -398,14 +398,15 @@ public class MainCollection {
 		}
 
 		// Set the initial groupIndex
-		int groupIndex = Tracer.getGroupIndex();
+		int groupIndex = TraceManager.getGroupIndex();
 
 		// Set the initial offset
-		int offset = Tracer.getOffset();
+		int offset = TraceManager.getOffset();
 
 		ObjectMapper mapper = new ObjectMapper();
 		String key = "";
-		final int groupsPerCall = 25;
+		final int groupsPerCall = 24;
+
 		// Foreach group do...
 		for (; groupIndex < groupIdsPerCity.size();) {
 			int lastIndex = Math.min(groupIndex + groupsPerCall,
@@ -419,13 +420,17 @@ public class MainCollection {
 			boolean hasMoreData = true;
 			do {
 				// Check and stop for 1 hour, if needed
-				key = ApiKeysManager.getKey(urlConn);
+				key = ApiKeysManager.getKey();
 
 				// Read all the members of the group
 				print("Fetching URL...");
 
 				urlConn = new URL(URLManager.getGroupsURLByGroupId(key,
 						groupIds, offset)).openConnection();
+
+				if (!ApiKeysManager.checkConnectionCondition(urlConn))
+					continue;
+
 				Results<GroupTopics> groupTopicsResults = mapper.readValue(
 						new InputStreamReader(urlConn.getInputStream(),
 								IOManager.CHAR_SET),
@@ -440,6 +445,10 @@ public class MainCollection {
 						+ (int) Math.ceil(totalObjects
 								/ (double) URLManager.PAGE_SIZE) + ")");
 
+				println("            Persisting data ("
+						+ groupTopicsResults.getResults().size()
+						+ " groups(s)): DONE");
+
 				// Persist the new Topics (if it isn't empty)
 				if (!groupTopicsResults.getResults().get(0).getTopics()
 						.isEmpty()) {
@@ -448,9 +457,9 @@ public class MainCollection {
 				}// else clause {Ignores the repeated object}
 
 				// Rewrite the trace file
-				Tracer.writeTraceFile(cityIndex,
-						Tracer.GROUPTOPICS_BYGROUP_INDEX, groupIndex, 0, 0,
-						offset);
+				TraceManager.writeTraceFile(cityIndex,
+						TraceManager.GROUPTOPICS_BYGROUP_INDEX, groupIndex, 0,
+						0, offset);
 
 				// Checks if there is more data to fetch
 				if (groupTopicsResults.getMeta().getTotal_count() > (URLManager.PAGE_SIZE * (offset + 1))
@@ -484,14 +493,14 @@ public class MainCollection {
 		}
 
 		// Set the initial members
-		int eventIndex = Tracer.getEventIndex();
+		int eventIndex = TraceManager.getEventIndex();
 
 		// Set the initial offset
-		int offset = Tracer.getOffset();
+		int offset = TraceManager.getOffset();
 
 		ObjectMapper mapper = new ObjectMapper();
 		String key = "";
-		final int eventsPerCall = 24;
+		final int eventsPerCall = 49;
 
 		// Foreach member do...
 		for (; eventIndex < allEventsIds.size();) {
@@ -507,11 +516,15 @@ public class MainCollection {
 			boolean hasMoreData = true;
 			do {
 				// Check and stop for 1 hour at most, if needed
-				key = ApiKeysManager.getKey(urlConn);
+				key = ApiKeysManager.getKey();
 
 				print("Fetching URL...");
 				urlConn = new URL(URLManager.getRSVPsURLByEvents(key, eventIds,
 						offset)).openConnection();
+
+				if (!ApiKeysManager.checkConnectionCondition(urlConn))
+					continue;
+
 				Results<RSVP> rsvpResults = mapper.readValue(
 						new InputStreamReader(urlConn.getInputStream(),
 								IOManager.CHAR_SET),
@@ -536,8 +549,9 @@ public class MainCollection {
 				}
 
 				// Rewrite the trace file
-				Tracer.writeTraceFile(cityIndex, Tracer.RSVPS_BYEVENT_INDEX, 0,
-						0, eventIndex, offset);
+				TraceManager.writeTraceFile(cityIndex,
+						TraceManager.RSVPS_BYEVENT_INDEX, 0, 0, eventIndex,
+						offset);
 
 				// Checks if there is more data to fetch
 				if (rsvpResults.getMeta().getTotal_count() > (URLManager.PAGE_SIZE * (offset + 1))
@@ -598,49 +612,49 @@ public class MainCollection {
 		readPropertiesFile();
 
 		// Read the trace.txt file
-		Tracer.readTraceFile();
+		TraceManager.readTraceFile();
 
 		// Set the initial cityIndex
-		int cityIndex = Tracer.getCityIndex();
+		int cityIndex = TraceManager.getCityIndex();
 
 		// Set the initial method index
-		int methodIndex = Tracer.getMethodIndex();
+		int methodIndex = TraceManager.getMethodIndex();
 		boolean reset = false;
 		for (; cityIndex < cities.length; cityIndex++) {
 
 			println("CITY: " + cities[cityIndex]);
 
-			if (methodIndex <= Tracer.FINDGROUPS_INDEX) {
+			if (methodIndex <= TraceManager.FINDGROUPS_INDEX) {
 				if (reset) {
-					Tracer.resetTraceData(cityIndex, Tracer.FINDGROUPS_INDEX,
-							0, 0, 0, 0);
+					TraceManager.resetTraceData(cityIndex,
+							TraceManager.FINDGROUPS_INDEX, 0, 0, 0, 0);
 				}
 				println("    Find Groups by City...");
 				findGroupsByCity(cityIndex);
 				reset = true;
 			}
-			if (methodIndex <= Tracer.MEMBERS_BYGROUP_INDEX) {
+			if (methodIndex <= TraceManager.MEMBERS_BYGROUP_INDEX) {
 				if (reset) {
-					Tracer.resetTraceData(cityIndex,
-							Tracer.MEMBERS_BYGROUP_INDEX, 0, 0, 0, 0);
+					TraceManager.resetTraceData(cityIndex,
+							TraceManager.MEMBERS_BYGROUP_INDEX, 0, 0, 0, 0);
 				}
 				println("    Get Members by Group...");
 				getMembersByGroup(cityIndex);
 				reset = true;
 			}
-			if (methodIndex <= Tracer.EVENTS_BYGROUP_INDEX) {
+			if (methodIndex <= TraceManager.EVENTS_BYGROUP_INDEX) {
 				if (reset) {
-					Tracer.resetTraceData(cityIndex,
-							Tracer.EVENTS_BYGROUP_INDEX, 0, 0, 0, 0);
+					TraceManager.resetTraceData(cityIndex,
+							TraceManager.EVENTS_BYGROUP_INDEX, 0, 0, 0, 0);
 				}
 				println("    Get Events by Group...");
 				getEventsByGroup(cityIndex);
 				reset = true;
 			}
-			if (methodIndex <= Tracer.GROUPTOPICS_BYGROUP_INDEX) {
+			if (methodIndex <= TraceManager.GROUPTOPICS_BYGROUP_INDEX) {
 				if (reset) {
-					Tracer.resetTraceData(cityIndex,
-							Tracer.GROUPTOPICS_BYGROUP_INDEX, 0, 0, 0, 0);
+					TraceManager.resetTraceData(cityIndex,
+							TraceManager.GROUPTOPICS_BYGROUP_INDEX, 0, 0, 0, 0);
 				}
 				println("    Get GroupTopics by Group...");
 				getGroupTopicsByGroup(cityIndex);
@@ -648,17 +662,17 @@ public class MainCollection {
 			}
 
 			// Reset the method index
-			methodIndex = Tracer.FINDGROUPS_INDEX;
+			methodIndex = TraceManager.FINDGROUPS_INDEX;
 		}
 
 		// Get the RSVPs for all events (independent from city)
-		if (methodIndex <= Tracer.RSVPS_BYEVENT_INDEX) {
+		if (methodIndex <= TraceManager.RSVPS_BYEVENT_INDEX) {
 			println("All Cities:");
 			if (reset) {
 				// The cityIndex should be equals to the city list length
 				// (avoiding the for loop)
-				Tracer.resetTraceData(cityIndex, Tracer.RSVPS_BYEVENT_INDEX, 0,
-						0, 0, 0);
+				TraceManager.resetTraceData(cityIndex,
+						TraceManager.RSVPS_BYEVENT_INDEX, 0, 0, 0, 0);
 			}
 			println("    Get RSVPs by Events...");
 			getRSVPsByEvents(cityIndex);
