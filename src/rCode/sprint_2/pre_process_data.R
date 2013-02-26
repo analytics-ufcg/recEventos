@@ -35,11 +35,23 @@
 #              members per data split (train and test).
 # =============================================================================
 
+rm(list=ls())
+
 # =============================================================================
 # source() and library()
 # =============================================================================
+source("src/rCode/common.R")
 
 # =============================================================================
 # Function definitions
 # =============================================================================
 
+# =============================================================================
+# Executable Script
+# =============================================================================
+
+print(noquote("Processing VENUEs table: Rewriting the city names..."))
+venues <- read.csv("data_csv/venues.csv")
+
+# TODO (augusto) : Editar a coluna city das venues para evitar que a mesma cidade 
+# seja considerada cidades diferentes por diferenças de escrita
