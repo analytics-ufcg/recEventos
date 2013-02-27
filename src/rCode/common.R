@@ -41,7 +41,15 @@
 library(lubridate)
 library(plyr)
 library(ggplot2)
-library(doMC)
+library(stringr)
+
+if (Sys.info()['sysname'] == "Linux"){
+  library(doMC)
+  registerDoMC()
+}else{
+  library(doSnow)
+}
+
 
 # =============================================================================
 # Function definitions

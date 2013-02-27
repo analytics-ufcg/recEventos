@@ -116,9 +116,7 @@ gc()
 
 
 print(noquote("Partitioning the events chronologically by city..."))
-registerDoMC()
 event.partitions <- ddply(events.with.city.members, .(city), PartitionEvents, .parallel=T)
-
 rm(events.with.city.members)
 gc()
 
