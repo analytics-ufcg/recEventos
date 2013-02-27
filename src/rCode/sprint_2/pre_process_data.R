@@ -55,3 +55,48 @@ venues <- read.csv("data_csv/venues.csv")
 
 # TODO (augusto) : Editar a coluna city das venues para evitar que a mesma cidade 
 # seja considerada cidades diferentes por diferenças de escrita
+library(stringr)
+
+cities <- as.character(venues$city)
+
+# Have digit OR punctuation
+# cities[str_detect(cities, "[[:digit:]]+|[[:punct:]]+")]
+# Have punctuation
+# cities[str_detect(cities, " [[:alpha:]]{2,3} | [[:alpha:]]{2,3}$")]
+# cities[str_detect(cities, "^[[:alpha:]]{1}$")]
+# 
+# a <- unique(tolower(str_replace_all(
+#   str_replace_all(
+#     str_replace_all(
+#       str_replace_all(cities, " [A-Z]{2,3} | [A-Z]{2,3}$|^[[:alpha:]]{1}$", ""), 
+#       "[[:digit:]]+|[[:punct:]]+", " "),
+#     "[ \t]+"," "), "^[ \t]+|[ \t]+$|", "")))
+# 
+# # Turn the words to CamelCase
+# gsub("(?:\\b)([[:alpha:]])", "\\U\\1", a, perl=T)
+
+print(noquote("Rewriting the cities collumn from the VENUEs table"))
+# Regex algorithm
+# 1 - Exclude the state names and single letter cities
+# 2 - Substitute digits and punctuations with an whitespace
+# 3 - Substitute all sequential whitespaces with only one
+# 4 - Delete the trailling and last whitespace
+# 5 - Turn all words lowercase
+# 6 - Turn all words Camel Case
+
+allCities <- gsub("(?:\\b)([[:alpha:]])", "\\U\\1", 
+                  tolower(
+                    str_replace_all(
+                      str_replace_all(
+                        str_replace_all(
+                          str_replace_all(cities, " [A-Z]{2,3} | [A-Z]{2,3}$|^[[:alpha:]]{1}$", ""),   
+                          "[[:digit:]]+|[[:punct:]]+", " "),
+                        "[ \t]+"," "),
+                      "^[ \t]+|[ \t]+$|", "")
+                    ), 
+                  perl=T)
+
+venues$city <- as.factor(allCities)
+
+print(noquote("Rewriting the VENUEs table"))
+write.csv(venues, file = "data_csv/venues.csv", row.names = F)
