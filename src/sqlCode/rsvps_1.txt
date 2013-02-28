@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS rsvps_1
+(
+id INT NOT NULL, 
+created INT NOT NULL, 
+mtime INT NOT NULL, 
+response VARCHAR(255) NOT NULL, 
+member_id INT NOT NULL, 
+event_id VARCHAR(255) NOT NULL
+
+);
+
+COPY categories FROM 'D:\Arquivos e Programas\Eclipse\workpace\RecEventos\data_csv\rsvps_1.csv' DELIMITERS ',' CSV HEADER;

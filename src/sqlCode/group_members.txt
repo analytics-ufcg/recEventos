@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS group_members
+(
+group_id INT unsigned NOT NULL, 
+member_id INT unsigned NOT NULL
+);
+
+COPY categories FROM 'D:\Arquivos e Programas\Eclipse\workpace\RecEventos\data_csv\group_members.csv' DELIMITERS ',' CSV HEADER;
