@@ -90,7 +90,7 @@ rm(rsvps, events)
 print(noquote("Reading the MEMBERs..."))
 members <- ReadAllCSVs(dir="data_csv/", obj_name="members")[, c("id", "city")]
 
-print(noquote("Merging the RSVPs members with the MEMBERs city"))
+print(noquote("Merging the RSVPs members with the MEMBERs city..."))
 rsvps.member.events <- merge(rsvps.events, members, 
                              by.x = "member_id", by.y = "id",
                              all.x = T)
