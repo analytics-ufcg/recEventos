@@ -1,8 +1,10 @@
 package javaCode.parser;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.TreeSet;
@@ -37,8 +39,8 @@ public class ParserToCsv {
 			String arquivoEscrita, String header1, String header2)
 			throws IOException {
 
-		CSVWriter writer = new CSVWriter(new FileWriter(arquivoEscrita),
-				CSV_SEPARATOR);
+		CSVWriter writer = new CSVWriter(new OutputStreamWriter(
+				new FileOutputStream(arquivoEscrita), CHAR_SET), CSV_SEPARATOR);
 		Scanner sc = new Scanner(new File(arquivoLeitura));
 
 		// Create header
@@ -65,10 +67,12 @@ public class ParserToCsv {
 			String groupCsvFilename, String categoryCsvFilename)
 			throws IOException {
 
-		CSVWriter groupWriter = new CSVWriter(new FileWriter(groupCsvFilename),
+		CSVWriter groupWriter = new CSVWriter(new OutputStreamWriter(
+				new FileOutputStream(groupCsvFilename), CHAR_SET),
 				CSV_SEPARATOR);
-		CSVWriter categoryWriter = new CSVWriter(new FileWriter(
-				categoryCsvFilename), CSV_SEPARATOR);
+		CSVWriter categoryWriter = new CSVWriter(new OutputStreamWriter(
+				new FileOutputStream(categoryCsvFilename), CHAR_SET),
+				CSV_SEPARATOR);
 
 		groupWriter.writeNext(new String[] { "id", "name", "urlname",
 				"created", "city", "country", "join_mode", "visibility", "lon",
@@ -172,10 +176,12 @@ public class ParserToCsv {
 			String memberTopicCsvFilename) throws IOException {
 
 		CSVWriter memberWriter = null;
-		CSVWriter topicWriter = new CSVWriter(new FileWriter(topicCsvFilename),
+		CSVWriter topicWriter = new CSVWriter(new OutputStreamWriter(
+				new FileOutputStream(topicCsvFilename), CHAR_SET),
 				CSV_SEPARATOR);
-		CSVWriter memberTopicWriter = new CSVWriter(new FileWriter(
-				memberTopicCsvFilename), CSV_SEPARATOR);
+		CSVWriter memberTopicWriter = new CSVWriter(new OutputStreamWriter(
+				new FileOutputStream(memberTopicCsvFilename), CHAR_SET),
+				CSV_SEPARATOR);
 
 		topicWriter.writeNext(new String[] { "id", "name" });
 		memberTopicWriter.writeNext(new String[] { "member_id", "topic_id" });
@@ -189,8 +195,10 @@ public class ParserToCsv {
 				if (memberWriter != null) {
 					memberWriter.close();
 				}
-				memberWriter = new CSVWriter(new FileWriter(memberCsvFilename
-						+ "_" + (((i - 1) / 5) + 1) + ".csv"), CSV_SEPARATOR);
+				memberWriter = new CSVWriter(new OutputStreamWriter(
+						new FileOutputStream(memberCsvFilename + "_"
+								+ (((i - 1) / 5) + 1) + ".csv"), CHAR_SET),
+						CSV_SEPARATOR);
 				memberWriter.writeNext(new String[] { "id", "name", "city",
 						"country", "lon", "lat", "joined" });
 			}
@@ -274,10 +282,12 @@ public class ParserToCsv {
 			throws IOException {
 
 		CSVWriter eventWriter = null;
-		CSVWriter venueWriter = new CSVWriter(new FileWriter(venueCsvFilename),
+		CSVWriter venueWriter = new CSVWriter(new OutputStreamWriter(
+				new FileOutputStream(venueCsvFilename), CHAR_SET),
 				CSV_SEPARATOR);
-		CSVWriter groupEventWriter = new CSVWriter(new FileWriter(
-				groupEventCsvFilename), CSV_SEPARATOR);
+		CSVWriter groupEventWriter = new CSVWriter(new OutputStreamWriter(
+				new FileOutputStream(groupEventCsvFilename), CHAR_SET),
+				CSV_SEPARATOR);
 
 		venueWriter.writeNext(new String[] { "id", "lon", "lat", "name",
 				"address_1", "address_2", "address_3", "city", "country",
@@ -293,8 +303,11 @@ public class ParserToCsv {
 				if (eventWriter != null) {
 					eventWriter.close();
 				}
-				eventWriter = new CSVWriter(new FileWriter(eventCsvFilename
-						+ "_" + (((i - 1) / 5) + 1) + ".csv"), CSV_SEPARATOR);
+				eventWriter = new CSVWriter(new OutputStreamWriter(
+						new FileOutputStream(eventCsvFilename + "_"
+								+ (((i - 1) / 5) + 1) + ".csv"), CHAR_SET),
+						CSV_SEPARATOR);
+
 				eventWriter.writeNext(new String[] { "id", "name", "created",
 						"time", "utc_offset", "status", "visibility",
 						"headCount", "rsvp_limit", "venue_id", "group_id" });
@@ -382,8 +395,9 @@ public class ParserToCsv {
 		ObjectMapper mapper = new ObjectMapper();
 		CSVWriter topicWriter = new CSVWriter(new FileWriter(topicCsvFilename,
 				true), CSV_SEPARATOR);
-		CSVWriter groupTopicWriter = new CSVWriter(new FileWriter(
-				groupTopicCsvFilename), CSV_SEPARATOR);
+		CSVWriter groupTopicWriter = new CSVWriter(new OutputStreamWriter(
+				new FileOutputStream(groupTopicCsvFilename), CHAR_SET),
+				CSV_SEPARATOR);
 
 		groupTopicWriter.writeNext(new String[] { "group_id", "topic_id" });
 
@@ -443,8 +457,10 @@ public class ParserToCsv {
 				if (rsvpWriter != null) {
 					rsvpWriter.close();
 				}
-				rsvpWriter = new CSVWriter(new FileWriter(rsvpCsvFilename + "_"
-						+ (((i - 1) / 5) + 1) + ".csv"), CSV_SEPARATOR);
+				rsvpWriter = new CSVWriter(new OutputStreamWriter(
+						new FileOutputStream(rsvpCsvFilename + "_"
+								+ (((i - 1) / 5) + 1) + ".csv"), CHAR_SET),
+						CSV_SEPARATOR);
 				rsvpWriter.writeNext(new String[] { "id", "created", "mtime",
 						"response", "member_id", "event_id" });
 			}

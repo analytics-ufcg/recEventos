@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS group_events 
+(
+group_id INT NOT NULL, 
+event_id VARCHAR(255) NOT NULL
+);
+
+COPY group_events FROM 'D:\Arquivos e Programas\Eclipse\workpace\RecEventos\data_csv\group_events.csv' DELIMITERS ',' CSV HEADER;

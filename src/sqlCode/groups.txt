@@ -1,0 +1,19 @@
+CREATE TABLE IF NOT EXISTS groups
+(
+id INT NOT NULL, 
+name VARCHAR(255) NOT NULL, 
+urlname VARCHAR(255) NOT NULL, 
+created INT NOT NULL, 
+city VARCHAR(255) NOT NULL, 
+country VARCHAR(255) NOT NULL, 
+join_mode VARCHAR(255) NOT NULL, 
+visibility VARCHAR(255) NOT NULL, 
+lon VARCHAR(255) NOT NULL, 
+lat VARCHAR(255) NOT NULL, 
+members INT NOT NULL, 
+category_id INT DEFAULT NULL, 
+organizer_id INT NOT NULL,
+PRIMARY KEY (id)) 
+);
+
+COPY groups FROM 'D:\Arquivos e Programas\Eclipse\workpace\RecEventos\data_csv\groups.csv' DELIMITERS ',' CSV HEADER;
