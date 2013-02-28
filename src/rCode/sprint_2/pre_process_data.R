@@ -35,11 +35,43 @@
 #              members per data split (train and test).
 # =============================================================================
 
+rm(list=ls())
+
 # =============================================================================
 # source() and library()
 # =============================================================================
+source("src/rCode/common.R")
 
 # =============================================================================
-# Function definitions
+# Executable Script
 # =============================================================================
 
+print(noquote("Processing VENUEs table: Rewriting the city names..."))
+venues <- read.csv("data_csv/venues.csv")
+
+
+print(noquote("Rewriting the cities collumn from the VENUEs table"))
+# Regex algorithm
+# 1 - Exclude the state names and single letter cities
+# 2 - Substitute digits and punctuations with an whitespace
+# 3 - Substitute all sequential whitespaces with only one
+# 4 - Delete the trailling and last whitespace
+# 5 - Turn all words lowercase
+# 6 - Turn all words Camel Case
+
+venues$city <- as.factor(gsub("(?:\\b)([[:alpha:]])", "\\U\\1", 
+                              tolower(
+                                str_replace_all(
+                                  str_replace_all(
+                                    str_replace_all(
+                                      str_replace_all(as.character(venues$city), 
+                                                      " [A-Z]{2,3} | [A-Z]{2,3}$|^[[:alpha:]]{1}$", ""),   
+                                      "[[:digit:]]+|[[:punct:]]+", " "),
+                                    "[ \t]+"," "),
+                                  "^[ \t]+|[ \t]+$|", "")
+                              ), 
+                              perl=T)
+                         )
+
+print(noquote("Rewriting the VENUEs table"))
+write.csv(venues, file = "data_csv/venues.csv", row.names = F)

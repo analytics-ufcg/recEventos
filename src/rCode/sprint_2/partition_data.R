@@ -72,54 +72,54 @@ PartitionEvents <- function(df){
 
 print(noquote("Reading all events and groups..."))
 events <- ReadAllCSVs(dir="data_csv/", obj_name="events")
-groups <- read.csv("data_csv/groups.csv")
-# venues <- read.csv("data_csv/venues.csv")
+venues <- read.csv("data_csv/venues.csv")
 
-# Add the city of the VENUE (if there isn't venues, the event is excluded)
-# events.with.city <- merge(events[!is.na(events$venue_id), c("id", "time", "venue_id")],
-#                           venues[,c("id", "city")], 
-#                           by.x = "venue_id", 
-#                           by.y = "id", 
-#                           all.x = T)
-# Not used because there are divergences in the Venue city names...
+print(noquote("Selecting the desired collumns from EVENTs and adding the city collumn from VENUEs"))
+events.with.city <- merge(events[, c("id", "time", "venue_id")],
+                          venues[,c("id", "city")], 
+                          by.x = "venue_id", 
+                          by.y = "id")
+rm(events, venues)
+gc(verbose=F)
+
 
 # Add the city of the GROUP to all events from that group
-print(noquote("Adding the city to the events table..."))
-events.with.city <- merge(events[,c("id", "time", "group_id")],
-                          groups[,c("id", "city")], 
-                          by.x="group_id", 
-                          by.y = "id", 
-                          all.x = T)
-rm(events, groups)
+# print(noquote("Adding the city to the events table..."))
+# groups <- read.csv("data_csv/groups.csv")
+# events.with.city <- merge(events[,c("id", "time", "group_id")],
+#                           groups[,c("id", "city")], 
+#                           by.x="group_id", 
+#                           by.y = "id", 
+#                           all.x = T)
+# rm(events, groups)
 
 print(noquote("Reading all rsvps..."))
-rsvps <-  ReadAllCSVs(dir="data_csv/", obj_name="rsvps")
+rsvps <- ReadAllCSVs(dir="data_csv/", obj_name="rsvps")
 
-# Count the quantity of members that attended the events (rsvp = yes)
-print(noquote("Counting the members with RSVP per event..."))
-rsvp.members.per.event <- count(rsvps[rsvps$response == "yes",], vars="event_id")
-colnames(rsvp.members.per.event) <- c("event_id", "member_count")
 
+print(noquote("Counting the events per member (which RSVP response: yes, only), per event..."))
+rsvps.yes = rsvps[rsvps$response == "yes", c("member_id", "event_id")]
 rm(rsvps)
+gc()
 
-
-# Merge the events_with_city and the member_count per event
+########################## I'VE STOPPED CHANGING HERE #########################
 print(noquote("Merging the events with city and the members count..."))
 events.with.city.members <- merge(events.with.city, rsvp.members.per.event, 
                                   by.x="id", by.y="event_id", all.x = T)
 
-# Delete events without members with RSVP
+
 print(noquote("Removing the events without members..."))
 events.with.city.members <- events.with.city.members[!is.na(events.with.city.members$member_count),]
 
 rm(events.with.city, rsvp.members.per.event)
+gc()
 
-# Partition the events chronologically
+
 print(noquote("Partitioning the events chronologically by city..."))
-registerDoMC()
 event.partitions <- ddply(events.with.city.members, .(city), PartitionEvents, .parallel=T)
-
 rm(events.with.city.members)
+gc()
+
 
 # Organize the data.frame
 event.partitions <- event.partitions[order(event.partitions$city, 
@@ -129,17 +129,19 @@ event.partitions <- event.partitions[order(event.partitions$city,
 event.partitions <- event.partitions[,c("city", "partition", "data_split", "id", "member_count")]
 colnames(event.partitions) = c("city", "partition", "data_split", "event_id", "member_count")
 
-# Persist the data.frame in a csv file
+
+
 print(noquote("Persisting the data_partitions in a csv file..."))
 dir.create("data_output", showWarnings=F)
 write.csv(event.partitions, file = "data_output/data_partitions.csv", row.names = F)
+
 
 # -----------------------------------------------------------------------------
 # DATA PARTITION ANALYSIS - Count the MEMBERS per DATA SPLIT
 # -----------------------------------------------------------------------------
 
-# Image with the Members Count per (city, partition and data_split)
 print(noquote("Generating bar charts by city with the member count per partitions and data_split"))
+
 png("data_output/data_partition_analysis-member_count.png", width=4000, height=2000)
 print(ggplot(event.partitions, aes(x = partition, fill = data_split)) + 
         geom_bar(aes(weight = member_count), position = "dodge", width = .6) + 
