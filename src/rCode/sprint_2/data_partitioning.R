@@ -19,24 +19,17 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 # SOFTWARE.
+# =============================================================================
 #
 # Author: Augusto Queiroz
 #
-
-
-# TODO (Augusto): Atualizar a descrição do arquivo
-
 # File: partition_data.R
-#   * Description: This file partition the events chronologically in 10 different
-#                  data splits of train/test. Then a figure is generated to 
-#                  support the partition quality analysis
+#   * Description: This file partition the events of a member chronologically 
+#                  in 10 sequential data splits of train/test. 
 #   * Inputs: the data_csv directory containing the events, rsvps and group csv 
 #             files
 #   * Outputs: the data_output directory with the data_partitions.csv file 
-#              containing the events by city partitioned chronologically and; the 
-#              data_partition_analysis-member_count.png figure with histograms
-#              that support the analysis of the partitions by counting the  
-#              members per data split (train and test).
+#              containing the events partitioned chronologically
 # =============================================================================
 
 rm(list=ls())
@@ -45,7 +38,6 @@ rm(list=ls())
 # source() and library()
 # =============================================================================
 source("src/rCode/common.R")
-# source("src/rCode/sprint_2/pre_process_data.R")
 
 # =============================================================================
 # Function definitions
@@ -53,16 +45,23 @@ source("src/rCode/common.R")
 
 PartitionEvents <- function(df){
   df.final = NULL
+  
+  # for each df, 10 repetitions are generated with the partition and data_split
+  # collumns added
   for(q in seq(.1, 1, .1)){
-    result <- rep("train", nrow(df))
-    result[df$time >= quantile(df$time, q)] <- "test"
-    result <- factor(result,levels=c("train", "test"))
+    partition_time <- quantile(df$event_time, q, na.rm=T)
     
-    df$partition <- paste(q, sep = "")
-    df$data_split <- result
+    data_split <- rep("train", nrow(df))
+    data_split <- factor(data_split, levels=c("train", "test"))
+    data_split[df$event_time >= partition_time] <- "test"
+    
+    df$partition <- q
+    df$partition_time <- partition_time
+    df$data_split <- data_split
     
     df.final <- rbind(df.final, df)
   }
+  
   return(df.final)
 }
 
@@ -75,66 +74,57 @@ PartitionEvents <- function(df){
 # Partitioning the events by CITY, CHRONOLOGICALLY 
 # -----------------------------------------------------------------------------
 
-print(noquote("Reading the MEMBERs, EVENTs and RSVPs..."))
-members <- read.csv("data_csv/members_1.csv")[, c("id", "city")]
-events <- read.csv("data_csv/events_1.csv")[, c("id", "time")]
-rsvps <- read.csv("data_csv/rsvps_10.csv")[, c("member_id", "event_id", "response")] #ReadAllCSVs(dir="data_csv/", obj_name="rsvps")
+print(noquote("Reading the EVENTs and RSVPs..."))
+events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[, c("id", "time")]
+rsvps <- ReadAllCSVs(dir="data_csv/", obj_name="rsvps")[, c("member_id", "event_id", "response")]
 
 print(noquote("Selecting the RSVPs with response equals yes..."))
 rsvps <- rsvps[rsvps$response == "yes", c("member_id", "event_id")]
-
 
 print(noquote("Merging the RSVP events with the EVENTs time"))
 rsvps.events <- merge(rsvps, events, 
                       by.x = "event_id", by.y = "id",
                       all.x = T)
 rm(rsvps, events)
-gc(verbose=F)
+
+print(noquote("Reading the MEMBERs..."))
+members <- ReadAllCSVs(dir="data_csv/", obj_name="members")[, c("id", "city")]
 
 print(noquote("Merging the RSVPs members with the MEMBERs city"))
 rsvps.member.events <- merge(rsvps.events, members, 
                              by.x = "member_id", by.y = "id",
                              all.x = T)
 rm(rsvps.events, members)
-gc(verbose=F)
 
 # Reorganizing the data.frame
 colnames(rsvps.member.events) <- c("member_id", "event_id", "event_time", "member_city")
 rsvps.member.events <- rsvps.member.events[, c("member_id", "member_city", "event_id", "event_time")]
 
+print(noquote("Partitioning the member's events chronologically..."))
+member.events.partitions <- ddply(rsvps.member.events, .(member_id), PartitionEvents, .parallel=T, .progress="text")
 
-########################## I'VE STOPPED CHANGING HERE #########################
-
-print(noquote("Partitioning the member's events chronologically by city..."))
-member.events.partitions <- ddply(rsvps.with.events, .(member_id), PartitionEvents, .parallel=T)
-rm(events.with.city.members)
-gc()
-
+rm(rsvps.member.events)
 
 # Organize the data.frame
-event.partitions <- event.partitions[order(event.partitions$city, 
-                                           event.partitions$partition,
-                                           event.partitions$data_split,
-                                           event.partitions$member_count),]
-event.partitions <- event.partitions[,c("city", "partition", "data_split", "id", "member_count")]
-colnames(event.partitions) = c("city", "partition", "data_split", "event_id", "member_count")
-
-
+member.events.partitions <- member.events.partitions[order(member.events.partitions$member_id, 
+                                                           member.events.partitions$partition,
+                                                           member.events.partitions$data_split),]
 
 print(noquote("Persisting the data_partitions in a csv file..."))
 dir.create("data_output", showWarnings=F)
-write.csv(event.partitions, file = "data_output/data_partitions.csv", row.names = F)
-
+write.csv(member.events.partitions, file = "data_output/member_events_partitions.csv", row.names = F)
 
 # -----------------------------------------------------------------------------
-# DATA PARTITION ANALYSIS - Count the MEMBERS per DATA SPLIT
+# DATA PARTITION ANALYSIS - Count the MEMBER EVENTs per CITY
 # -----------------------------------------------------------------------------
-
-print(noquote("Generating bar charts by city with the event count per member, partition and data_split"))
-
-png("data_output/data_partition_analysis-member_count.png", width=4000, height=2000)
-print(ggplot(event.partitions, aes(x = partition, fill = data_split)) + 
-        geom_bar(aes(weight = member_count), position = "dodge", width = .6) + 
-        facet_wrap(~ city, , scales="free_y")  + 
-        xlab("time percentage partition") + ylab("members count"))
-dev.off()
+# 
+# print(noquote("Generating bar charts by city with the event count per member, partition and data_split"))
+# 
+# member.events.per.city <- count(member.events.partitions, vars=c("member_city", "member_id"))
+# 
+# png("data_output/data_partition_analysis-member_events_count.png", width=2000, height=1600)
+# print(ggplot(member.events.per.city, aes(x = freq)) + 
+#         geom_histogram(binwidth = 1) + 
+#         facet_wrap(~ member_city, scales="free") + 
+#         xlab("Number of Events") + ylab ("Number of Members"))
+# dev.off()
