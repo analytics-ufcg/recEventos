@@ -106,11 +106,12 @@ member.events.partitions <- ddply(rsvps.member.events, .(member_id), PartitionEv
 rm(rsvps.member.events)
 
 # Organize the data.frame
+print(noquote("Organizing the resultant data..."))
 member.events.partitions <- member.events.partitions[order(member.events.partitions$member_id, 
                                                            member.events.partitions$partition,
                                                            member.events.partitions$data_split),]
 
-print(noquote("Persisting the data_partitions in a csv file..."))
+print(noquote("Persisting the data in a csv file..."))
 dir.create("data_output", showWarnings=F)
 write.csv(member.events.partitions, file = "data_output/member_events_partitions.csv", row.names = F)
 

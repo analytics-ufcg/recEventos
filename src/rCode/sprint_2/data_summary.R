@@ -29,7 +29,7 @@
 #
 #   * Outputs: Null
 # =============================================================================
-
+rm(list = ls())
 
 # =============================================================================
 # source() and library()
@@ -41,9 +41,8 @@ require("plyr")
 require("ggplot2")
 
 # =============================================================================
-# Function definitions
+# Executable script
 # =============================================================================
-
 
 table = data.frame(Objetos = c("users",
                                "events",
@@ -58,7 +57,6 @@ table = data.frame(Objetos = c("users",
                                "group_tag"),
                    Qnt = c(1:11))
 table[,2] = "NULL"
-
 
 # -----------------------------------------------------------------------------
 # Read the file members.csv and count number of users
@@ -109,8 +107,7 @@ table[table$Objetos == "user_tag",][2] = dim(user.tag)[1]
 # answer(yes/no) for events
 # -----------------------------------------------------------------------------
 
-#user.event = read.csv("data_csv/rsvps_1.csv",sep = ",")
-user.event = read.csv("data_csv/rsvps_1.csv") #ReadAllCSVs(dir="data_csv/", obj_name="rsvps")
+user.event = ReadAllCSVs(dir="data_csv/", obj_name="rsvps")
 table[table$Objetos == "user_event",][2] = dim(user.event)[1]
 
 # -----------------------------------------------------------------------------
@@ -143,12 +140,14 @@ group.tag = read.csv("data_csv/group_topics.csv",sep = ",")
 table[table$Objetos == "group_tag",][2] = dim(group.tag)[1]
 
 
+# -----------------------------------------------------------------------------
+# Generate a .png image showing the number of events per cities  
+# -----------------------------------------------------------------------------
 events.with.city = merge(events1[,c("id", "time", "group_id")], 
                          groups[,c("id", "city")], 
                          by.x = "group_id", 
                          by.y = "id", 
                          all.x = T)
-
 
 events.with.city <- within(events.with.city, 
                            city <- factor(city,
@@ -157,30 +156,21 @@ events.with.city <- within(events.with.city,
 
 dir.create("data_output",showWarnings=F)
 
-theme_set(theme_bw())
-
-# -----------------------------------------------------------------------------
-# Generate a .png image showing the number of events per cities  
-# -----------------------------------------------------------------------------
-
-png("data_output/eventos_por_cidade.png", width = 900, height = 1000)
+png("data_output/eventos_por_cidade.png", width = 1200, height = 1600)
 print(ggplot(events.with.city, aes(x = city)) + geom_bar(binwidth=1) + coord_flip() + labs(x="Cidade",y="Número de Eventos") )
 dev.off()
-
-
-user.event.yes.filt <- user.event.yes[,5:6]
-user.event.yes.filt = count(user.event.yes.filt,vars= "event_id")
-user.event.yes$event_id <- factor(user.event.yes$event_id,
-                                  levels = as.character(user.event.yes.filt[order(user.event.yes.filt$freq), "event_id"]))
 
 # -----------------------------------------------------------------------------
 # Generate a .png image showing the number of members per event  
 # -----------------------------------------------------------------------------
+print(noquote("Generating the histogram with the number of MEMBERs per EVENT..."))
+
+user.event.yes.filt <- user.event.yes[,5:6]
+user.event.yes.filt = count(user.event.yes.filt,vars= "event_id")
+user.event.yes$event_id <- factor(user.event.yes$event_id,
+                                  levels = as.character(user.event.yes.filt[order(user.event.yes.filt$freq, decreasing=T), "event_id"]))
 
 png("data_output/membros_por_evento.png", width = 1600, height = 1000)
 m <- ggplot(user.event.yes, aes(x = event_id)) +  geom_histogram() + labs(x="Eventos",y="Número de Membros")
 print(m)
 dev.off()
-
-
-
