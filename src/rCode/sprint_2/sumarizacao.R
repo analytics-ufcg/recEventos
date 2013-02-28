@@ -1,3 +1,38 @@
+# =============================================================================
+# Copyright (C) 2013 Augusto Queiroz, Elias Paulino, Rodolfo Moraes, 
+#                    Ricardo Araujo e Leandro Balby
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy 
+# of this software and associated documentation files (the "Software"), to deal 
+# in the Software without restriction, including without limitation the rights 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+# copies of the Software, and to permit persons to whom the Software is 
+# furnished to do so, subject to the following conditions:
+#     
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+# SOFTWARE.
+#
+# Author: Elias Paulino
+#
+# File: sumarizacao.R
+#   * Description: This file summarize the data
+#   * Inputs: the data_csv directory containing the events, rsvps and group csv 
+#             files
+#   * Outputs: the data_output directory with the data_partitions.csv file 
+#              containing the events by city partitioned chronologically and; the 
+#              data_partition_analysis-member_count.png figure with histograms
+#              that support the analysis of the partitions by counting the  
+#              members per data split (train and test).
+# =============================================================================
+
 rm(list = ls())
 
 source("src/rCode/common.R")
@@ -97,18 +132,18 @@ png("data_output/eventos_por_cidade.png", width = 900, height = 1000)
 print(ggplot(events.with.city, aes(x = city)) + geom_bar(binwidth=1) + coord_flip() + labs(x="Cidade",y="Número de Eventos") )
 dev.off()
 
-user.event.yes <- within(user.event.yes, 
-                         member_id <- factor(member_id,
-                                          levels=names(sort(table(member_id),
-                                                            decreasing=TRUE))))
-user.event.yes <- user.event.yes[,5:6]
-x <- user.event.yes
-x$event_id <- as.character(x$event_id)
+user.event.yes.filt <- user.event.yes[,5:6]
+user.event.yes.filt = count(user.event.yes.filt,vars= "event_id")
+user.event.yes$event_id <- factor(user.event.yes$event_id,
+                                       levels = as.character(user.event.yes.filt[order(user.event.yes.filt$freq), "event_id"]))
+
+# x <- user.event.yes
+# x$event_id <- as.character(x$event_id)
 
 theme_set(theme_bw())
 
 png("data_output/membros_por_evento.png", width = 1600, height = 1000)
-m <- ggplot(x, aes(x = event_id)) + 
+m <- ggplot(user.event.yes, aes(x = event_id)) + 
   geom_histogram() + 
   labs(x="Eventos",y="Número de Membros")
 print(m)

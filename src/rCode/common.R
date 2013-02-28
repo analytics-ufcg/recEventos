@@ -47,7 +47,7 @@ if (Sys.info()['sysname'] == "Linux"){
   library(doMC)
   registerDoMC()
 }else{
-  library(doSnow)
+  library(doSNOW)
 }
 
 
@@ -58,6 +58,7 @@ if (Sys.info()['sysname'] == "Linux"){
 ReadAllCSVs = function(dir, obj_name){
   df = NULL
   for (file in list.files(path = dir, pattern=paste(obj_name, "_[0-9]*.csv", sep = ""))){
+   
     df = rbind(df, read.csv(paste(dir, file, sep = "")))
   }
   return(df)
