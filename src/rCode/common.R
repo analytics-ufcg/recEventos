@@ -22,10 +22,17 @@
 #
 # Author: Augusto Queiroz
 #
-# File: common.R
-#   * Description:
-#   * Inputs: 
-#   * Outputs:
+# File: partition_data.R
+#   * Description: This file partition the events chronologically in 10 different
+#                  data splits of train/test. Then a figure is generated to 
+#                  support the partition quality analysis
+#   * Inputs: the data_csv directory containing the events, rsvps and group csv 
+#             files
+#   * Outputs: the data_output directory with the data_partitions.csv file 
+#              containing the events by city partitioned chronologically and; the 
+#              data_partition_analysis-member_count.png figure with histograms
+#              that support the analysis of the partitions by counting the  
+#              members per data split (train and test).
 # =============================================================================
 
 # =============================================================================
@@ -43,7 +50,6 @@ if (Sys.info()['sysname'] == "Linux"){
   library(doSNOW)
 }
 
-theme_set(theme_bw())
 
 # =============================================================================
 # Function definitions
