@@ -171,6 +171,6 @@ user.event.yes$event_id <- factor(user.event.yes$event_id,
                                   levels = as.character(user.event.yes.filt[order(user.event.yes.filt$freq, decreasing=T), "event_id"]))
 
 png("data_output/membros_por_evento.png", width = 1600, height = 1000)
-m <- ggplot(user.event.yes, aes(x = event_id)) +  geom_histogram() + labs(x="Eventos",y="Número de Membros")
+m <- ggplot(user.event.yes[1:100000,], aes(x = event_id)) +  geom_histogram() + labs(x="Eventos",y="Número de Membros")
 print(m)
 dev.off()

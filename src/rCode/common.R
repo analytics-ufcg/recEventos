@@ -38,7 +38,7 @@ library(stringr)
 
 if (Sys.info()['sysname'] == "Linux"){
   library(doMC)
-  registerDoMC()
+  registerDoMC(3)
 }else{
   library(doSNOW)
 }
