@@ -23,11 +23,13 @@
 # Author: Elias Paulino
 #
 # File: data_sumary.R
-#   * Description: This file summarize the data colletion.Read the files .csv of reasearch objects
-#   * Inputs: the data_csv directory containing the events, rsvps, group, group_events, group_members, 
-#             group_topics, member_topics, venues csv files.
-#
-#   * Outputs: Two images .png, EVENTS_PER_CITY.png and MEMBERS_PER_EVENT.png
+#   * Description: This file summarize the data colletion.Read the files .csv of
+#                  reasearch objects
+#   * Inputs: the data_csv directory containing the events, rsvps, group, 
+#             group_events, group_members, group_topics, member_topics, venues 
+#             csv files.
+#   * Outputs: The count table and two png images: events_per_location and 
+#              members_per_event.png in the summary_stats directory
 # =============================================================================
 rm(list = ls())
 
@@ -35,161 +37,200 @@ rm(list = ls())
 # source() and library()
 # =============================================================================
 
-rm(list = ls())
 source("src/rCode/common.R")
-require("plyr")
-require("ggplot2")
 
 # =============================================================================
 # Executable script
 # =============================================================================
 
-table = data.frame(Objetos = c("users",
-                               "events",
-                               "user_group",
-                               "user_tag",
-                               "user_with_locations",
-                               "user_event",
-                               "user_event_yes",
-                               "events_with_locations",
-                               "groups",
-                               "tags",
-                               "group_tag"),
-                   Qnt = c(1:11))
+table = data.frame(metric = c("number_members",
+                              "number_members_with_locations",
+                              "number_events",
+                              "number_events_with_locations",
+                              "number_groups",
+                              "number_topics",
+                              "number_member_group_pairs",
+                              "number_member_topic_pairs",
+                              "number_group_topic_pairs",
+                              "number_member_event_yes_pairs",
+                              "number_member_event_pairs"),
+                   value = c(1:11))
 table[,2] = "NULL"
 
-# -----------------------------------------------------------------------------
-# Read the file members.csv and count number of users
-# -----------------------------------------------------------------------------
-print(noquote("Reading members..."))
-
-users = ReadAllCSVs(dir="data_csv/", obj_name="members")
-table[table$Objetos == "users",][2] = length(unique(users$id))
 
 # -----------------------------------------------------------------------------
-# Count number of users with locatins
+# Reading the members and Count the number of members
 # -----------------------------------------------------------------------------
-print(noquote("Reading user-with-locations..."))
+print(noquote("Reading the members..."))
+members = ReadAllCSVs(dir="data_csv/", obj_name="members")
 
-table[table$Objetos == "user_with_locations",][2] = 
-  length(unique(users[is.numeric(users$lat) && is.numeric(users$lon),]$id))
-
-rm(users)
-
-# -----------------------------------------------------------------------------
-# Read all the files events_[1..*].csv and count number of events
-# -----------------------------------------------------------------------------
-print(noquote("Reading events..."))
-
-events1 <- ReadAllCSVs(dir="data_csv/", obj_name="events")
-table[table$Objetos == "events",][2] = length(unique(events1$id))
+print(noquote("Counting the number of members"))
+table[table$metric == "number_members",][2] = length(unique(members$id))
 
 # -----------------------------------------------------------------------------
-# Count the events with locations
+# Count number of members with locatins
 # -----------------------------------------------------------------------------
-print(noquote("Reading events-with-locations..."))
+print(noquote("Counting the number of members with locations..."))
 
-table[table$Objetos == "events_with_locations",][2] = dim(events1[!is.na(events1$venue_id),])[1]
-#rm(events1)
+table[table$metric == "number_members_with_locations",][2] = 
+  length(unique(members[is.numeric(members$lat) && is.numeric(members$lon),]$id))
 
-# -----------------------------------------------------------------------------
-# Read the file group_members.csv and count number of pair group-member
-# -----------------------------------------------------------------------------
-print(noquote("Reading group-members..."))
-
-user.group = read.csv("data_csv/group_members.csv",sep = ",")
-table[table$Objetos == "user_group",][2] = dim(user.group)[1]
+rm(members)
 
 # -----------------------------------------------------------------------------
-# Read the file members_topics.csv and count number of pair member-topic
+# Reading the file groups.csv and counting the number of groups
 # -----------------------------------------------------------------------------
-print(noquote("Reading member-topics..."))
+print(noquote("Reading the groups..."))
+groups = read.csv("data_csv/groups.csv",sep=",")
 
-user.tag = read.csv("data_csv/member_topics.csv", sep = ",")
-table[table$Objetos == "user_tag",][2] = dim(user.tag)[1]
+print(noquote("Counting the number of groups..."))
+table[table$metric == "number_groups",][2] = length(unique(groups$id))
+
+rm(groups)
 
 # -----------------------------------------------------------------------------
-# Read all the files rsvps[1..*].csv and count number of users that 
+# Reading the file topics.csv and counting the number of topics
+# -----------------------------------------------------------------------------
+print(noquote("Reading the topics..."))
+topics = read.csv("data_csv/topics.csv",sep=",")
+
+print(noquote("Counting the number of topics..."))
+table[table$metric == "number_topics",][2] = length(unique(topics$id))
+
+rm(topics)
+
+# -----------------------------------------------------------------------------
+# Reading the file groups_topics.csv and counting th number of group-tag pairs
+# -----------------------------------------------------------------------------
+print(noquote("Reading the group-topics..."))
+group.topic = read.csv("data_csv/group_topics.csv",sep = ",")
+
+print(noquote("Counting the group-topics pairs..."))
+table[table$metric == "number_group_topic_pairs",][2] = nrow(group.topic)
+
+rm(group.topic)
+
+# -----------------------------------------------------------------------------
+# Reading the file group_members.csv and count number of pair group-member
+# -----------------------------------------------------------------------------
+print(noquote("Reading the group-members..."))
+member.group = read.csv("data_csv/group_members.csv",sep = ",")
+
+print(noquote("Counting the number of group-member pairs..."))
+table[table$metric == "number_member_group_pairs",][2] = nrow(member.group)
+
+rm(member.group)
+
+# -----------------------------------------------------------------------------
+# Reading the file members_topics.csv and counting the number of member-topic pairs
+# -----------------------------------------------------------------------------
+print(noquote("Reading the member-topics..."))
+member.topic = read.csv("data_csv/member_topics.csv", sep = ",")
+
+print(noquote("Counting the number of member-topic pairs..."))
+table[table$metric == "number_member_topic_pairs",][2] = nrow(member.topic)
+
+rm(member.topic)
+
+# -----------------------------------------------------------------------------
+# Read all the files events_[1..*].csv and Counting the number of events
+# -----------------------------------------------------------------------------
+print(noquote("Reading the events..."))
+events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[,c("id", "venue_id")]
+
+print(noquote("Counting the number of events..."))
+table[table$metric == "number_events",][2] = length(unique(events$id))
+
+# -----------------------------------------------------------------------------
+# Counting the events with locations
+# -----------------------------------------------------------------------------
+print(noquote("Counting the number of events with locations..."))
+table[table$metric == "number_events_with_locations",][2] = sum(!is.na(events$venue_id))
+
+# -----------------------------------------------------------------------------
+# Reading all the files rsvps[1..*].csv and counting the number of members that 
 # answer(yes/no) for events
 # -----------------------------------------------------------------------------
-print(noquote("Reading rsvps..."))
+print(noquote("Reading the rsvps..."))
+member.event <- ReadAllCSVs(dir="data_csv/", obj_name="rsvps")
 
-user.event = ReadAllCSVs(dir="data_csv/", obj_name="rsvps")
-table[table$Objetos == "user_event",][2] = dim(user.event)[1]
-
-# -----------------------------------------------------------------------------
-# Read all the files rsvps[1..*].csv and count number of users that 
-# answer(yes) for events
-# -----------------------------------------------------------------------------
-print(noquote("Reading user-event-yes..."))
-
-user.event.yes = user.event[user.event$response == "yes",]
-table[table$Objetos == "user_event_yes",][2] = dim(user.event.yes)[1]
+print(noquote("Counting the number of member-events pairs..."))
+table[table$metric == "number_member_event_pairs",][2] <- nrow(member.event)
 
 # -----------------------------------------------------------------------------
-# Read the file groups.csv and count number of groups
+# Reading all the files rsvps[1..*].csv and counting the number of members that 
+# answered yes for the event's rsvps
 # -----------------------------------------------------------------------------
-print(noquote("Reading groups..."))
+print(noquote("Counting the number of member-events pairs (with yes)..."))
 
-groups = read.csv("data_csv/groups.csv",sep=",")
-table[table$Objetos == "groups",][2] = length(unique(groups$id))
+member.event.yes <- member.event[member.event$response == "yes", 
+                                 c("member_id", "event_id")]
+table[table$metric == "number_member_event_yes_pairs",][2] <- nrow(member.event.yes)
 
-# -----------------------------------------------------------------------------
-# Read the file topics.csv and count number of topics
-# -----------------------------------------------------------------------------
-print(noquote("Reading topics..."))
-
-topics = read.csv("data_csv/topics.csv",sep=",")
-table[table$Objetos == "tags",][2] = length(unique(topics$id))
+rm(member.event)
 
 # -----------------------------------------------------------------------------
-# Read the file groups_topics.csv and count number of pair group-tag
+# Printing the resultant summary metric values
 # -----------------------------------------------------------------------------
-print(noquote("Reading group-topics..."))
-
-group.tag = read.csv("data_csv/group_topics.csv",sep = ",")
-table[table$Objetos == "group_tag",][2] = dim(group.tag)[1]
-
-
+print(noquote("Printing the resultant summary metric values..."))
+print(noquote(""))
+print(noquote(table))
+print(noquote(""))
 # -----------------------------------------------------------------------------
 # Generate a .png image showing the number of events per cities  
 # -----------------------------------------------------------------------------
-print(noquote("Generating the histogram with the number of EVENT per CITY..."))
 
-events.with.city = merge(events1[,c("id", "time", "group_id")], 
-                         groups[,c("id", "city")], 
-                         by.x = "group_id", 
-                         by.y = "id", 
-                         all.x = T)
+# Pre-processing and reading the venues
+source("src/rCode/sprint_2/data_pre_process.R")
 
-events.with.city <- within(events.with.city, 
-                           city <- factor(city,
-                                          levels=names(sort(table(city),
-                                                            decreasing=FALSE))))
+print(noquote("Generating the bar plot with the number of EVENTs per location (min.: 30 events)..."))
+
+events.with.location = merge(events, 
+                         venues[,c("id", "city")], 
+                         by.x = "venue_id", 
+                         by.y = "id")
+
+# Selecting events that are in locations that had more than 1 event
+location.count <- count(events.with.location, "city")
+selected.locations <- location.count[location.count$freq >= 30, ]
+events.with.location <- events.with.location[events.with.location$city %in% 
+                                               selected.locations$city,]
+
+# Sorting the events by the location count
+selected.locations <- selected.locations[order(selected.locations$freq),]
+
+events.with.location <- within(events.with.location, 
+                           city <- factor(city, 
+                                          levels = selected.locations$city))
+
 
 dir.create("data_output",showWarnings=F)
+dir.create("data_output/summary_stats",showWarnings=F)
 
-png("data_output/EVENTS_PER_CITY.png", width = 1200, height = 1600)
-print(ggplot(events.with.city, aes(x = city)) + geom_bar(binwidth=1) + coord_flip() + labs(x="Cidade",y="Número de Eventos") )
+png("data_output/summary_stats/events_per_location.png", width = 1200, height = 2000)
+print(ggplot(events.with.location, aes(x = city)) + 
+        geom_bar(binwidth=1) + coord_flip() + 
+        labs(x="Locations", y="Number of Events") )
 dev.off()
+
+rm(events.with.location, selected.locations)
 
 # -----------------------------------------------------------------------------
 # Generate a .png image showing the number of members per event  
 # -----------------------------------------------------------------------------
+print(noquote(paste("Generating the histogram with the number of MEMBERs per EVENT (min.: 15 members)...")))
 
-print(noquote("Generating the histogram with the number of MEMBERs per EVENT..."))
-
-user.event.yes.filt <- user.event.yes[,5:6]
-user.event.yes.filt = count(user.event.yes.filt,vars= "event_id")
-user.event.yes$event_id <- factor(user.event.yes$event_id,
-                                  levels = as.character(user.event.yes.filt[order(user.event.yes.filt$freq, decreasing=T), "event_id"]))
-
-<<<<<<< HEAD
-png("data_output/membros_por_evento.png", width = 1600, height = 1000)
-m <- ggplot(user.event.yes[1:100000,], aes(x = event_id)) +  geom_histogram() + labs(x="Eventos",y="Número de Membros")
-=======
-png("data_output/MEMBERS_PER_EVENT.png", width = 1600, height = 1000)
-m <- ggplot(user.event.yes, aes(x = event_id)) +  geom_histogram() + labs(x="Eventos",y="Número de Membros")
->>>>>>> 61d33606c285f7f1b60c2ec80c0ae4bfad5c722d
-print(m)
+member.event.yes.count <- count(member.event.yes, vars= "event_id")
+member.event.yes.count <- member.event.yes.count[member.event.yes.count$freq >= 15 ,]
+member.event.yes.count <- member.event.yes.count[order(member.event.yes.count$freq, 
+                                                       decreasing=T),]
+member.event.yes.count$event_id <- factor(member.event.yes.count$event_id, 
+                                          levels = member.event.yes.count$event_id)
+                                            
+rm(events, member.event.yes)
+png("data_output/summary_stats/members_per_event.png", width = 1600, height = 1000)
+print(ggplot(member.event.yes.count, aes(x = event_id, y = freq)) +  
+        geom_histogram(aes(stat = "identity", fill = freq), binwidth = .1) +
+        labs(x="Events", y="Number of Members"))
 dev.off()
+  

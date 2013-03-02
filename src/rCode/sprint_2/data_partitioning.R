@@ -90,20 +90,6 @@ rsvps.events <- merge(rsvps, events,
 rm(rsvps, events)
 gc()
 
-# print(noquote("Reading the MEMBERs..."))
-# members <- read.csv("data_csv/members_10.csv")[, c("id", "city")]
-# members <- ReadAllCSVs(dir="data_csv/", obj_name="members")[, c("id", "city")]
-# 
-# print(noquote("Merging the RSVPs members with the MEMBERs city..."))
-# rsvps.member.events <- merge(rsvps.events, members, 
-#                              by.x = "member_id", by.y = "id",
-#                              all.x = T)
-# rm(rsvps.events, members)
-# 
-# Reorganizing the data.frame
-# colnames(rsvps.member.events) <- c("member_id", "event_id", "event_time", "member_city")
-# rsvps.member.events <- rsvps.member.events[, c("member_id", "member_city", "event_id", "event_time")]
-
 # Reorganizing the data.frame
 colnames(rsvps.events) <- c("member_id", "event_id", "time")
 colnames(rsvps.events) <- c("member_id", "event_id", "event_time")
@@ -127,40 +113,3 @@ for (i in 1:10){
   dir.create("data_output/partitions/", showWarnings=F)
   write.csv(member.events.partitions, file = paste("data_output/partitions/member_events_partitions_",i,".csv", sep = ""), row.names = F)
 }
-
-# member.events.partitions <- NULL
-# for(i in 1:length(members)){
-#   if (i %% 250 == 0){
-#     print(noquote(paste("Member index:", i)))
-#   } 
-#   
-#   member.events.partitions <- rbind(member.events.partitions, 
-#                                     PartitionEvents(rsvps.member.events[rsvps.member.events$member_id == members[i],]))
-# }
-
-# rm(rsvps.member.events)
-# 
-# # Organize the data.frame
-# print(noquote("Organizing the resultant data..."))
-# member.events.partitions <- member.events.partitions[order(member.events.partitions$member_id, 
-#                                                            member.events.partitions$partition,
-#                                                            member.events.partitions$data_split),]
-# 
-# print(noquote("Persisting the data in a csv file..."))
-# dir.create("data_output", showWarnings=F)
-# write.csv(member.events.partitions, file = "data_output/member_events_partitions.csv", row.names = F)
-
-# -----------------------------------------------------------------------------
-# DATA PARTITION ANALYSIS - Count the MEMBER EVENTs per CITY
-# -----------------------------------------------------------------------------
-# 
-# print(noquote("Generating bar charts by city with the event count per member, partition and data_split"))
-# 
-# member.events.per.city <- count(member.events.partitions, vars=c("member_city", "member_id"))
-# 
-# png("data_output/data_partition_analysis-member_events_count.png", width=2000, height=1600)
-# print(ggplot(member.events.per.city, aes(x = freq)) + 
-#         geom_histogram(binwidth = 1) + 
-#         facet_wrap(~ member_city, scales="free") + 
-#         xlab("Number of Events") + ylab ("Number of Members"))
-# dev.off()

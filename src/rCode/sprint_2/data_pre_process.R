@@ -35,8 +35,6 @@
 #              members per data split (train and test).
 # =============================================================================
 
-rm(list=ls())
-
 # =============================================================================
 # source() and library()
 # =============================================================================
@@ -46,9 +44,8 @@ source("src/rCode/common.R")
 # Executable Script
 # =============================================================================
 
-print(noquote("Processing VENUEs table: Rewriting the city names..."))
+print(noquote("Reading the venues..."))
 venues <- read.csv("data_csv/venues.csv")
-
 
 print(noquote("Rewriting the cities collumn from the VENUEs table"))
 # Regex algorithm
