@@ -91,17 +91,18 @@ rm(rsvps, events)
 gc()
 
 # Reorganizing the data.frame
-colnames(rsvps.events) <- c("member_id", "event_id", "time")
+rsvps.events <- rsvps.events[,c("member_id", "event_id", "time")]
 colnames(rsvps.events) <- c("member_id", "event_id", "event_time")
 
-print(noquote("Partitioning the member's events chronologically..."))
 members <- unique(rsvps.events$member_id)
 
+Sys.time()
 for (i in 1:10){
   member.events.partitions <- members
   
   print(noquote(paste("Partitioning the member's events chronologically (", i,")...", sep = "")))
   indexes <- as.integer(((length(members)/10) * (i -1)):((length(members)/10) * i)) + 1
+
   member.events.partitions <- ddply(rsvps.events[indexes,], .(member_id), PartitionEvents, .parallel=F, .progress="text")
 
   print(noquote(paste("Organizing the resultant data (", i,")...", sep = "")))
@@ -113,3 +114,4 @@ for (i in 1:10){
   dir.create("data_output/partitions/", showWarnings=F)
   write.csv(member.events.partitions, file = paste("data_output/partitions/member_events_partitions_",i,".csv", sep = ""), row.names = F)
 }
+Sys.time()
