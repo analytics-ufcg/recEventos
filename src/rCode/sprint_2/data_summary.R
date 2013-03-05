@@ -97,7 +97,9 @@ topics = read.csv("data_csv/topics.csv",sep=",")
 print(noquote("Counting the number of topics..."))
 table[table$metric == "number_topics",][2] = length(unique(topics$id))
 
+
 rm(topics)
+
 
 # -----------------------------------------------------------------------------
 # Reading the file groups_topics.csv and counting th number of group-tag pairs
