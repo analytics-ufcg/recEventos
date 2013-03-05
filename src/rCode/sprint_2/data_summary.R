@@ -89,6 +89,7 @@ table[table$Objetos == "events",][2] = length(unique(events1$id))
 # -----------------------------------------------------------------------------
 print(noquote("Reading events-with-locations..."))
 
+events.with.location <- events1[!is.na(events1$venue_id),]
 table[table$Objetos == "events_with_locations",][2] = dim(events1[!is.na(events1$venue_id),])[1]
 #rm(events1)
 

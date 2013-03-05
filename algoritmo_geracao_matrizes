@@ -1,0 +1,49 @@
+48*10000 + 1487
+41*10000 + 6108
+
+x = 0
+y = 0
+cont_file = 0
+while(x <= 410000 and y != 1487){
+
+z = 0
+w = 0
+
+  while(z <= 360000 and w != 4589){
+  
+    if(x == 410000){
+      y = 1487
+      if(z == 360000){
+        w = 4589
+        matrix.dist <- matrix(data = NA ,nrow=y,  ncol=w) 
+        dimnames(matrix.dist) = list( users$id[x + 1:x + y], events.with
+.location$id[z + 1:z + w])
+        write.csv(matrix.dist,paste("dist_user_event",cont,".csv",sep=""))
+      }else{
+        matrix.dist <- matrix(data = NA ,nrow=y,  ncol=10000) 
+        dimnames(matrix.dist) = list( users$id[x + 1:x + y], events.with.location$id[z + 1:z + 10000])
+        write.csv(matrix.dist,paste("dist_user_event",cont,".csv",sep=""))
+      }
+
+    }else{
+      
+       if(z == 360000){
+        w = 4589
+        matrix.dist <- matrix(data = NA ,nrow=10000,  ncol=w) 
+        dimnames(matrix.dist) = list( users$id[x + 1:x + 10000], events.with.location$id[z + 1:z + w])
+        write.csv(matrix.dist,paste("dist_user_event",cont,".csv",sep=""))
+      }else{
+        matrix.dist <- matrix(data = NA ,nrow=10000,  ncol=10000) 
+        dimnames(matrix.dist) = list( users$id[x + 1:x + 10000], events.with.location$id[z + 1:z + 10000])
+        write.csv(matrix.dist,paste("dist_user_event",cont,".csv",sep=""))
+      }
+  
+    }
+    cont_file = cont_file + 1
+    z = z + 10000
+
+  }
+
+  
+  x = x + 10000
+}
