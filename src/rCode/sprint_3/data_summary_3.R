@@ -22,45 +22,52 @@
 #
 # Author: Augusto Queiroz
 #
-# File: partition_data.R
-#   * Description: This file partition the events chronologically in 10 different
-#                  data splits of train/test. Then a figure is generated to 
-#                  support the partition quality analysis
-#   * Inputs: the data_csv directory containing the events, rsvps and group csv 
-#             files
-#   * Outputs: the data_output directory with the data_partitions.csv file 
-#              containing the events by city partitioned chronologically and; the 
-#              data_partition_analysis-member_count.png figure with histograms
-#              that support the analysis of the partitions by counting the  
-#              members per data split (train and test).
+# File: data_summary_2.R
+#   * Description: 
+#   * Inputs: 
+#   * Outputs:
 # =============================================================================
+rm(list = ls())
 
 # =============================================================================
 # source() and library()
 # =============================================================================
-library(lubridate)
-library(plyr)
-library(ggplot2)
-library(stringr)
-library(Hmisc)
 
-if (Sys.info()['sysname'] == "Linux"){
-  library(doMC)
-  registerDoMC(3)
-}else{
-  library(doSNOW)
-}
-
+source("src/rCode/common.R")
 
 # =============================================================================
-# Function definitions
+# Executable script
 # =============================================================================
+# TODO (Augusto) - Recommendation focus
+# 5 - Nº de eventos por membro
+# 6 - Nº de eventos por membro por cidade
+# 7 - CDF dos eventos por membro
 
-ReadAllCSVs = function(dir, obj_name){
-  df = NULL
-  for (file in list.files(path = dir, pattern=paste(obj_name, "_[0-9]*.csv", sep = ""))){
-   
-    df = rbind(df, read.csv(paste(dir, file, sep = "")))
-  }
-  return(df)
-}
+print(noquote("Reading the MEMBERs and RSVPs..."))
+
+# events <- read.csv("data_csv/events_1.csv")[,c("id", "headCount", "rsvp_limit")]
+# events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[, c("id", "headCount", "rsvp_limit")]
+# colnames(events) <- c("event_id", "headCount", "rsvp_limit")
+
+# rsvps <- read.csv("data_csv/rsvps_12.csv")[, c("member_id", "event_id", "response")]
+rsvps <- ReadAllCSVs(dir="data_csv/", obj_name="rsvps")[, c("member_id", "event_id", "response")]
+rsvps <- rsvps[rsvps$response == "yes", c("event_id", "member_id")]
+
+print(noquote("Cleaning some garbage (possible outliers, headCount > 10000)..."))
+events <- events[events$headCount < 10000,]
+
+# -----------------------------------------------------------------------------
+# Count the MEMBER EVENTs per CITY
+# -----------------------------------------------------------------------------
+# 
+# print(noquote("Generating bar charts by city with the event count per member, partition and data_split"))
+# 
+# member.events.per.city <- count(member.events.partitions, vars=c("member_city", "member_id"))
+# 
+# png("data_output/data_partition_analysis-member_events_count.png", width=2000, height=1600)
+# print(ggplot(member.events.per.city, aes(x = freq)) + 
+#         geom_histogram(binwidth = 1) + 
+#         facet_wrap(~ member_city, scales="free") + 
+#         xlab("Number of Events") + ylab ("Number of Members"))
+# dev.off()
+

@@ -38,28 +38,93 @@ source("src/rCode/common.R")
 # =============================================================================
 # Executable script
 # =============================================================================
+# # of users that said yes vs. # attendants (sprint 3)
+# # of users that said yes vs. limit of users per event (sprint 3)
+# # attendants vs. limit of users per event
 
-# TODO (Augusto)
-# 1 - CDF dos membros por evento (sprint 3)
-# 2 - # of users that said yes vs. # attendants (sprint 3)
-# 3 - # of users that said yes vs. limit of users per event (sprint 3)
-# 4 - CDF dos eventos por location
-# 5 - Nº de eventos por membro
-# 6 - Nº de eventos por membro por cidade
-# 7 - CDF dos eventos por membro
+print(noquote("Reading the EVENTs and RSVPs..."))
 
-# -----------------------------------------------------------------------------
-# DATA PARTITION ANALYSIS - Count the MEMBER EVENTs per CITY
-# -----------------------------------------------------------------------------
+# events <- read.csv("data_csv/events_1.csv")[,c("id", "headCount", "rsvp_limit")]
+events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[, c("id", "headCount", "rsvp_limit")]
+colnames(events) <- c("event_id", "headCount", "rsvp_limit")
+
+# rsvps <- read.csv("data_csv/rsvps_12.csv")[, c("member_id", "event_id", "response")]
+rsvps <- ReadAllCSVs(dir="data_csv/", obj_name="rsvps")[, c("member_id", "event_id", "response")]
+rsvps <- rsvps[rsvps$response == "yes", c("event_id", "member_id")]
+event.members.count <- count(rsvps, "event_id")
+
+rm(rsvps)
+
+print(noquote("Cleaning some garbage (possible outliers, headCount > 10000)..."))
+events <- events[events$headCount < 5000,]
+
+print(noquote("Generating the event's scatterplots:"))
+
+# GRAPHIC 1
+# print(noquote("     Number of Attendants vs. Number of Members(rsvp: yes)"))
 # 
-# print(noquote("Generating bar charts by city with the event count per member, partition and data_split"))
+# events.rsvps <- merge(events[events$headCount > 0, c("event_id", "headCount")], 
+#                       event.members.count, by = "event_id", all.x = T)
+# colnames(events.rsvps) <- c("event_id", "num_attendants", "num_members_yes")
+# # Set the NA members with yes to 0
+# events.rsvps[is.na(events.rsvps$num_members_yes),]$num_members_yes <- 0
 # 
-# member.events.per.city <- count(member.events.partitions, vars=c("member_city", "member_id"))
-# 
-# png("data_output/data_partition_analysis-member_events_count.png", width=2000, height=1600)
-# print(ggplot(member.events.per.city, aes(x = freq)) + 
-#         geom_histogram(binwidth = 1) + 
-#         facet_wrap(~ member_city, scales="free") + 
-#         xlab("Number of Events") + ylab ("Number of Members"))
+# png("data_output/summary_stats/scatterplot_attendants_vs_members_yes.png", width = 1200, height = 600)
+# print(ggplot(events.rsvps, aes(x = num_attendants, y = num_members_yes)) + 
+#         geom_point() +
+#         labs(x="Number of Attendants", y="Number of Members (rsvp = yes)"))
 # dev.off()
+# 
+# 
+# # GRAPHIC 2
+# print(noquote("    Limit of Members vs. Number of members(rsvp: yes)"))
+# 
+# events.rsvps2 <- merge(events[events$rsvp_limit > 0, c("event_id", "rsvp_limit")], 
+#                       event.members.count, by = "event_id", all.x = T)
+# colnames(events.rsvps2) <- c("event_id", "max_num_members", "num_members_yes")
+# # Set the NA members with yes to 0
+# events.rsvps2[is.na(events.rsvps2$num_members_yes),]$num_members_yes <- 0
+# 
+# png("data_output/summary_stats/scatterplot_max_members_vs_members_yes.png", width = 1200, height = 600)
+# print(ggplot(events.rsvps2, aes(x = max_num_members, y = num_members_yes)) + 
+#         geom_point() +
+#         labs(x="Limit of Members", y="Number of Members (rsvp = yes)"))
+# dev.off()
+# 
+# 
+# # GRAPHIC 3
+# print(noquote("    Number of Attendants vs. Limit of Members"))
+# 
+# png("data_output/summary_stats/scatterplot_attendants_vs_max_members.png", width = 1200, height = 600)
+# print(ggplot(events[events$headCount > 0 & events$rsvp_limit > 0,], 
+#              aes(x = headCount, y = rsvp_limit)) + 
+#         geom_point() +
+#         labs(x="Number of Attendants", y="Limit of Members"))
+# dev.off()
+
+
+
+# CRAZY number of attendants (headCount):
+# http://www.meetup.com/San-Diego-Harley-and-Cruiser-Riders/events/48133452/
+# http://www.meetup.com/sandiegosportbikemeetupgroup/events/10689528/
+# http://www.meetup.com/VinVillage-SanDiego/
+# 
+# OBS: it seems to me that the event creators are tweaking the Number of Attendants
+# just to increase the visibility of the group
+
+
+# All together
+print(noquote("    Matrix: RSVP yes Limit vs. RSVP yes vs. Attendants"))
+events.data <- merge(events[events$headCount > 0 & events$rsvp_limit > 0,],
+           event.members.count, by="event_id", all.x = T)
+
+colnames(events.data) <- c("event_id", "attendants", "limit_rsvp_yes", "actual_rsvp_yes")
+
+events.data[is.na(events.data$actual_rsvp_yes),]$actual_rsvp_yes <- 0
+
+require(GGally)
+png("data_output/summary_stats/scatterplot_matrix_attendants_vs_max_members_vs_members_yes.png", 
+    width = 800, height = 800)
+ggpairs(data=events.data, columns=c("limit_rsvp_yes", "actual_rsvp_yes", "attendants"))
+dev.off()
 

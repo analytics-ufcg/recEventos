@@ -192,6 +192,7 @@ events.with.location = merge(events,
 
 # Selecting events that are in locations that had more than 1 event
 location.count <- count(events.with.location, "city")
+
 selected.locations <- location.count[location.count$freq >= 30, ]
 events.with.location <- events.with.location[events.with.location$city %in% 
                                                selected.locations$city,]
@@ -218,19 +219,33 @@ rm(events.with.location, selected.locations)
 # -----------------------------------------------------------------------------
 # Generate a .png image showing the number of members per event  
 # -----------------------------------------------------------------------------
-print(noquote(paste("Generating the histogram with the number of MEMBERs per EVENT (min.: 15 members)...")))
+sample.size <- 50000
+print(noquote(paste("Generating the histogram with the number of MEMBERs per EVENT (sample size: ", 
+                    sample.size, ")...", sep = "")))
 
-member.event.yes.count <- count(member.event.yes, vars= "event_id")
-member.event.yes.count <- member.event.yes.count[member.event.yes.count$freq >= 15 ,]
+member.event.yes.count <- count(member.event.yes[sample(1:nrow(member.event.yes), 
+                                                        sample.size),], vars= "event_id")
 member.event.yes.count <- member.event.yes.count[order(member.event.yes.count$freq, 
                                                        decreasing=T),]
 member.event.yes.count$event_id <- factor(member.event.yes.count$event_id, 
                                           levels = member.event.yes.count$event_id)
-                                            
+
 rm(events, member.event.yes)
+
 png("data_output/summary_stats/members_per_event.png", width = 1600, height = 1000)
 print(ggplot(member.event.yes.count, aes(x = event_id, y = freq)) +  
-        geom_histogram(aes(stat = "identity", fill = freq), binwidth = .1) +
+        geom_histogram(stat = "identity", binwidth = .01) +
         labs(x="Events", y="Number of Members"))
 dev.off()
-  
+
+# -----------------------------------------------------------------------------
+# Generate a .png image showing the CDF of the number of members per event  
+# -----------------------------------------------------------------------------
+print(noquote(paste("Generating the CDF with the number of MEMBERs per EVENT")))
+member.event.yes.count <- count(member.event.yes, vars= "event_id")
+
+png("data_output/summary_stats/cdf_members_per_event.png", width = 800, height = 700)
+plot(Ecdf(~ member.event.yes.count$freq, scales=list(x=list(log=T)), q=c(.6, .7, .8, .9, .95, .99), 
+          main = "CDF of Members per Event", 
+          xlab = "Members Number", ylab = "Quantile"))
+dev.off()
