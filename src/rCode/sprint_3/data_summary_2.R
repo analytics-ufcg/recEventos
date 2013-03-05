@@ -22,44 +22,44 @@
 #
 # Author: Augusto Queiroz
 #
-# File: partition_data.R
-#   * Description: This file partition the events chronologically in 10 different
-#                  data splits of train/test. Then a figure is generated to 
-#                  support the partition quality analysis
-#   * Inputs: the data_csv directory containing the events, rsvps and group csv 
-#             files
-#   * Outputs: the data_output directory with the data_partitions.csv file 
-#              containing the events by city partitioned chronologically and; the 
-#              data_partition_analysis-member_count.png figure with histograms
-#              that support the analysis of the partitions by counting the  
-#              members per data split (train and test).
+# File: data_summary_2.R
+#   * Description: 
+#   * Inputs: 
+#   * Outputs:
 # =============================================================================
+rm(list = ls())
 
 # =============================================================================
 # source() and library()
 # =============================================================================
-library(lubridate)
-library(plyr)
-library(ggplot2)
-library(stringr)
 
-if (Sys.info()['sysname'] == "Linux"){
-  library(doMC)
-  registerDoMC(3)
-}else{
-  library(doSNOW)
-}
-
+source("src/rCode/common.R")
 
 # =============================================================================
-# Function definitions
+# Executable script
 # =============================================================================
 
-ReadAllCSVs = function(dir, obj_name){
-  df = NULL
-  for (file in list.files(path = dir, pattern=paste(obj_name, "_[0-9]*.csv", sep = ""))){
-   
-    df = rbind(df, read.csv(paste(dir, file, sep = "")))
-  }
-  return(df)
-}
+# TODO (Augusto)
+# 1 - CDF dos membros por evento (sprint 3)
+# 2 - # of users that said yes vs. # attendants (sprint 3)
+# 3 - # of users that said yes vs. limit of users per event (sprint 3)
+# 4 - CDF dos eventos por location
+# 5 - Nº de eventos por membro
+# 6 - Nº de eventos por membro por cidade
+# 7 - CDF dos eventos por membro
+
+# -----------------------------------------------------------------------------
+# DATA PARTITION ANALYSIS - Count the MEMBER EVENTs per CITY
+# -----------------------------------------------------------------------------
+# 
+# print(noquote("Generating bar charts by city with the event count per member, partition and data_split"))
+# 
+# member.events.per.city <- count(member.events.partitions, vars=c("member_city", "member_id"))
+# 
+# png("data_output/data_partition_analysis-member_events_count.png", width=2000, height=1600)
+# print(ggplot(member.events.per.city, aes(x = freq)) + 
+#         geom_histogram(binwidth = 1) + 
+#         facet_wrap(~ member_city, scales="free") + 
+#         xlab("Number of Events") + ylab ("Number of Members"))
+# dev.off()
+

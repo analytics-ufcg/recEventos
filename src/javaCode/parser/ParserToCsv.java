@@ -393,8 +393,9 @@ public class ParserToCsv {
 			throws IOException {
 
 		ObjectMapper mapper = new ObjectMapper();
-		CSVWriter topicWriter = new CSVWriter(new FileWriter(topicCsvFilename,
-				true), CSV_SEPARATOR);
+		CSVWriter topicWriter = new CSVWriter(new OutputStreamWriter(
+				new FileOutputStream(topicCsvFilename), CHAR_SET),
+				CSV_SEPARATOR);
 		CSVWriter groupTopicWriter = new CSVWriter(new OutputStreamWriter(
 				new FileOutputStream(groupTopicCsvFilename), CHAR_SET),
 				CSV_SEPARATOR);

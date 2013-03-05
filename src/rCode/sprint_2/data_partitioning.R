@@ -75,7 +75,9 @@ PartitionEvents <- function(df){
 # -----------------------------------------------------------------------------
 
 print(noquote("Reading the EVENTs and RSVPs..."))
+# events <- read.csv("data_csv/events_10.csv")[, c("id", "time")]
 events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[, c("id", "time")]
+# rsvps <- read.csv("data_csv/rsvps_10.csv")[, c("member_id", "event_id", "response")]
 rsvps <- ReadAllCSVs(dir="data_csv/", obj_name="rsvps")[, c("member_id", "event_id", "response")]
 
 print(noquote("Selecting the RSVPs with response equals yes..."))
@@ -86,46 +88,28 @@ rsvps.events <- merge(rsvps, events,
                       by.x = "event_id", by.y = "id",
                       all.x = T)
 rm(rsvps, events)
-
-print(noquote("Reading the MEMBERs..."))
-members <- ReadAllCSVs(dir="data_csv/", obj_name="members")[, c("id", "city")]
-
-print(noquote("Merging the RSVPs members with the MEMBERs city..."))
-rsvps.member.events <- merge(rsvps.events, members, 
-                             by.x = "member_id", by.y = "id",
-                             all.x = T)
-rm(rsvps.events, members)
+gc()
 
 # Reorganizing the data.frame
-colnames(rsvps.member.events) <- c("member_id", "event_id", "event_time", "member_city")
-rsvps.member.events <- rsvps.member.events[, c("member_id", "member_city", "event_id", "event_time")]
+colnames(rsvps.events) <- c("member_id", "event_id", "time")
+colnames(rsvps.events) <- c("member_id", "event_id", "event_time")
 
 print(noquote("Partitioning the member's events chronologically..."))
-member.events.partitions <- ddply(rsvps.member.events, .(member_id), PartitionEvents, .parallel=T, .progress="text")
+members <- unique(rsvps.events$member_id)
 
-rm(rsvps.member.events)
+for (i in 1:10){
+  member.events.partitions <- members
+  
+  print(noquote(paste("Partitioning the member's events chronologically (", i,")...", sep = "")))
+  indexes <- as.integer(((length(members)/10) * (i -1)):((length(members)/10) * i)) + 1
+  member.events.partitions <- ddply(rsvps.events[indexes,], .(member_id), PartitionEvents, .parallel=F, .progress="text")
 
-# Organize the data.frame
-print(noquote("Organizing the resultant data..."))
-member.events.partitions <- member.events.partitions[order(member.events.partitions$member_id, 
-                                                           member.events.partitions$partition,
-                                                           member.events.partitions$data_split),]
-
-print(noquote("Persisting the data in a csv file..."))
-dir.create("data_output", showWarnings=F)
-write.csv(member.events.partitions, file = "data_output/member_events_partitions.csv", row.names = F)
-
-# -----------------------------------------------------------------------------
-# DATA PARTITION ANALYSIS - Count the MEMBER EVENTs per CITY
-# -----------------------------------------------------------------------------
-# 
-# print(noquote("Generating bar charts by city with the event count per member, partition and data_split"))
-# 
-# member.events.per.city <- count(member.events.partitions, vars=c("member_city", "member_id"))
-# 
-# png("data_output/data_partition_analysis-member_events_count.png", width=2000, height=1600)
-# print(ggplot(member.events.per.city, aes(x = freq)) + 
-#         geom_histogram(binwidth = 1) + 
-#         facet_wrap(~ member_city, scales="free") + 
-#         xlab("Number of Events") + ylab ("Number of Members"))
-# dev.off()
+  print(noquote(paste("Organizing the resultant data (", i,")...", sep = "")))
+  member.events.partitions <- member.events.partitions[order(member.events.partitions$member_id, 
+                                                             member.events.partitions$partition,
+                                                             member.events.partitions$data_split),]
+  
+  print(noquote(paste("Persisting the data in a csv file (", i,")...", sep = "")))
+  dir.create("data_output/partitions/", showWarnings=F)
+  write.csv(member.events.partitions, file = paste("data_output/partitions/member_events_partitions_",i,".csv", sep = ""), row.names = F)
+}
