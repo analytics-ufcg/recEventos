@@ -20,16 +20,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 # SOFTWARE.
 #
-# Author: Elias Paulino
+# Author: Elias Paulino and Augusto
 #
 # File: data_sumary.R
-#   * Description: This file summarize the data colletion.Read the files .csv of
+#   * Description: This file summarize the data colletion. Read the files .csv of
 #                  reasearch objects
 #   * Inputs: the data_csv directory containing the events, rsvps, group, 
 #             group_events, group_members, group_topics, member_topics, venues 
 #             csv files.
 #   * Outputs: The count table and two png images: events_per_location and 
-#              members_per_event.png in the summary_stats directory
+#              members_per_event.png in the summary_stats directory. 
 # =============================================================================
 rm(list = ls())
 
@@ -238,16 +238,4 @@ png("data_output/summary_stats/members_per_event.png", width = 1600, height = 10
 print(ggplot(member.event.yes.count, aes(x = event_id, y = freq)) +  
         geom_histogram(stat = "identity", binwidth = .01) +
         labs(x="Events", y="Number of Members"))
-dev.off()
-
-# -----------------------------------------------------------------------------
-# Generate a .png image showing the CDF of the number of members per event  
-# -----------------------------------------------------------------------------
-print(noquote(paste("Generating the CDF with the number of MEMBERs per EVENT")))
-member.event.yes.count <- count(member.event.yes, vars= "event_id")
-
-png("data_output/summary_stats/cdf_members_per_event.png", width = 800, height = 700)
-plot(Ecdf(~ member.event.yes.count$freq, scales=list(x=list(log=T)), q=c(.6, .7, .8, .9, .95, .99), 
-          main = "CDF of Members per Event", 
-          xlab = "Members Number", ylab = "Quantile"))
 dev.off()
