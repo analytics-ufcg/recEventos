@@ -58,7 +58,7 @@ rm(rsvps)
 # -----------------------------------------------------------------------------
 print(noquote(paste("Generating the CDF with the number of MEMBERs per EVENT")))
 
-png("data_output/summary_stats/cdf_members_per_event.png", width = 800, height = 700)
+png("data_output/summary_stats/cdf-members_per_event.png", width = 800, height = 700)
 plot(Ecdf(~ event.members.count$freq, scales=list(x=list(log=T)),
           q=c(.6, .7, .8, .9, .95, .99), main = "CDF of Members per Event", 
           xlab = "Members Number", ylab = "Event Quantile"))
@@ -88,7 +88,7 @@ colnames(events.data) <- c("event_id", "attendants", "limit_rsvp_yes", "actual_r
 events.data[is.na(events.data$actual_rsvp_yes),]$actual_rsvp_yes <- 0
 
 require(GGally)
-png("data_output/summary_stats/scatterplot_matrix_attendants_vs_max_members_vs_members_yes.png", 
+png("data_output/summary_stats/scatterplot_matrix-attendants_vs_max_members_vs_members_yes.png", 
     width = 1200, height = 1200)
 ggpairs(data=events.data, columns=c("limit_rsvp_yes", "actual_rsvp_yes", "attendants"))
 dev.off()
