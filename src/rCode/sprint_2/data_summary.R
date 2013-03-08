@@ -138,7 +138,7 @@ rm(member.topic)
 # Read all the files events_[1..*].csv and Counting the number of events
 # -----------------------------------------------------------------------------
 print(noquote("Reading the events..."))
-events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[,c("id", "venue_id")]
+events <- ReadAllCSVs(dir="data_csv/", obj_name="events")
 
 print(noquote("Counting the number of events..."))
 table[table$metric == "number_events",][2] = length(unique(events$id))
@@ -172,6 +172,12 @@ table[table$metric == "number_member_event_yes_pairs",][2] <- nrow(member.event.
 rm(member.event)
 
 # -----------------------------------------------------------------------------
+# Read all events
+# -----------------------------------------------------------------------------
+
+venues <- read.csv("data_csv/venues.csv",sep = ",")
+
+# -----------------------------------------------------------------------------
 # Printing the resultant summary metric values
 # -----------------------------------------------------------------------------
 print(noquote("Printing the resultant summary metric values..."))
@@ -188,7 +194,7 @@ source("src/rCode/sprint_2/data_pre_process.R")
 print(noquote("Generating the bar plot with the number of EVENTs per location (min.: 30 events)..."))
 
 events.with.location = merge(events, 
-                         venues[,c("id", "city")], 
+                             venues[,c("id", "city")], 
                          by.x = "venue_id", 
                          by.y = "id")
 
