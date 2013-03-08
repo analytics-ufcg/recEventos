@@ -11,17 +11,18 @@ app.config.from_object(__name__)
 @app.route('/')
 def index():
 
-#	f = open('events_data', 'r')
-#	events = f.read(-1)
-#	print "Read events from data"
-#	try:
-#		events = json.loads(events)
-#		print "Parsed JSON"
-#	except:
-#		print "Error parsing JSON occured"
-#	finally:
-#		f.close()
-	return render_template("index.html")#, events=events)
+	f = open('../../data_csv/venues.csv', 'r')
+	events = []
+	try:
+		for event in f.readlines():
+			event = event.replace("\"", "")
+			event = event.split(",")
+			events.append( { 'lat' : event[1], 'lon' : event[2] } )
+	except:
+		print "Error parsing CSV occured"
+	finally:
+		f.close()
+	return render_template("index.html", events=events)
 
 if __name__ == "__main__":
 	port = int(os.environ.get('PORT', 5000))
