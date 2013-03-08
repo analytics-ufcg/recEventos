@@ -11,17 +11,17 @@ app.config.from_object(__name__)
 @app.route('/')
 def index():
 
-	f = open('events_data', 'r')
-	events = f.read(-1)
-	print "Read events from data"
-	try:
-		events = json.loads(events)
-		print "Parsed JSON"
-	except:
-		print "Error parsing JSON occured"
-	finally:
-		f.close()
-	return render_template("index.html", events=events)
+#	f = open('events_data', 'r')
+#	events = f.read(-1)
+#	print "Read events from data"
+#	try:
+#		events = json.loads(events)
+#		print "Parsed JSON"
+#	except:
+#		print "Error parsing JSON occured"
+#	finally:
+#		f.close()
+	return render_template("index.html")#, events=events)
 
 if __name__ == "__main__":
 	port = int(os.environ.get('PORT', 5000))
