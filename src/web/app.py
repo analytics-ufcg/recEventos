@@ -11,13 +11,24 @@ app.config.from_object(__name__)
 @app.route('/')
 def index():
 
-	f = open('venues.csv', 'r')
+	f = open("static/venues.csv", 'r')
 	events = []
 	try:
+		first = True
 		for event in f.readlines():
+			if first:
+				first = False
+				continue
 			event = event.replace("\"", "")
 			event = event.split(",")
-			events.append( { 'lat' : event[1], 'lon' : event[2] } )
+
+			if event[1].strip() == "" or event[2].strip() == "":
+				continue
+			if event[1].isspace() or event[2].isspace():
+				continue
+			elif event[1].isalpha() or event[2].isalpha():
+				continue
+			events.append( { 'lon' : event[1], 'lat' : event[2] } )
 	except:
 		print "Error parsing CSV occured"
 	finally:
