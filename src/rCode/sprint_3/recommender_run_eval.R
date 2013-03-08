@@ -31,11 +31,13 @@ k <- 5
 
 print(noquote("Start recommeding"))
 
+# TODO (augusto): colocar em paralelo com foreach
 for(m in member.ids[1:10]){
   print(noquote(m))
   for (p in partition.ids){
     print(noquote(p))
     partition.data <- partitions[partitions$member_id == m & partitions$partition == p, ]
+    partition.data$event_id <- as.character(partition.data$event_id)
     
     p.time <- unique(partition.data$partition_time)
     test.events <- partition.data$event_id
@@ -43,10 +45,9 @@ for(m in member.ids[1:10]){
     #     # Run the recommender
     rec.events <- KNearestEvents (m, k, p.time)
 
-    # 
     #     # Evaluate the result
-    #     recall <- recall(test.events, rec.events) # For all relevant events
     #     precision <- precision(test.events, rec.events) # For all relevant events
+    #     recall <- recall(test.events, rec.events) # For all relevant events
     #     ndcg <- recall(test.events, rec.events)
     # 
     #     # Append the result (partition and its evaluations) in a data.frame
