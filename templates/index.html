@@ -105,7 +105,7 @@
 
 		var panned = false;
 
-		for ( var i=1; i<=5; i++){
+		for ( var i=1; i<=2; i++){
 		$.get("http://rec-eventos.herokuapp.com/static/events_"+i+".json", function(data){
 
 			var events = data.replace(/\]\s*\[/gm, ",");
