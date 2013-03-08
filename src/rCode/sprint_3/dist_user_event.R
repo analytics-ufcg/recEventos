@@ -44,16 +44,19 @@ require("fossil")
 # =============================================================================
 
 print(noquote("Reading the members..."))
-members = ReadAllCSVs(dir="data_csv/", obj_name="members")
+members = ReadAllCSVs(dir="data_csv/", obj_name="members")[,c("id","lat","lon")]
+
 print(noquote("Reading the events..."))
 events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[,c("id","time","venue_id")]
-print(noquote("Reading the events with location..."))
-events.with.location = merge(events, 
-                             venues[,c("id", "city")], 
+
+print(noquote("Reading the venues..."))
+venues <- read.csv("data_csv/venues.csv",sep = ",")[,c("id", "lat", "lon")]
+
+print(noquote("Filtering the events with location..."))
+events.with.location = merge(events, data.frame(id = venues[,"id"]), 
                              by.x = "venue_id", 
                              by.y = "id")
-print(noquote("Reading the venues..."))
-venues <- read.csv("data_csv/venues.csv",sep = ",")
+events.with.location$id <- as.character(events.with.location$id)
 
 # =============================================================================
 # Function definitions
@@ -63,20 +66,21 @@ venues <- read.csv("data_csv/venues.csv",sep = ",")
 # Return k lagest distance between reciver user and all events.
 # ----------------------------------------------------------------------------
 
-KNearestEvents <- function(memberId, kEvents,p.time){
+KNearestEvents <- function(memberId, kEvents, p.time){
   
   member <- subset(members, id == memberId) 
-  userLon <- member$lon[1]
-  userLat <- member$lat[1]
-  distance <- deg.dist(userLon,userLat,venues$lon,venues$lat)
-  venue.distance = cbind(venues$id, as.data.frame(distance))
-  colnames(venue.distance) = c("venueId","dist")
+
+  venue.distance <- deg.dist(member$lon, member$lat, venues$lon, venues$lat)
+  venue.distance = cbind(venues$id, as.data.frame(venue.distance))
+  colnames(venue.distance) = c("venue_id","dist")
   venue.distance = venue.distance[order(venue.distance$dist, decreasing = FALSE), ]
-  events.dist <- merge(subset(events.with.location,time == p.time), venue.distance[1:kEvents,], 
-             by.x="venue_id", by.y = "venueId", all.y = T)
-  events.dist.order = events.dist[order(events.dist$dist, decreasing = FALSE), ]
-    
-  return (events.dist.order[1:kEvents,c(2)])
+
+  events.dist <- merge(subset(events.with.location, time >= p.time), 
+                       venue.distance, 
+                       by= "venue_id")
+  events.dist <- events.dist[order(events.dist$dist, decreasing = FALSE), ]
+  
+  return (events.dist[1:kEvents, "id"])
 }
 
 # ----------------------------------------------------------------------------
