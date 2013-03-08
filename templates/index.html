@@ -107,7 +107,7 @@
 		var panned = false;
 
 		for ( var i=1; i<=5; i++){
-		$.get("http://damp-beyond-5881.herokuapp.com/static/events_"+i+".json", function(data){
+		$.get("http://rec-eventos.herokuapp.com/static/events_"+i+".json", function(data){
 
 			var events = data.replace(/\]\s*\[/gm, ",");
 			events = JSON.parse(events);
