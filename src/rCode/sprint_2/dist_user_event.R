@@ -24,11 +24,12 @@
 #
 # File: dist_user_event.R
 #
-#   * Description: 
+#   * Description: This file have two functions, k.nearest.events and recomendation.                     
 #
-#   * Inputs: 
+#   * Inputs: Venues' table, events with location table, members' table
 #
-#   * Outputs: 
+#   * Outputs: List of k events recomeded for users gived.The recomendation is made
+#              according of distance between user's geo-location and event's geo-location
 #
 # =============================================================================
 
@@ -44,26 +45,35 @@ require("fossil")
 
 venues <- read.csv("data_csv/venues.csv",sep = ",")
 
-k.nearest.events <- function(userLat,userLon,kEvents){
+# ----------------------------------------------------------------------------
+# Return k lagest distance between reciver user and all events.
+# ----------------------------------------------------------------------------
+
+k.nearest.events <- function(userLon, userLat, kEvents){
   
-  dist.matrix = matrix(data = NA,length(venues$id),1)
-  dimnames(dist.matrix) = list(venues$id,c(1))
   distance <- deg.dist(userLon,userLat,venues$lon,venues$lat)
-  venue.distance = cbind(venues$id,as.data.frame(distance))
+  venue.distance = cbind(venues$id, as.data.frame(distance))
   colnames(venue.distance) = c("venueId","dist")
-  venue.distance = venue.distance[order(venue.distance$dist, rev(venue.distance$venueId), decreasing = FALSE), ]
-  k.lower.dist = venue.distance$venueId[1:kEvents]
-  i = 1
-  events.aux = data.frame()
-  while(i <= kEvents){
+  venue.distance = venue.distance[order(venue.distance$dist, decreasing = FALSE), ]
+  events.dist <- merge(events.with.location, venue.distance[1:kEvents,], 
+             by.x="venue_id", by.y = "venueId", all.y = T)
+  events.dist.order = events.dist[order(events.dist$dist, decreasing = FALSE), ]
     
-    events.aux = events.aux
-    events = subset(events.with.location,events.with.location$venue_id == k.lower.dist[i])
-    i = i + dim(events)[1]
-   
-    events.aux = rbind(events,events.aux)
-    
-  }
+  return (events.dist.order[1:kEvents,c(2)])
+}
+
+# ----------------------------------------------------------------------------
+# Return k lagest distance between all user reciver and all events.
+# ----------------------------------------------------------------------------
+
+recomedation <- function(tableUsers,kEvents){
+  all.recomendations = data.frame()
   
-  return (events.aux)
+  for(i in 1:dim(tableUsers)[1]){
+    events.recomended = k.nearest.events(tableUsers$lon[i],tableUsers$lat[i],kEvents)
+    events.recomended =  cbind(events.recomended,user_id = c(1:dim(events.recomended)[1]))
+    events.recomended$user_id = tableUsers$id[i]
+    all.recomendations = rbind(all.recomendations,events.recomended)
+  }
+  return(all.recomendations)
 }
