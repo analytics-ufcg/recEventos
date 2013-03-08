@@ -1,11 +1,10 @@
 rm(list = ls())
 
 source("src/rCode/common.R")
-source("src/rCode/sprint_3/dist_user_event.R")
+source("src/rCode/sprint_3/recommender_alg_distance.R")
 
-# For each partition file
-#   Lê um arquivo de partições
-#   For each partition
+#   Lê o arquivo de partições
+#   For each member
 #     # Run the recommender
 #     recEvents <- KNearestEvents (member_id, partition_time)
 # 
@@ -16,11 +15,7 @@ source("src/rCode/sprint_3/dist_user_event.R")
 # 
 #     # Append the result (partition and its evaluations) in a data.frame
 
-partitions.dir <- "data_output/partitions/"
-partitions.files <- list.files(partitions.dir)
-
-# for(f in partition.files){
-f <- partitions.files[1]    
+f <- "data_output/member_events_partitions.csv"    
 partitions <- read.csv(paste(partitions.dir, f, sep = ""))
 
 member.ids <- unique(partitions$member_id)
@@ -44,7 +39,7 @@ for(m in member.ids[1:10]){
     
     #     # Run the recommender
     rec.events <- KNearestEvents (m, k, p.time)
-
+    
     #     # Evaluate the result
     #     precision <- precision(test.events, rec.events) # For all relevant events
     #     recall <- recall(test.events, rec.events) # For all relevant events
@@ -55,5 +50,4 @@ for(m in member.ids[1:10]){
     result <- rbind(result, data.frame(m, p, 0, 0, 0))
   }
 }
-# }
 

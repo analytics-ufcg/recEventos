@@ -25,11 +25,9 @@
 #
 # File: partition_data.R
 #   * Description: This file partition the events of a member chronologically 
-#                  in 5 sequential data splits of train/test. 
-#   * Inputs: the data_csv directory containing the events, rsvps and group csv 
-#             files
-#   * Outputs: the data_output directory with the data_partitions.csv file 
-#              containing the events partitioned chronologically
+#                  in 10 sequential data splits of train/test. 
+#   * Inputs: the data_csv directory containing the events and  rsvps csv files
+#   * Outputs: the data_output directory with the member_event_partitions.csv file 
 # =============================================================================
 
 rm(list=ls())
@@ -40,7 +38,7 @@ rm(list=ls())
 source("src/rCode/common.R")
 
 # =============================================================================
-# Function definitions
+# Function definition
 # =============================================================================
 
 PartitionEvents <- function(df){
@@ -60,11 +58,9 @@ PartitionEvents <- function(df){
 # -----------------------------------------------------------------------------
 
 print(noquote("Reading the EVENTs and RSVPs..."))
-# events <- read.csv("data_csv/events_10.csv")[, c("id", "time")]
 events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[, c("id", "time", "venue_id")]
-# rsvps <- read.csv("data_csv/rsvps_10.csv")[, c("member_id", "event_id", "response")]
 rsvps <- ReadAllCSVs(dir="data_csv/", obj_name="rsvps")[, c("member_id", "event_id", "response")]
-
+# 
 print(noquote("Selecting the EVENTs with location..."))
 events <- events[!is.na(events$venue_id), c("id", "time")]
 
@@ -81,29 +77,11 @@ rsvps.events <- rsvps.events[,c("member_id", "time")]
 colnames(rsvps.events) <- c("member_id", "event_time")
 
 gc()
-# members <- unique(rsvps.events$member_id)
-# 
-# data.divisions = 3
-# for (i in 1:data.divisions){
-#   
-#   print(noquote(paste("Partitioning the member's events chronologically (", i,")...", sep = "")))
-#   indexes <- as.integer(((length(members)/data.divisions) * (i -1)):((length(members)/data.divisions) * i)) + 1
-# 
-#   partitioned.data <- ddply(rsvps.events[indexes,], .(member_id), PartitionEvents,
-#                                     .parallel=T, .progress="text")
-# 
-#   print(noquote(paste("Persisting the data in a csv file (", i,")...", sep = "")))
-#   dir.create("data_output/partitions/", showWarnings=F)
-#   write.csv(partitioned.data, 
-#             file = paste("data_output/partitions/member_events_partitions_",i,".csv", sep = ""), 
-#             row.names = F)
-# }
 
-partitioned.data <- ddply(rsvps.events, .(member_id), PartitionEvents,
-                          .parallel=T, .progress="text")
+print(noquote("Partitioning the member events chronologically"))
+partitioned.data <- ddply(rsvps.events, .(member_id), PartitionEvents, .parallel=T)
 
 print(noquote("Persisting the data in a csv file..."))
-dir.create("data_output/partitions/", showWarnings=F)
+dir.create("data_output/", showWarnings=F)
 write.csv(partitioned.data, 
-          file = "data_output/partitions/member_events_partitions.csv", sep = ""), 
-          row.names = F)
+          file = "data_output/member_events_partitions.csv", row.names = F)
