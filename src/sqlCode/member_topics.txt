@@ -1,7 +1,0 @@
-CREATE TABLE IF NOT EXISTS member_topics
-(
-member_id INT NOT NULL, 
-topic_id INT NOT NULL 
-);
-
-COPY member_topics FROM 'D:\Arquivos e Programas\Eclipse\workpace\RecEventos\data_csv\member_topics.csv' DELIMITERS ',' CSV HEADER;
