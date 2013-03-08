@@ -1,0 +1,156 @@
+<!doctype html>
+
+<head>
+<title>RecEventos MapDisplay</title>
+<link rel="stylesheet" type="text/css" href="static/bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="static/style.css">
+<script src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
+</head>
+
+<body>
+
+	<div class="page">
+		<h1> RecEventos Data Display</h1>
+	</div>
+
+	<div id="content-area" style="height:100%;">
+                    <div id="map_canvas"
+			    style="width:1000px; height:400px; margin-left:auto; margin-right: auto;"></div>		
+	    </div>
+
+    </body>
+
+	<script src="static/jquery-1.9.1.min.js" language="javascript" type="text/javascript"></script>
+	<script src="static/bootstrap/js/bootstrap.js" language="javascript" type="text/javascript"></script>
+	<script language="javascript">
+
+
+    var directionDisplay;
+    var directionsService = new google.maps.DirectionsService();
+    var map;
+
+    function mapinitialize() {
+        directionsDisplay = new google.maps.DirectionsRenderer();
+        var cg = new google.maps.LatLng(-7.242598, -35.892334);
+        var myOptions = {
+            zoom:16,
+            mapTypeId:google.maps.MapTypeId.ROADMAP,
+            center:cg
+        }
+        map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+        directionsDisplay.setMap(map);
+    }
+
+    function calcRoute(r) {
+
+        var waypts = [];
+
+        start = new google.maps.LatLng(r.src[0], r.src[1]);
+        end = new google.maps.LatLng(r.dst[0], r.dst[1]);
+        var request = {
+            origin:start,
+            destination:end,
+            waypoints:waypts,
+            optimizeWaypoints:true,
+            travelMode:google.maps.DirectionsTravelMode.DRIVING
+        };
+        directionsService.route(request, function (response, status) {
+            if (status == google.maps.DirectionsStatus.OK) {
+                directionsDisplay.setDirections(response);
+                var route = response.routes[0];
+            }
+        });
+	}
+
+	function addMarker(){
+
+	}
+
+	function start(){
+		mapinitialize();
+		var userPosition = navigator.geolocation.getCurrentPosition(callbackSuccess, callbackError, {enableHighAccuracy:true});
+	}
+
+	function callbackSuccess(position){
+		console.log("will pan to current position" + position);
+		var lat = position.coords.latitude;
+		var longi = position.coords.longitude;
+		console.log("latitude: "+lat+" and longitude: "+longi + "and map is " + map);
+		var latLong = new google.maps.LatLng(lat, longi);
+		console.log("map " + map + " is to pan to " + latLong);
+		map.panTo(latLong);
+		console.log("panned to "+lat+", "+longi+"?");
+
+/*		google.maps.event.addListener(map, 'dblclick', function(event) {
+			console.log('event.latLng : ' + event.latLng);
+			var marker = new google.maps.Marker({ position : new google.maps.LatLng(event.latLng.lat(), event.latLng.lng()),
+							  map : map,
+							  icon : 'static/mapMarker.png' });
+			console.log("marker added: "+marker);
+		});
+
+		for (var i=0; i<50000; i++){
+			var la = Math.random()*91;
+			var lo = Math.random()*181;
+			if (Math.random()*10 < 5){
+				la = la * (-1);
+			}
+			if (Math.random()*10 < 5){
+				lo = lo * (-1);
+			}
+			new google.maps.Marker({position : new google.maps.LatLng(la, lo),
+						map : map,
+						icon : 'static/mapMarker.png' });
+		}*/
+
+		var panned = false;
+
+		for ( var i=1; i<=2; i++){
+		$.get("http://rec-eventos.herokuapp.com/static/events_"+i+".json", function(data){
+
+			var events = data.replace(/\]\s*\[/gm, ",");
+			events = JSON.parse(events);
+
+			console.log(events.length+' more events found....');
+			for ( var j=0; j<events.length; j++){
+
+				var event = events[j];
+				if ( event.venue == null ){
+					continue;	
+				}
+				//console.log('Considering event #'+(j+1)+'...');
+				//console.log('It does have a venue at ('+event.venue.lat+', '+event.venue.lon+')');
+				new google.maps.Marker({position : new google.maps.LatLng(event.venue.lat, event.venue.lon),
+							map : map,
+							icon : 'static/mapMarker.png' });
+				if ( !panned ){
+					map.panTo(new google.maps.LatLng(event.venue.lat, event.venue.lon));
+					panned = true;
+				}
+			}
+		});
+		}
+/*
+		var panned = false;
+
+		{% for event in events %}
+			new google.maps.Marker({position : new google.maps.LatLng({{event.lat}}, {{event.lon}}),
+						map : map,
+						icon : 'static/mapMarker.png' });
+			if (!panned){
+				map.panTo(new google.maps.LatLng({{event.lat}}, {{event.lon}}));
+				panned = true;
+			}
+
+		{% endfor %}
+*/
+	}
+
+	function callbackError(status){
+		window.alert("Please enable geolocation for this site...");
+	}
+
+	$(document).ready(start());
+
+	</script>
+</html>
