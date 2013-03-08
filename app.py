@@ -13,7 +13,9 @@ def index():
 
 	f = open('events_data', 'r')
 	events = f.read(-1)
+	print "Read events from data"
 	events = json.loads(events)
+	print "Parsed JSON"
 
 	return render_template("index.html", events=events)
 
