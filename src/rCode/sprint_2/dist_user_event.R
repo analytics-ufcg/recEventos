@@ -49,13 +49,16 @@ venues <- read.csv("data_csv/venues.csv",sep = ",")
 # Return k lagest distance between reciver user and all events.
 # ----------------------------------------------------------------------------
 
-k.nearest.events <- function(userLon, userLat, kEvents){
+kNearestEvents <- function(memberId, kEvents,p.time){
   
+  member <- subset(members, id == memberId) 
+  userLon <- member$lon[1]
+  userLat <- member$lat[1]
   distance <- deg.dist(userLon,userLat,venues$lon,venues$lat)
   venue.distance = cbind(venues$id, as.data.frame(distance))
   colnames(venue.distance) = c("venueId","dist")
   venue.distance = venue.distance[order(venue.distance$dist, decreasing = FALSE), ]
-  events.dist <- merge(events.with.location, venue.distance[1:kEvents,], 
+  events.dist <- merge(subset(events.with.location,time == p.time), venue.distance[1:kEvents,], 
              by.x="venue_id", by.y = "venueId", all.y = T)
   events.dist.order = events.dist[order(events.dist$dist, decreasing = FALSE), ]
     
