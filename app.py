@@ -1,8 +1,6 @@
-from __future__ import with_statement
-from contextlib import closing
-from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash, send_from_directory
-import sqlite3
-import os
+from flask import Flask, render_template
+import os, json
+
 
 DEBUG = True
 SECRET_KEY = 'dev_key'
@@ -12,7 +10,12 @@ app.config.from_object(__name__)
 
 @app.route('/')
 def index():
-	return render_template("index.html")
+
+	f = open('events_data', 'r')
+	events = f.read(-1)
+	events = json.loads(events)
+
+	return render_template("index.html", events=events)
 
 if __name__ == "__main__":
 	port = int(os.environ.get('PORT', 5000))
