@@ -20,16 +20,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 # SOFTWARE.
 #
-# Author: Elias Paulino
+# Author: Elias Paulino and Augusto
 #
 # File: data_sumary.R
-#   * Description: This file summarize the data colletion.Read the files .csv of
+#   * Description: This file summarize the data colletion. Read the files .csv of
 #                  reasearch objects
 #   * Inputs: the data_csv directory containing the events, rsvps, group, 
 #             group_events, group_members, group_topics, member_topics, venues 
 #             csv files.
 #   * Outputs: The count table and two png images: events_per_location and 
-#              members_per_event.png in the summary_stats directory
+#              members_per_event.png in the summary_stats directory. 
 # =============================================================================
 rm(list = ls())
 
@@ -200,6 +200,7 @@ events.with.location = merge(events,
 
 # Selecting events that are in locations that had more than 1 event
 location.count <- count(events.with.location, "city")
+
 selected.locations <- location.count[location.count$freq >= 30, ]
 events.with.location <- events.with.location[events.with.location$city %in% 
                                                selected.locations$city,]
@@ -226,19 +227,21 @@ rm(events.with.location, selected.locations)
 # -----------------------------------------------------------------------------
 # Generate a .png image showing the number of members per event  
 # -----------------------------------------------------------------------------
-print(noquote(paste("Generating the histogram with the number of MEMBERs per EVENT (min.: 15 members)...")))
+sample.size <- 50000
+print(noquote(paste("Generating the histogram with the number of MEMBERs per EVENT (sample size: ", 
+                    sample.size, ")...", sep = "")))
 
-member.event.yes.count <- count(member.event.yes, vars= "event_id")
-member.event.yes.count <- member.event.yes.count[member.event.yes.count$freq >= 15 ,]
+member.event.yes.count <- count(member.event.yes[sample(1:nrow(member.event.yes), 
+                                                        sample.size),], vars= "event_id")
 member.event.yes.count <- member.event.yes.count[order(member.event.yes.count$freq, 
                                                        decreasing=T),]
 member.event.yes.count$event_id <- factor(member.event.yes.count$event_id, 
                                           levels = member.event.yes.count$event_id)
-                                            
+
 rm(events, member.event.yes)
+
 png("data_output/summary_stats/members_per_event.png", width = 1600, height = 1000)
 print(ggplot(member.event.yes.count, aes(x = event_id, y = freq)) +  
-        geom_histogram(aes(stat = "identity", fill = freq), binwidth = .1) +
+        geom_histogram(stat = "identity", binwidth = .01) +
         labs(x="Events", y="Number of Members"))
 dev.off()
-  

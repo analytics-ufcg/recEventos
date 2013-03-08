@@ -42,6 +42,7 @@ library(lubridate)
 library(plyr)
 library(ggplot2)
 library(stringr)
+library(Hmisc)
 
 if (Sys.info()['sysname'] == "Linux"){
   library(doMC)
