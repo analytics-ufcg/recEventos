@@ -46,7 +46,7 @@ library(Hmisc)
 
 if (Sys.info()['sysname'] == "Linux"){
   library(doMC)
-  registerDoMC(3)
+  registerDoMC(2)
 }else{
   library(doSNOW)
 }

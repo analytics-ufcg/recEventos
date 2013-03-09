@@ -45,8 +45,38 @@ PartitionEvents <- function(df){
   partition <- 1:10
   partition_time <- quantile(df$event_time, seq(.1, 1, .1), na.rm=T)
   train_size <- sapply(partition_time, function(p)sum(df$event_time >= p))
-
+  
   return(data.frame(partition, partition_time, train_size))
+}
+
+ReadMemberEvents <- function(){
+  print(noquote("Reading the MEMBER.EVENTs (if there is any)..."))
+  member.events <- ReadAllCSVs(dir="data_output/partitions/", obj_name="member_events")
+  
+  if (is.null(member.events)){
+    print(noquote("    Reading the EVENTs..."))
+    events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[, c("id", "time", "venue_id")]
+    
+    print(noquote("    Selecting the EVENTs with location..."))
+    events <- events[!is.na(events$venue_id), c("id", "time")]
+    
+    print(noquote("    Reading the RSVPs..."))
+    rsvps <- ReadAllCSVs(dir="data_csv/", obj_name="rsvps")[, c("member_id", "event_id", "response")]
+    
+    print(noquote("    Selecting the RSVPs with response equals yes..."))
+    rsvps <- rsvps[rsvps$response == "yes", c("member_id", "event_id")]
+    
+    print(noquote("    Merging the RSVPs <event_id> with the EVENTs <time>"))
+    member.events <- merge(rsvps, events, 
+                          by.x = "event_id", by.y = "id")
+    rm(rsvps, events)
+    
+    # Reorganizing the data.frame
+    member.events <- member.events[,c("member_id", "event_id", "time")]
+    colnames(member.events) <- c("member_id", "event_id", "event_time")
+  }
+  
+  return (member.events)
 }
 
 # =============================================================================
@@ -57,31 +87,33 @@ PartitionEvents <- function(df){
 # DATA PARTITIONS CREATION                         
 # -----------------------------------------------------------------------------
 
-print(noquote("Reading the EVENTs and RSVPs..."))
-events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[, c("id", "time", "venue_id")]
-rsvps <- ReadAllCSVs(dir="data_csv/", obj_name="rsvps")[, c("member_id", "event_id", "response")]
-# 
-print(noquote("Selecting the EVENTs with location..."))
-events <- events[!is.na(events$venue_id), c("id", "time")]
+member.events <- ReadMemberEvents()
 
-print(noquote("Selecting the RSVPs with response equals yes..."))
-rsvps <- rsvps[rsvps$response == "yes", c("member_id", "event_id")]
+dir.create("data_output/partitions/", showWarnings=F)
 
-print(noquote("Merging the RSVP events with the EVENTs time"))
-rsvps.events <- merge(rsvps, events, 
-                      by.x = "event_id", by.y = "id")
-rm(rsvps, events)
+members <- unique(member.events$member_id)
+max.members <- 50000 # "Empirically" selected
+data.divisions <- ceil(length(members)/max.members)
 
-# Reorganizing the data.frame
-rsvps.events <- rsvps.events[,c("member_id", "time")]
-colnames(rsvps.events) <- c("member_id", "event_time")
+for (i in 1:data.divisions){
+  indexes <- as.integer(((length(members)/data.divisions) * (i -1)) : 
+                          ((length(members)/data.divisions) * i)) + 1
 
-gc()
+  print(noquote(paste("Data Division", i, "-", length(indexes), "members")))
+  
+  print(noquote("    Persisting the rsvp_events data in a csv file"))
+  write.csv(member.events[indexes,], 
+            file = paste("data_output/partitions/member_events_",i,".csv", sep = ""), 
+            row.names = F)
 
-print(noquote("Partitioning the member events chronologically"))
-partitioned.data <- ddply(rsvps.events, .(member_id), PartitionEvents, .parallel=T)
-
-print(noquote("Persisting the data in a csv file..."))
-dir.create("data_output/", showWarnings=F)
-write.csv(partitioned.data, 
-          file = "data_output/member_events_partitions.csv", row.names = F)
+  print(noquote("    Partitioning the member's events chronologically"))
+  partitioned.data <- ddply(member.events[indexes,], .(member_id), PartitionEvents,
+                            .parallel=T, .progress="text")
+  
+  print(noquote("    Persisting the partitions in a csv file"))
+  write.csv(partitioned.data, 
+            file = paste("data_output/partitions/member_partitions_", i,".csv", sep = ""), 
+            row.names = F)
+  
+  print(noquote(""))
+}

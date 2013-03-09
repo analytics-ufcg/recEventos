@@ -58,12 +58,14 @@ events.with.location = merge(events, data.frame(id = venues[,"id"]),
                              by.y = "id")
 events.with.location$id <- as.character(events.with.location$id)
 
+rm(events)
+
 # =============================================================================
 # Function definitions
 # =============================================================================
 
 # ----------------------------------------------------------------------------
-# Return k lagest distance between reciver user and all events.
+# Return k lagest distance between receiver user and all events.
 # ----------------------------------------------------------------------------
 
 KNearestEvents <- function(memberId, kEvents, p.time){
@@ -80,7 +82,7 @@ KNearestEvents <- function(memberId, kEvents, p.time){
                        by= "venue_id")
   events.dist <- events.dist[order(events.dist$dist, decreasing = FALSE), ]
   
-  return (events.dist[1:kEvents, "id"])
+  return (events.dist[1:min(kEvents, nrow(events.dist))], "id"])
 }
 
 
