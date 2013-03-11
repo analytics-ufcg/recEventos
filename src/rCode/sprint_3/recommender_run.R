@@ -1,46 +1,79 @@
-rm(list = ls())
+# =============================================================================
+# Copyright (C) 2013 Augusto Queiroz, Elias Paulino, Rodolfo Moraes, 
+#                    Ricardo Araujo e Leandro Balby
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy 
+# of this software and associated documentation files (the "Software"), to deal 
+# in the Software without restriction, including without limitation the rights 
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+# copies of the Software, and to permit persons to whom the Software is 
+# furnished to do so, subject to the following conditions:
+#     
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+# SOFTWARE.
+# =============================================================================
+#
+# Author: Augusto Queiroz
+#
+# File: recommender_run.R
+#   * Description: Runs the recommendations per partition file. The execution
+#                  is highly parallelizable, running one recommendation job 
+#                  (that is, calling the RecommendPerPartition function) per 
+#                  member and partition, that means 10 executions per member this
+#                  sums up to the number of rows of all partition files together,
+#                  (something like 903,500 jobs!).
+#   * Inputs: The partition csv files
+#   * Outputs: The recommendation results in csv files
+# =============================================================================
+rm(list=ls())
 
+# =============================================================================
+# source() and library()
+# =============================================================================
 source("src/rCode/common.R")
 source("src/rCode/sprint_3/recommender_alg_distance.R")
 
-partition.dir <- "data_output/partitions/"
-partition.files <- list.files(partition.dir, pattern="member_partitions_*")
-
-# TODO (augusto): ler todos os arquivos de particoes
-i <- 1
-partitions <- read.csv(paste(partition.dir, partition.files[i], sep =""))
-
-member.ids <- unique(partitions$member_id)
-
-print(noquote("Start recommeding"))
-dir.create("data_output/recommendations/", showWarnings=F)
-
+# =============================================================================
+# Function definition
+# =============================================================================
 RecommendPerPartition <- function(partition, m, k){
-  p.time <- partition$partition_time
-  rec.events <- KNearestEvents (m, k, p.time)
-  return(list(p.time = p.time, rec.events = rec.events))
-}
-
-RecommendPerPartition2 <- function(partition, m, k){
   p.time <- partition$partition_time
   rec.events <- KNearestEvents (m, k, p.time)
   return(cbind(data.frame(p.time = p.time), t(rec.events)))
 }
 
-# rec.events.list <- foreach(m = member.ids[1024:1027]) %dopar%
-# {
-#   list(member.id = m, 
-#        partitions = dlply(partitions[partitions$member_id == m, c("partition", "partition_time")], 
-#                           .(partition), RecommendPerPartition, m, k))
-# }
+# =============================================================================
+# Main
+# =============================================================================
 
+output.dir <- "data_output/recommendations/"
+dir.create(output.dir, showWarnings=F)
+
+partition.dir <- "data_output/partitions/"
+partition.files <- list.files(partition.dir, pattern="member_partitions_*")
+
+# Number of recommended events
 k <- 10
-rec.events.df <- ddply(partitions[1:100,], .(member_id, partition), 
-                       RecommendPerPartition2, m, k, .parallel = T)
 
-print(noquote("Persisting the recommendation results..."))
-write.csv(rec.events.df, 
-          file=paste("data_output/recommendations/recommeded_events_",i,".dat", sep = ""),
-          row.names = F))
-
-
+for (i in 1:length(partition.files)){
+  file <- partition.files[i]
+  
+  print(noquote(paste("Partition file:", file)))
+  print(noquote("    Start recommending..."))
+  
+  partitions <- read.csv(paste(partition.dir, file, sep =""))
+  rec.events.df <- ddply(partitions, .(member_id, partition), 
+                         RecommendPerPartition, m, k, .parallel = T)
+  
+  persist.file <- paste("recommeded_events_", i, ".csv", sep = "")
+  print(noquote(paste("    Persisting the results:", persist.file)))
+  write.csv(rec.events.df, file=paste(output.dir, persist.file, sep =""), row.names = F)
+}
