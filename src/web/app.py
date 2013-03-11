@@ -17,7 +17,7 @@ def index():
 		try:
 			f = open("../venues.csv", 'r')
 		except:
-			print "Nothing worked...")
+			print "Nothing worked..."
 
 	events = []
 	try:
