@@ -11,7 +11,14 @@ app.config.from_object(__name__)
 @app.route('/')
 def index():
 
-	f = open("venues.csv", 'r')
+	try:
+		f = open("venues.csv", 'r')
+	except IOError:
+		try:
+			f = open("../venues.csv", 'r')
+		except:
+			print "Nothing worked...")
+
 	events = []
 	try:
 		first = True
