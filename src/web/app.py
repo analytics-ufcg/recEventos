@@ -11,7 +11,7 @@ app.config.from_object(__name__)
 @app.route('/')
 def index():
 
-	f = open("static/venues.csv", 'r')
+	f = open("venues.csv", 'r')
 	events = []
 	try:
 		first = True
