@@ -13,13 +13,9 @@ def index():
 
 	f = None
 	try:
-		f = open("venues.csv", 'r')
+		f = open(os.path.join(os.path.join("src", "web"), "venues.csv"), 'r')
 	except IOError:
-		try:
-			f = open("../venues.csv", 'r')
-		except:
-			print "Nothing worked..."
-			return render_template("index.html", events=[])
+		render_template("index.html", events=[])
 
 	events = []
 	try:
