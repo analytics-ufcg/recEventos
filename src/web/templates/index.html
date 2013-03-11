@@ -101,7 +101,7 @@
 			new google.maps.Marker({position : new google.maps.LatLng(la, lo),
 						map : map,
 						icon : 'static/mapMarker.png' });
-		}*/
+		}
 
 		var panned = false;
 
@@ -129,21 +129,14 @@
 				}
 			}
 		});
-		}
-/*
-		var panned = false;
+		}*/
 
 		{% for event in events %}
 			new google.maps.Marker({position : new google.maps.LatLng({{event.lat}}, {{event.lon}}),
 						map : map,
 						icon : 'static/mapMarker.png' });
-			if (!panned){
-				map.panTo(new google.maps.LatLng({{event.lat}}, {{event.lon}}));
-				panned = true;
-			}
-
 		{% endfor %}
-*/
+
 	}
 
 	function callbackError(status){

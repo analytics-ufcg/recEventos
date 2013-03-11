@@ -43,10 +43,11 @@ library(plyr)
 library(ggplot2)
 library(stringr)
 library(Hmisc)
+library(fossil)
 
 if (Sys.info()['sysname'] == "Linux"){
   library(doMC)
-  registerDoMC(3)
+  registerDoMC(2)
 }else{
   library(doSNOW)
 }
@@ -64,3 +65,4 @@ ReadAllCSVs = function(dir, obj_name){
   }
   return(df)
 }
+
