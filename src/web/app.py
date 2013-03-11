@@ -19,7 +19,7 @@ def index():
 			f = open("../venues.csv", 'r')
 		except:
 			print "Nothing worked..."
-			exit(0)
+			return render_template("index.html", events=[])
 
 	events = []
 	try:
