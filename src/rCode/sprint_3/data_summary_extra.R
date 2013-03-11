@@ -81,10 +81,10 @@ dev.off()
 
 
 # Bar chart
-print(noquote("Generating Bar chart with the event count per member"))
+print(noquote("Generating Bar chart with the event count per member (10.000 first members with more events)"))
 
 png("data_output/summary_stats/barchart-events_per_member.png", width=1200, height=800)
-print(ggplot(member.event.count, aes(x = member_id, y = freq)) + 
+print(ggplot(member.event.count[1:10000,], aes(x = member_id, y = freq)) + 
         geom_bar(aes(fill = freq), stat = "identity", .binwidth = .1) + 
         xlab("Members") + ylab ("Number of Events"))
 dev.off()
