@@ -36,8 +36,7 @@
 # =============================================================================
 # source() and library()
 # =============================================================================
-
-require("fossil")
+source("src/rCode/common.R")
 
 # =============================================================================
 # Inputs
@@ -68,9 +67,9 @@ rm(events)
 # Return k lagest distance between receiver user and all events.
 # ----------------------------------------------------------------------------
 
-KNearestEvents <- function(memberId, kEvents, p.time){
+KNearestEvents <- function(member.id, k.events, p.time){
   
-  member <- subset(members, id == memberId) 
+  member <- subset(members, id == member.id) 
 
   venue.distance <- deg.dist(member$lon, member$lat, venues$lon, venues$lat)
   venue.distance = cbind(venues$id, as.data.frame(venue.distance))
@@ -82,7 +81,6 @@ KNearestEvents <- function(memberId, kEvents, p.time){
                        by= "venue_id")
   events.dist <- events.dist[order(events.dist$dist, decreasing = FALSE), ]
   
-  return (events.dist[1:min(kEvents, nrow(events.dist))], "id"])
+  return (events.dist[1:min(k.events, nrow(events.dist)), "id"])
 }
-
 
