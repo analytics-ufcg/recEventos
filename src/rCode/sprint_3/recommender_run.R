@@ -63,8 +63,8 @@ partition.files <- list.files(partition.dir, pattern="member_partitions_*")
 
 # Force the data partition execution (if it wasn't done yet...)
 if (length(partition.files) <= 0){
-  source("src/rCode/sprint_2/data_partitioning.R")
-  partition.files <- list.files(partition.dir, pattern="member_partitions_*")
+  stop(paste("There is no partition file in \"", partition.dir, 
+             "\" (run the \"src/rCode/sprint_2/data_partitioning.R\" to create the partitions)", sep = ""))
 }
 
 # Number of recommended events
@@ -74,11 +74,11 @@ for (i in 1:length(partition.files)){
   file <- partition.files[i]
   
   print(noquote(paste("Partition file:", file)))
-  print(noquote("    Start recommending..."))
-  
   partitions <- read.csv(paste(partition.dir, file, sep =""))
-  rec.events.df <- ddply(partitions, .(member_id, partition), 
-                         RecommendPerPartition, k, .parallel = T)
+  
+  print(noquote("    Start recommending..."))
+  rec.events.df <- ddply(partitions, .(member_id, partition),
+                         RecommendPerPartition, k, .parallel = T, .progress = "text")
   
   persist.file <- paste("recommeded_events_", i, ".csv", sep = "")
   print(noquote(paste("    Persisting the results:", persist.file)))

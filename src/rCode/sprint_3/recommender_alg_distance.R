@@ -43,19 +43,23 @@ source("src/rCode/common.R")
 # =============================================================================
 
 print(noquote("Reading the members..."))
-members = ReadAllCSVs(dir="data_csv/", obj_name="members")[,c("id","lat","lon")]
+members <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="members")[,c("id","lat","lon")])
+setkey(members, "id")
 
 print(noquote("Reading the events..."))
-events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[,c("id","time","venue_id")]
+events <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="events")[,c("id","time","venue_id")])
+setkey(events, "venue_id")
 
 print(noquote("Reading the venues..."))
-venues <- read.csv("data_csv/venues.csv",sep = ",")[,c("id", "lat", "lon")]
+venues <- data.table(read.csv("data_csv/venues.csv",sep = ",")[,c("id", "lat", "lon")])
+setkey(venues, "id")
 
 print(noquote("Filtering the events with location..."))
-events.with.location = merge(events, data.frame(id = venues[,"id"]), 
-                             by.x = "venue_id", 
-                             by.y = "id")
+events.with.location = events[venues]
+events.with.location$lat <- NULL
+events.with.location$lon <- NULL
 events.with.location$id <- as.character(events.with.location$id)
+setkey(events.with.location, "time")
 
 rm(events)
 
@@ -69,18 +73,17 @@ rm(events)
 
 KNearestEvents <- function(member.id, k.events, p.time){
   
-  member <- subset(members, id == member.id) 
+  member <- subset(members, id == member.id)
 
-  venue.distance <- deg.dist(member$lon, member$lat, venues$lon, venues$lat)
-  venue.distance = cbind(venues$id, as.data.frame(venue.distance))
-  colnames(venue.distance) = c("venue_id","dist")
-  venue.distance = venue.distance[order(venue.distance$dist, decreasing = FALSE), ]
+  venue.distance <- data.table(venue_id = venues$id, 
+                               dist = deg.dist(member$lon, member$lat, venues$lon, venues$lat))
+  setkey(venue.distance, "dist")  # Now it is ordered by dist
 
   events.dist <- merge(subset(events.with.location, time >= p.time), 
                        venue.distance, 
                        by= "venue_id")
-  events.dist <- events.dist[order(events.dist$dist, decreasing = FALSE), ]
+  setkey(events.dist, "dist")  # Now it is ordered by dist
   
-  return (events.dist[1:min(k.events, nrow(events.dist)), "id"])
+  return(events.dist[1:min(k.events, nrow(events.dist)), id])
 }
 
