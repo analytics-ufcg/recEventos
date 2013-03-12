@@ -29,6 +29,7 @@
 #   * Inputs: the data_csv directory containing the events and  rsvps csv files
 #   * Outputs: the data_output directory with the member_event_partitions.csv file 
 # =============================================================================
+rm(list = ls())
 
 # =============================================================================
 # source() and library()
