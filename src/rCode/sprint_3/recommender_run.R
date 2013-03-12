@@ -44,9 +44,10 @@ source("src/rCode/sprint_3/recommender_alg_distance.R")
 # =============================================================================
 # Function definition
 # =============================================================================
-RecommendPerPartition <- function(partition, m, k){
+RecommendPerPartition <- function(partition, k){
   p.time <- partition$partition_time
-  rec.events <- KNearestEvents (m, k, p.time)
+  member.id <- partition$member_id
+  rec.events <- KNearestEvents (member.id, k, p.time)
   return(cbind(data.frame(p.time = p.time), t(rec.events)))
 }
 
@@ -60,6 +61,12 @@ dir.create(output.dir, showWarnings=F)
 partition.dir <- "data_output/partitions/"
 partition.files <- list.files(partition.dir, pattern="member_partitions_*")
 
+# Force the data partition execution (if it wasn't done yet...)
+if (length(partition.files) <= 0){
+  source("src/rCode/sprint_2/data_partitioning.R")
+  partition.files <- list.files(partition.dir, pattern="member_partitions_*")
+}
+
 # Number of recommended events
 k <- 10
 
@@ -71,7 +78,7 @@ for (i in 1:length(partition.files)){
   
   partitions <- read.csv(paste(partition.dir, file, sep =""))
   rec.events.df <- ddply(partitions, .(member_id, partition), 
-                         RecommendPerPartition, m, k, .parallel = T)
+                         RecommendPerPartition, k, .parallel = T)
   
   persist.file <- paste("recommeded_events_", i, ".csv", sep = "")
   print(noquote(paste("    Persisting the results:", persist.file)))
