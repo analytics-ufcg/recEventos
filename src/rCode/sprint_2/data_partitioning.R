@@ -39,20 +39,12 @@ source("src/rCode/common.R")
 # =============================================================================
 # Function definition
 # =============================================================================
-
-PartitionEvents <- function(df){
-  partition <- 1:10
-  partition_time <- quantile(df$event_time, seq(.1, 1, .1), na.rm=T)
-  train_size <- sapply(partition_time, function(p)sum(df$event_time >= p))
-  
-  return(data.frame(partition, partition_time, train_size))
-}
-
-ReadMemberEvents <- function(){
-  print(noquote("Reading the MEMBER.EVENTs (if there is any)..."))
+CreateMemberEvents <- function(){
+  print(noquote("Reading the MEMBER.EVENTs (if there was any)..."))
   member.events <- ReadAllCSVs(dir="data_output/partitions/", obj_name="member_events")
   
   if (is.null(member.events)){
+    print(noquote("Creating the MEMBER.EVENTs (no there wasn't)..."))
     print(noquote("    Reading the EVENTs..."))
     events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[, c("id", "time", "venue_id")]
     
@@ -65,10 +57,17 @@ ReadMemberEvents <- function(){
     print(noquote("    Selecting the RSVPs with response equals yes..."))
     rsvps <- rsvps[rsvps$response == "yes", c("member_id", "event_id")]
     
-    print(noquote("    Merging the RSVPs <event_id> with the EVENTs <time>"))
+    print(noquote(paste("    Fixed number of partitions:", partitions.num)))
+    print(noquote(paste("    Selecting the members with at least", partitions.num + 1, "event(s)...")))
+    member.count <- count(rsvps, "member_id")
+    member.count <- member.count[member.count$freq >= (partitions.num+1),]
+    rsvps <- rsvps[rsvps$member_id %in% member.count$member_id,]
+    
+    print(noquote("    Merging the RSVPs with EVENTs table (to add the EVENTs <time>)"))
     member.events <- merge(rsvps, events, 
                           by.x = "event_id", by.y = "id")
-    rm(rsvps, events)
+
+    rm(rsvps, events, member.count)
     
     # Reorganizing the data.frame
     member.events <- member.events[,c("member_id", "event_id", "time")]
@@ -76,6 +75,15 @@ ReadMemberEvents <- function(){
   }
   
   return (member.events)
+}
+
+PartitionEvents <- function(df, partitions.num){
+  partition <- 1:partitions.num
+  partition.size <- nrow(df)/(partitions.num + 1)
+  train_size <- ceil(partition * partition.size)
+  partition.time <- sort(df$event_time)[train_size] + 1  # Add a millisecond to guarantee...
+  
+  return(data.frame(partition = partition, partition_time = partition.time))
 }
 
 # =============================================================================
@@ -86,30 +94,37 @@ ReadMemberEvents <- function(){
 # DATA PARTITIONS CREATION                         
 # -----------------------------------------------------------------------------
 
-member.events <- ReadMemberEvents()
+partitions.num <- 4
+
+member.events <- CreateMemberEvents()
 
 dir.create("data_output/partitions/", showWarnings=F)
 
 members <- unique(member.events$member_id)
-max.members <- 50000 # "Empirically" selected
+max.members <- 40000 # "Empirically" selected
 data.divisions <- ceil(length(members)/max.members)
 
 for (i in 1:data.divisions){
   indexes <- as.integer(((length(members)/data.divisions) * (i -1)) : 
                           ((length(members)/data.divisions) * i)) + 1
+  indexes <- indexes[indexes <= length(members)]
 
-  print(noquote(paste("Data Division", i, "-", length(indexes), "members")))
+  print(noquote(paste("Data Division ", i, "/", data.divisions, " - ", length(indexes), 
+                      " members", sep = "")))
   
-  print(noquote("    Persisting the rsvp_events data in a csv file"))
-  write.csv(member.events[indexes,], 
+  member.events.tmp <- member.events[member.events$member_id %in% members[indexes], ]
+  
+  print(noquote("    Persisting the rsvp_events data in a csv file..."))
+  write.csv(member.events.tmp, 
             file = paste("data_output/partitions/member_events_",i,".csv", sep = ""), 
             row.names = F)
 
-  print(noquote("    Partitioning the member's events chronologically"))
-  partitioned.data <- ddply(member.events[indexes,], .(member_id), PartitionEvents,
-                            .parallel=T, .progress="text")
+  print(noquote(paste("    Partitioning the member's events (", partitions.num, 
+                      " partitions)...", sep = "")))
+  partitioned.data <- ddply(member.events.tmp, .(member_id), PartitionEvents, 
+                            partitions.num, .parallel=T, .progress="text")
   
-  print(noquote("    Persisting the partitions in a csv file"))
+  print(noquote("    Persisting the partitions in a csv file..."))
   write.csv(partitioned.data, 
             file = paste("data_output/partitions/member_partitions_", i,".csv", sep = ""), 
             row.names = F)
