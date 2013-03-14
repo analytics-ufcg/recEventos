@@ -18,8 +18,8 @@
 				</blockquote>
 			</div>
 			<div class="span2" style="height:10%;">
-				<button id="venues_button" style="padding-top:15px;" class="btn btn-small btn-danger btn-block disabled" type="button">Venues</button>
-				<button id="users_button" style="padding-bottom:15px;" class="btn btn-small btn-success btn-block disabled" type="button" onclick="" >Users</button>
+				<button id="venues_button" style="padding-top:10px; margin-top:2px;" class="btn btn-small btn-danger btn-block disabled" type="button">Venues</button>
+				<button id="users_button" style="padding-bottom:10px; margin-bottom:2px;" class="btn btn-small btn-success btn-block disabled" type="button" onclick="" >Users</button>
 			</div>
 		</div>
 	</div>
@@ -101,6 +101,26 @@
 		venue_markers.length = 0;
 	}
 
+	function sortbyLatLng(a, b){
+		if (a.lat < b.lat){
+			return -1;
+		}
+		else if (a.lat == b.lat){
+			if (a.lon < b.lon){
+				return -1;
+			}
+			else if (a.lon == b.lon){
+				return 0;
+			}
+			else{
+				return -1;
+			}
+		}
+		else{
+			return 1;
+		}
+	}
+
 	function pinVenuesInMap(){
 		
 		var venues = new Array();
@@ -111,15 +131,30 @@
 
 		{% endfor %}
 
+		venues.sort(sortbyLatLng);
+
+		var c_lat = -1, c_long = -1;
+		var close_venues = new Array();
+
 		for (var i=0; i<venues.length; i++ ){
+
+			if ( c_lat != -1 && c_long != -1 ){
+				if (Math.abs(c_lat - venues[i].lat) > 0.000001 && Math.abs(c_long - venues[i].lon) > 0.000001){
+					close_venues = new Array();
+				}
+			}
+			c_long = parseInt(venues[i].lon);
+			c_lat = parseFloat(venues[i].lat);
 
 			var venue_marker = new google.maps.Marker({position : new google.maps.LatLng(venues[i].lat, venues[i].lon),
 						map : map,
 						icon : 'static/venue-marker.png' });
 			venue_markers.push(venue_marker);
 			venue_marker_ids[venue_marker] = venues[i].id;
-			var showVenueEvent = showVenueEvents(venues[i].id);
+			var showVenueEvent = showVenueEvents(venues[i].id, close_venues);
 			google.maps.event.addListener(venue_marker, 'click', showVenueEvent);
+
+			close_venues.push(venues[i].id);
 
 			if ( i == venues.length-1 ){
 				map.panTo(new google.maps.LatLng(venues[i].lat, venues[i].lon));
@@ -128,11 +163,17 @@
 		$('#users_button').removeClass("disabled").attr("onclick", "showUsersView();");
 	}
 
-	function showVenueEvents(venue_id){
+	function showVenueEvents(venue_id, close_venues){
 		function showModal(){
 			console.log("showing events of venue with id ="+venue_id);
 			$("#venue_events_body").load('venue_events/'+venue_id);
 			$("#venue_events").modal('show');
+			if (close_venues.length != 0){
+				console.log("there are also these venues in the same spot:");
+			}
+			for ( var i=0; i<close_venues.length; i++ ){
+				console.log("venue with id = "+close_venues[i]);
+			}
 		}
 		return showModal;
 	}
