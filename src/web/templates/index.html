@@ -18,8 +18,8 @@
 				</blockquote>
 			</div>
 			<div class="span2" style="height:10%;">
-				<button style="padding-top:15px;" class="btn btn-small btn-danger btn-block disabled" type="button">Venues</button>
-				<button style="padding-bottom:15px;" class="btn btn-small btn-success btn-block" type="button">Users</button>
+				<button id="venues_button" style="padding-top:15px;" class="btn btn-small btn-danger btn-block disabled" type="button">Venues</button>
+				<button id="users_button" style="padding-bottom:15px;" class="btn btn-small btn-success btn-block disabled" type="button" onclick="" >Users</button>
 			</div>
 		</div>
 	</div>
@@ -122,6 +122,7 @@
 				map.panTo(new google.maps.LatLng(venues[i].lat, venues[i].lon));
 			}
 		}
+		$('#users_button').removeClass("disabled").attr("onclick", "showUsersView();");
 	}
 
 	function showVenueEvents(venue_id){
@@ -135,6 +136,17 @@
 
 	function callbackError(status){
 		window.alert("Please enable geolocation for this site...");
+	}
+
+
+	function showUsersView(){
+		$('#users_button').addClass("disabled").attr("onclick", "");
+		$('#venues_button').removeClass("disabled").attr("onclick", "showVenuesView();");
+	}
+
+	function showVenuesView(){
+		$('#venues_button').addClass("disabled").attr("onclick", "");
+		$('#users_button').removeClass("disabled").attr("onclick", "showUsersView();");
 	}
 
 	$(document).ready(start());
