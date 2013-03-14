@@ -91,15 +91,18 @@
 
 	function start(){
 		mapinitialize();
-		var userPosition = navigator.geolocation.getCurrentPosition(callbackSuccess, callbackError, {enableHighAccuracy:true});
+		pinVenuesInMap();
 	}
 
-	function callbackSuccess(position){
-		var lat = position.coords.latitude;
-		var longi = position.coords.longitude;
-		var latLong = new google.maps.LatLng(lat, longi);
-		map.panTo(latLong);
+	function removeMarkers(){
+		for (i in venue_markers){
+			venue_markers[i].setMap(null);
+		}
+		venue_markers.length = 0;
+	}
 
+	function pinVenuesInMap(){
+		
 		var venues = new Array();
 
 		{% for venue in venues %}
@@ -133,20 +136,18 @@
 		}
 		return showModal;
 	}
-
-	function callbackError(status){
-		window.alert("Please enable geolocation for this site...");
-	}
-
-
+	
 	function showUsersView(){
 		$('#users_button').addClass("disabled").attr("onclick", "");
 		$('#venues_button').removeClass("disabled").attr("onclick", "showVenuesView();");
+		removeMarkers();
 	}
 
 	function showVenuesView(){
 		$('#venues_button').addClass("disabled").attr("onclick", "");
 		$('#users_button').removeClass("disabled").attr("onclick", "showUsersView();");
+		removeMarkers();
+		pinVenuesInMap();
 	}
 
 	$(document).ready(start());
