@@ -34,6 +34,7 @@
     var map;
 
     var markers = new Array();
+    var marker_ids = new Array();
 
     function mapinitialize() {
         directionsDisplay = new google.maps.DirectionsRenderer();
@@ -134,12 +135,10 @@
 		}*/
 
 		{% for venue in venues %}
-			var marker_{{venue.id}} = new Array();
-			marker_{{venue.id}}[0] = {{venue.id}}; 
-			marker_{{venue.id}}[1] = new google.maps.Marker({position : new google.maps.LatLng({{venue.lat}}, {{venue.lon}}),
+			markers.push(new google.maps.Marker({position : new google.maps.LatLng({{venue.lat}}, {{venue.lon}}),
 						map : map,
-						icon : 'static/mapMarker.png' });
-			markers.add(marker_{{venue.id}});
+						icon : 'static/mapMarker.png' }));
+			marker_ids.push({{venue.id}});
 		{% endfor %}
 
 	}
