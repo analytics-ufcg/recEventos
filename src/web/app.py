@@ -1,5 +1,5 @@
 from flask import Flask, render_template
-import os, json
+import os, json, string
 
 
 DEBUG = True
@@ -15,9 +15,10 @@ def index():
 	try:
 		f = open(os.path.join(os.path.join("src", "web"), "venues.csv"), 'r')
 	except IOError:
-		render_template("index.html", venues=[])
+		render_template("index.html", venues=[], users=[])
 
 	venues = []
+	users = []
 	try:
 		first = True
 		for venue in f.readlines():
@@ -35,12 +36,12 @@ def index():
 				continue
 			elif venue[1].isalpha() or venue[2].isalpha():
 				continue
-			venues.append( { 'id' : venue[0], 'lon' : venue[1], 'lat' : venue[2] } )
+			venues.append( { 'id' : venue[0], 'name' : filter(lambda x: x in string.printable, venue[3]), 'lon' : venue[1], 'lat' : venue[2] } )			
 	except:
 		print "Error parsing CSV occured"
 	finally:
 		f.close()
-	return render_template("index.html", venues=venues)
+	return render_template("index.html", venues=venues, users=users)
 
 @app.route('/venue_events/<venue_ids>', methods=['GET'])
 def venue_events(venue_ids=None):

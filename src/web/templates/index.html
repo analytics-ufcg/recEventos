@@ -54,6 +54,7 @@
     var map;
 
     var venue_markers = new Array();
+    var user_marker = null;
 
     function mapinitialize() {
         directionsDisplay = new google.maps.DirectionsRenderer();
@@ -90,8 +91,9 @@
 
 	function start(){
 		mapinitialize();
-		pinVenuesInMap();
+		pinVenuesInMap(null);
 		map.panTo(venue_markers[Math.floor((Math.random()*venue_markers.length+1))].getPosition());
+		$('#users_button').removeClass("disabled").attr("onclick", "showUsersView();");
 	}
 
 	function removeMarkers(){
@@ -99,6 +101,9 @@
 			venue_markers[i].setMap(null);
 		}
 		venue_markers.length = 0;
+		if ( user_marker ){
+			user_marker.setMap(null);
+		}
 	}
 
 	function sortbyLatLng(a, b){
@@ -121,17 +126,19 @@
 		}
 	}
 
-	function pinVenuesInMap(){
+	function pinVenuesInMap(venues){
 		
-		var venues = new Array();
+		if ( !venues ){
+			venues = new Array();
 
-		{% for venue in venues %}
+			{% for venue in venues %}
 
-			venues.push( { 'id' : {{venue.id}}, 'lat' : {{venue.lat}}, 'lon' : {{venue.lon}} });
+				venues.push( { 'id' : {{venue.id}}, 'name' : "{{venue.name}}", 'lat' : {{venue.lat}}, 'lon' : {{venue.lon}} });
 
-		{% endfor %}
+			{% endfor %}
 
-		venues.sort(sortbyLatLng);
+			venues.sort(sortbyLatLng);
+		}
 
 		var c_lat = -1, c_long = -1;
 		var close_venues = new Array();
@@ -148,14 +155,14 @@
 
 			var venue_marker = new google.maps.Marker({position : new google.maps.LatLng(venues[i].lat, venues[i].lon),
 						map : map,
+						title : venues[i].name,
 						icon : 'static/venue-marker.png' });
 			venue_markers.push(venue_marker);
-			var showVenueEvent = showVenueEvents(close_venues);
-			google.maps.event.addListener(venue_marker, 'click', showVenueEvent);
+			var showVenueEventClosure = showVenueEvents(close_venues);
+			google.maps.event.addListener(venue_marker, 'click', showVenueEventClosure);
 
 			close_venues.push(venues[i].id);
 		}
-		$('#users_button').removeClass("disabled").attr("onclick", "showUsersView();");
 	}
 
 	function showVenueEvents(close_venues){
@@ -169,18 +176,64 @@
 		}
 		return showModal;
 	}
-	
+
+	function pinUsersInMap(){
+
+		var users = new Array();
+
+		{% for user in users %}
+
+			users.push({ 'id' : {{user.id}}, 'name' : {{user.name}}, 'lat' : {{user.lat}}, 'lon' : {{user.lon}} });
+
+		{% endfor %}		
+
+		var xlat = Math.floor((Math.random()*91)), xlon = Math.floor((Math.random()*181));
+		user_marker = new google.maps.Marker({position : new google.maps.LatLng(xlat, xlon),
+					map : map,
+					icon : 'static/user-marker.png' });
+
+		var pos = new google.maps.LatLng(xlat, xlon);
+		map.panTo(pos);
+
+		var showUserEventClosure = showUserEvents(xlat, xlon);
+		google.maps.event.addListener(user_marker, 'click', showUserEventClosure);
+	}
+
+	function showUserEvents(xlat, xlon){
+
+		var venues = new Array();
+
+		for ( var i=0; i<5; i++ ){
+			var nlat = xlat + Math.floor((Math.random()*2));
+			if  ( Math.random() > .5 ){
+				nlat *= -1;
+			}
+			var nlon = xlon + Math.floor((Math.random()*2));
+			if  ( Math.random() > .5 ){
+				nlon *= -1;
+			}
+			venues.push( { 'id' : Math.floor((Math.random()*1000)), 'lat' : nlat, 'lon' : nlon } );
+		}
+		function pinUserVenuesInMap(){
+			removeMarkers();
+			pinUsersInMap();
+			pinVenuesInMap(venues);
+		}
+		return pinUserVenuesInMap;
+	}
+
 	function showUsersView(){
 		$('#users_button').addClass("disabled").attr("onclick", "");
 		$('#venues_button').removeClass("disabled").attr("onclick", "showVenuesView();");
 		removeMarkers();
+		pinUsersInMap();
 	}
 
 	function showVenuesView(){
 		$('#venues_button').addClass("disabled").attr("onclick", "");
 		$('#users_button').removeClass("disabled").attr("onclick", "showUsersView();");
 		removeMarkers();
-		pinVenuesInMap();
+		pinVenuesInMap(null);
 	}
 
 	$(document).ready(start());
