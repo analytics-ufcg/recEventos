@@ -48,7 +48,7 @@ RecommendPerPartition <- function(partition, k){
   p.time <- partition$partition_time
   member.id <- partition$member_id
   rec.events <- KNearestEvents (member.id, k, p.time)
-  return(cbind(data.frame(p.time = p.time), t(rec.events)))
+  return(cbind(data.frame(p_time = p.time), t(rec.events)))
 }
 
 # =============================================================================
@@ -68,7 +68,7 @@ if (length(partition.files) <= 0){
 }
 
 # Number of recommended events
-k <- 10
+k <- 5
 
 for (i in 1:length(partition.files)){
   file <- partition.files[i]
