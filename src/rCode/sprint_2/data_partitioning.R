@@ -101,7 +101,7 @@ member.events <- CreateMemberEvents()
 dir.create("data_output/partitions/", showWarnings=F)
 
 members <- unique(member.events$member_id)
-max.members <- 40000 # "Empirically" selected
+max.members <- 15000 # "Empirically" selected
 data.divisions <- ceil(length(members)/max.members)
 
 for (i in 1:data.divisions){
