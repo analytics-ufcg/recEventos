@@ -115,7 +115,7 @@
 
 			var venue_marker = new google.maps.Marker({position : new google.maps.LatLng(venues[i].lat, venues[i].lon),
 						map : map,
-						icon : 'static/mapMarker.png' });
+						icon : 'static/venue-marker.png' });
 			venue_markers.push(venue_marker);
 			venue_marker_ids[venue_marker] = venues[i].id;
 			var showVenueEvent = showVenueEvents(venues[i].id);
