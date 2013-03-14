@@ -27,10 +27,8 @@
 			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
 			<h3 id="venue_events_label">Venue Events</h3>
 		</div>
-		<div class="modal-body">
-			<p>Events listed here!!</p>
-			<p>Events listed here!!</p>
-			<p>Events listed here!!</p>
+		<div id="venue_events_body" class="modal-body">
+			<p>Loading...</p>
 		</div>
 		<div class="modal-footer">
 			<button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Close</button>
@@ -121,6 +119,7 @@
 	function showVenueEvents(venue_id){
 		function showModal(){
 			console.log("showing events of venue with id ="+venue_id);
+			$("#venue_events_body").load('venue_events/'+venue_id);
 			$("#venue_events").modal('show');
 		}
 		return showModal;

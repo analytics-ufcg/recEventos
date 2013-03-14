@@ -42,6 +42,10 @@ def index():
 		f.close()
 	return render_template("index.html", venues=venues)
 
+@app.route('/venue_events/<venue_id>', methods=['GET'])
+def venue_events(venue_id=None):
+	return render_template("venue_events.html", venue_id=venue_id)	
+
 if __name__ == "__main__":
 	port = int(os.environ.get('PORT', 5000))
 	app.run(host='0.0.0.0', port=port)
