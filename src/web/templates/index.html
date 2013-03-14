@@ -91,6 +91,7 @@
 	function start(){
 		mapinitialize();
 		pinVenuesInMap();
+		map.panTo(venue_markers[Math.floor((Math.random()*venue_markers.length+1))].getPosition());
 	}
 
 	function removeMarkers(){
@@ -153,10 +154,6 @@
 			google.maps.event.addListener(venue_marker, 'click', showVenueEvent);
 
 			close_venues.push(venues[i].id);
-
-			if ( i == venues.length-1 ){
-				map.panTo(new google.maps.LatLng(venues[i].lat, venues[i].lon));
-			}
 		}
 		$('#users_button').removeClass("disabled").attr("onclick", "showUsersView();");
 	}
