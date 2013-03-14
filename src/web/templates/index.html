@@ -1,4 +1,4 @@
-<!doctype html>
+<!doctype html style="height:90%;">
 
 <head>
 <title>RecEventos MapDisplay</title>
@@ -7,19 +7,43 @@
 <script src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
 </head>
 
-<body>
+<body style="height:90%;">
 
-	<div class="page">
-		<h1> RecEventos Data Display</h1>
+	<div class="row">
+		<div class="container" style="margin-left:auto; margin-right:auto;">
+			<div class="span8">
+				<blockquote class="pull-right" >
+					<h1> RecEventos Data</h1>
+					<small>Visualizing data from <cite title="Meetup.com">Meetup.com</cite> - &copy FRH Analytics UFCG</small>
+				</blockquote>
+			</div>
+			<div class="span2" style="height:10%;">
+				<button id="venues_button" style="padding-top:15px;" class="btn btn-small btn-danger btn-block disabled" type="button">Venues</button>
+				<button id="users_button" style="padding-bottom:15px;" class="btn btn-small btn-success btn-block disabled" type="button" onclick="" >Users</button>
+			</div>
+		</div>
+	</div>
+	<div class="row" style="height:90%;">
+<!--		<div class="container"> -->
+			<div id="map_canvas" style="height:90%;"></div>
+<!--		</div> -->
 	</div>
 
-	<div id="content-area" style="height:100%;">
-                    <div id="map_canvas"
-			    style="width:1000px; height:400px; margin-left:auto; margin-right: auto;"></div>		
-	    </div>
+
+	<div id="venue_events" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="venue_events_label" aria-hidden="true">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+			<h3 id="venue_events_label">Venue Events</h3>
+		</div>
+		<div id="venue_events_body" class="modal-body">
+			<p>Loading...</p>
+		</div>
+		<div class="modal-footer">
+			<button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Close</button>
+		</div>
+	</div>
 
     </body>
-
 	<script src="static/jquery-1.9.1.min.js" language="javascript" type="text/javascript"></script>
 	<script src="static/bootstrap/js/bootstrap.js" language="javascript" type="text/javascript"></script>
 	<script language="javascript">
@@ -28,6 +52,9 @@
     var directionDisplay;
     var directionsService = new google.maps.DirectionsService();
     var map;
+
+    var venue_markers = new Array();
+    var venue_marker_ids = new Array();
 
     function mapinitialize() {
         directionsDisplay = new google.maps.DirectionsRenderer();
@@ -62,92 +89,65 @@
         });
 	}
 
-	function addMarker(){
-
-	}
-
 	function start(){
 		mapinitialize();
-		var userPosition = navigator.geolocation.getCurrentPosition(callbackSuccess, callbackError, {enableHighAccuracy:true});
+		pinVenuesInMap();
 	}
 
-	function callbackSuccess(position){
-		console.log("will pan to current position" + position);
-		var lat = position.coords.latitude;
-		var longi = position.coords.longitude;
-		console.log("latitude: "+lat+" and longitude: "+longi + "and map is " + map);
-		var latLong = new google.maps.LatLng(lat, longi);
-		console.log("map " + map + " is to pan to " + latLong);
-		map.panTo(latLong);
-		console.log("panned to "+lat+", "+longi+"?");
-
-/*		google.maps.event.addListener(map, 'dblclick', function(event) {
-			console.log('event.latLng : ' + event.latLng);
-			var marker = new google.maps.Marker({ position : new google.maps.LatLng(event.latLng.lat(), event.latLng.lng()),
-							  map : map,
-							  icon : 'static/mapMarker.png' });
-			console.log("marker added: "+marker);
-		});
-
-		for (var i=0; i<50000; i++){
-			var la = Math.random()*91;
-			var lo = Math.random()*181;
-			if (Math.random()*10 < 5){
-				la = la * (-1);
-			}
-			if (Math.random()*10 < 5){
-				lo = lo * (-1);
-			}
-			new google.maps.Marker({position : new google.maps.LatLng(la, lo),
-						map : map,
-						icon : 'static/mapMarker.png' });
-		}*/
-
-		var panned = false;
-
-		for ( var i=1; i<=2; i++){
-		$.get("http://rec-eventos.herokuapp.com/static/events_"+i+".json", function(data){
-
-			var events = data.replace(/\]\s*\[/gm, ",");
-			events = JSON.parse(events);
-
-			console.log(events.length+' more events found....');
-			for ( var j=0; j<events.length; j++){
-
-				var event = events[j];
-				if ( event.venue == null ){
-					continue;	
-				}
-				//console.log('Considering event #'+(j+1)+'...');
-				//console.log('It does have a venue at ('+event.venue.lat+', '+event.venue.lon+')');
-				new google.maps.Marker({position : new google.maps.LatLng(event.venue.lat, event.venue.lon),
-							map : map,
-							icon : 'static/mapMarker.png' });
-				if ( !panned ){
-					map.panTo(new google.maps.LatLng(event.venue.lat, event.venue.lon));
-					panned = true;
-				}
-			}
-		});
+	function removeMarkers(){
+		for (i in venue_markers){
+			venue_markers[i].setMap(null);
 		}
-/*
-		var panned = false;
+		venue_markers.length = 0;
+	}
 
-		{% for event in events %}
-			new google.maps.Marker({position : new google.maps.LatLng({{event.lat}}, {{event.lon}}),
-						map : map,
-						icon : 'static/mapMarker.png' });
-			if (!panned){
-				map.panTo(new google.maps.LatLng({{event.lat}}, {{event.lon}}));
-				panned = true;
-			}
+	function pinVenuesInMap(){
+		
+		var venues = new Array();
+
+		{% for venue in venues %}
+
+			venues.push( { 'id' : {{venue.id}}, 'lat' : {{venue.lat}}, 'lon' : {{venue.lon}} });
 
 		{% endfor %}
-*/
+
+		for (var i=0; i<venues.length; i++ ){
+
+			var venue_marker = new google.maps.Marker({position : new google.maps.LatLng(venues[i].lat, venues[i].lon),
+						map : map,
+						icon : 'static/venue-marker.png' });
+			venue_markers.push(venue_marker);
+			venue_marker_ids[venue_marker] = venues[i].id;
+			var showVenueEvent = showVenueEvents(venues[i].id);
+			google.maps.event.addListener(venue_marker, 'click', showVenueEvent);
+
+			if ( i == venues.length-1 ){
+				map.panTo(new google.maps.LatLng(venues[i].lat, venues[i].lon));
+			}
+		}
+		$('#users_button').removeClass("disabled").attr("onclick", "showUsersView();");
 	}
 
-	function callbackError(status){
-		window.alert("Please enable geolocation for this site...");
+	function showVenueEvents(venue_id){
+		function showModal(){
+			console.log("showing events of venue with id ="+venue_id);
+			$("#venue_events_body").load('venue_events/'+venue_id);
+			$("#venue_events").modal('show');
+		}
+		return showModal;
+	}
+	
+	function showUsersView(){
+		$('#users_button').addClass("disabled").attr("onclick", "");
+		$('#venues_button').removeClass("disabled").attr("onclick", "showVenuesView();");
+		removeMarkers();
+	}
+
+	function showVenuesView(){
+		$('#venues_button').addClass("disabled").attr("onclick", "");
+		$('#users_button').removeClass("disabled").attr("onclick", "showUsersView();");
+		removeMarkers();
+		pinVenuesInMap();
 	}
 
 	$(document).ready(start());

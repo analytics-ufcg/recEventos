@@ -22,7 +22,7 @@
 #
 # Author: Augusto Queiroz
 #
-# File: data_summary_2.R
+# File: data_summary_extra.R
 #   * Description: Summary stats script that generate extra graphics to support 
 #                  the recommendation result analysis
 #   * Inputs: The RSVP csv files

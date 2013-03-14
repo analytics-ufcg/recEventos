@@ -40,13 +40,16 @@
 # =============================================================================
 library(lubridate)
 library(plyr)
+library(foreach)
 library(ggplot2)
 library(stringr)
 library(Hmisc)
+library(fossil)
+library(data.table)
 
 if (Sys.info()['sysname'] == "Linux"){
   library(doMC)
-  registerDoMC(3)
+  registerDoMC(2)
 }else{
   library(doSNOW)
 }
@@ -64,3 +67,4 @@ ReadAllCSVs = function(dir, obj_name){
   }
   return(df)
 }
+
