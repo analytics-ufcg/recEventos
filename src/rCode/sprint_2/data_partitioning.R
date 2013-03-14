@@ -39,7 +39,7 @@ source("src/rCode/common.R")
 # =============================================================================
 # Function definition
 # =============================================================================
-CreateMemberEvents <- function(){
+CreateMemberEvents <- function(max.members){
   print(noquote("Reading the MEMBER.EVENTs (if there was any)..."))
   member.events <- ReadAllCSVs(dir="data_output/partitions/", obj_name="member_events")
   
@@ -72,6 +72,25 @@ CreateMemberEvents <- function(){
     # Reorganizing the data.frame
     member.events <- member.events[,c("member_id", "event_id", "time")]
     colnames(member.events) <- c("member_id", "event_id", "event_time")
+    
+    
+    print(noquote("    Persisting the member.events..."))
+    members <- unique(member.events$member_id)
+    data.divisions <- ceil(length(members)/max.members)
+    
+    for (i in 1:data.divisions){
+      indexes <- as.integer(((length(members)/data.divisions) * (i -1)) : 
+                              ((length(members)/data.divisions) * i)) + 1
+      indexes <- indexes[indexes <= length(members)]
+      
+      print(noquote(paste("Data Division ", i, "/", data.divisions, " - ", length(indexes), 
+                          " members", sep = "")))
+      
+      print(noquote("    Persisting the member_events data in a csv file..."))
+      write.csv(member.events[member.events$member_id %in% members[indexes], ], 
+                file = paste("data_output/partitions/member_events_",i,".csv", sep = ""), 
+                row.names = F)
+    }
   }
   
   return (member.events)
@@ -95,13 +114,12 @@ PartitionEvents <- function(df, partitions.num){
 # -----------------------------------------------------------------------------
 
 partitions.num <- 4
-
-member.events <- CreateMemberEvents()
-
+max.members <- 15000 # "Empirically" selected
 dir.create("data_output/partitions/", showWarnings=F)
 
+member.events <- CreateMemberEvents(max.members)
+
 members <- unique(member.events$member_id)
-max.members <- 15000 # "Empirically" selected
 data.divisions <- ceil(length(members)/max.members)
 
 for (i in 1:data.divisions){
@@ -112,17 +130,11 @@ for (i in 1:data.divisions){
   print(noquote(paste("Data Division ", i, "/", data.divisions, " - ", length(indexes), 
                       " members", sep = "")))
   
-  member.events.tmp <- member.events[member.events$member_id %in% members[indexes], ]
-  
-  print(noquote("    Persisting the rsvp_events data in a csv file..."))
-  write.csv(member.events.tmp, 
-            file = paste("data_output/partitions/member_events_",i,".csv", sep = ""), 
-            row.names = F)
-
   print(noquote(paste("    Partitioning the member's events (", partitions.num, 
                       " partitions)...", sep = "")))
-  partitioned.data <- ddply(member.events.tmp, .(member_id), PartitionEvents, 
-                            partitions.num, .parallel=T, .progress="text")
+  partitioned.data <- ddply(member.events[member.events$member_id %in% members[indexes], ], 
+                            .(member_id), PartitionEvents, partitions.num, 
+                            .parallel=T, .progress="text")
   
   print(noquote("    Persisting the partitions in a csv file..."))
   write.csv(partitioned.data, 
