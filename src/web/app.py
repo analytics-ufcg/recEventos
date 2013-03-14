@@ -42,9 +42,10 @@ def index():
 		f.close()
 	return render_template("index.html", venues=venues)
 
-@app.route('/venue_events/<venue_id>', methods=['GET'])
-def venue_events(venue_id=None):
-	return render_template("venue_events.html", venue_id=venue_id)	
+@app.route('/venue_events/<venue_ids>', methods=['GET'])
+def venue_events(venue_ids=None):
+	venue_ids = venue_ids.split("&")
+	return render_template("venue_events.html", venue_ids=venue_ids)
 
 if __name__ == "__main__":
 	port = int(os.environ.get('PORT', 5000))

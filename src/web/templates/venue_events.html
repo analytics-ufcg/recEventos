@@ -1,2 +1,7 @@
-<h4>Venue X</h4>
-<p>This venue has id equals: <strong>{{venue_id}}</strong> </p>
+{% for venue_id in venue_ids %}
+
+	<blockquote>
+		<h4>Venue {{venue_id}} </h4>
+		<p>This venue has id equals <strong>{{venue_id}}</strong> and the following events: </p>
+	</blockquote>
+{% endfor %}

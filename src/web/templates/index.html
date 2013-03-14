@@ -54,7 +54,6 @@
     var map;
 
     var venue_markers = new Array();
-    var venue_marker_ids = new Array();
 
     function mapinitialize() {
         directionsDisplay = new google.maps.DirectionsRenderer();
@@ -150,8 +149,7 @@
 						map : map,
 						icon : 'static/venue-marker.png' });
 			venue_markers.push(venue_marker);
-			venue_marker_ids[venue_marker] = venues[i].id;
-			var showVenueEvent = showVenueEvents(venues[i].id, close_venues);
+			var showVenueEvent = showVenueEvents(close_venues);
 			google.maps.event.addListener(venue_marker, 'click', showVenueEvent);
 
 			close_venues.push(venues[i].id);
@@ -163,17 +161,14 @@
 		$('#users_button').removeClass("disabled").attr("onclick", "showUsersView();");
 	}
 
-	function showVenueEvents(venue_id, close_venues){
+	function showVenueEvents(close_venues){
 		function showModal(){
-			console.log("showing events of venue with id ="+venue_id);
-			$("#venue_events_body").load('venue_events/'+venue_id);
+			var url = "/" + close_venues[0];
+			for ( var i=1; i<close_venues.length; i++ ){
+				url += "&" + close_venues[i];
+			}
+			$("#venue_events_body").load('venue_events'+url);
 			$("#venue_events").modal('show');
-			if (close_venues.length != 0){
-				console.log("there are also these venues in the same spot:");
-			}
-			for ( var i=0; i<close_venues.length; i++ ){
-				console.log("venue with id = "+close_venues[i]);
-			}
 		}
 		return showModal;
 	}
