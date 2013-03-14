@@ -15,30 +15,32 @@ def index():
 	try:
 		f = open(os.path.join(os.path.join("src", "web"), "venues.csv"), 'r')
 	except IOError:
-		render_template("index.html", events=[])
+		render_template("index.html", venues=[])
 
-	events = []
+	venues = []
 	try:
 		first = True
-		for event in f.readlines():
+		for venue in f.readlines():
 			if first:
 				first = False
 				continue
-			event = event.replace("\"", "")
-			event = event.split(",")
+			venue = venue.replace("\"", "")
+			venue = venue.split(",")
 
-			if event[1].strip() == "" or event[2].strip() == "":
+
+			#venue[0] - id; venue[1] - longitude; venue[2] - latitude
+			if venue[1].strip() == "" or venue[2].strip() == "":
 				continue
-			if event[1].isspace() or event[2].isspace():
+			if venue[1].isspace() or venue[2].isspace():
 				continue
-			elif event[1].isalpha() or event[2].isalpha():
+			elif venue[1].isalpha() or venue[2].isalpha():
 				continue
-			events.append( { 'lon' : event[1], 'lat' : event[2] } )
+			venues.append( { 'id' : venue[0], 'lon' : venue[1], 'lat' : venue[2] } )
 	except:
 		print "Error parsing CSV occured"
 	finally:
 		f.close()
-	return render_template("index.html", events=events)
+	return render_template("index.html", venues=venues)
 
 if __name__ == "__main__":
 	port = int(os.environ.get('PORT', 5000))
