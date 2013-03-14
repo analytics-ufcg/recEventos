@@ -12,3 +12,8 @@ rsvps <- ReadAllCSVs(dir="data_csv/", obj_name="rsvps")[, c("member_id", "event_
 rsvps <- rsvps[rsvps$response == "yes", c("member_id", "event_id")]
 
 venue.events <- merge(venues.id,events,by.x = "venue_id",by.y = "venue_id")
+
+write(venues,"data_view/venues.csv")
+write(members,"data_view/members.csv")
+write(rsvps,"data_view/member_events.csv")
+write(venue.events,"data_view/venue_events.csv")
