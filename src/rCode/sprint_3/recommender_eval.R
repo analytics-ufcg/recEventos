@@ -1,25 +1,48 @@
-# TODO (rodolfo): executar a avaliação e salvar os resultados
 rm(list = ls())
 
 source("src/rCode/common.R")
 source("src/rCode/sprint_3/recommender_eval_metrics.R")
 
-print(noquote("Reading the MEMBER.EVENTs (if there is any)..."))
-member.events <- ReadAllCSVs(dir="data_output/partitions/", obj_name="member_events")
+rec.files <- list.files("data_output/recommended/", pattern="recommeded_events*")
 
-# TODO(rodolfo): for each member and partition, evaluate the recommendations
-test.events <- member.events[member.events$member_id == m & 
-                               member.events$event_time >= p.time, "event_id"]
-
-# Evaluate the result
-precision <- Precision(test.events, rec.events) # For all relevant events
-recall <- Recall(test.events, rec.events) # For all relevant events
-# ndcg <- NDCG(test.events, rec.events)
-
-# Save the evaluations
-dir.create("data_output/recommendations/", showWarnings=F)
-
-print(noquote("Persisting the recommendation evaluations..."))
-write.csv(results, 
-          file = paste("data_output/recommendations/recommeded_events_eval_",i,".csv", sep = ""), 
-          row.names = F)
+for (i in 1:length(rec.files)){
+  print(noquote(paste("Evaluating the recommended_events_", i, ".csv", sep = "")))
+  member.events <- read.csv(paste("data_output/partitions/member_events_", i,
+                                  ".csv", sep = ""))
+  recommended.events <- read.csv(paste("data_output/recommended/recommeded_events_", 
+                                       i, ".csv", sep = ""))
+  
+  members_id <- unique(recommended.events$member_id)
+  partitions <- unique(recommended.events$partition)
+  
+  table.result <- NULL
+  
+  for(m in members_id[1:100]){
+    for(p in partitions){
+      rec.events <- subset(recommended.events, member_id == m & partition == p)
+      test.events <- subset(member.events, event_time >= rec.events$p.time[1] & member_id == m)
+      
+      rec.events <- as.character(t(rec.events[1,]))
+      test.events <- as.character(test.events[, "event_id"])
+      # TODO (Rodolfo): For rec.size in 1:length(4:length(rec.events))
+      # Selecionar os rec.events de 1:rec.size
+      
+      for(rec.size in 1:length(4:length(rec.events))){
+        precision.result <- Precision(test.events, rec.events[1:rec.size])
+        recall.result <- Recall(test.events, rec.events[1:rec.size])
+        
+        table.result <- rbind(table.result, data.frame(member_id = m, partition = p,
+                                                       rec_size = rec.size,
+                                                       precision = precision.result, recall = recall.result))
+      }
+    }
+  }
+  
+  dir.create("data_output/evaluations/", showWarnings=F)
+  
+  print(noquote("Persisting the recommendation evaluations..."))
+  write.csv(table.result, 
+            file = paste("data_output/evaluations/rec_events_eval_", i, ".csv", sep = ""), 
+            row.names = F)
+  
+}
