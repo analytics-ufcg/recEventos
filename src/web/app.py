@@ -13,7 +13,7 @@ def index():
 
 	f = None
 	try:
-		f = open(os.path.join(os.path.join("src", "web"), "venues.csv"), 'r')
+		f = open(os.path.join("data_output", "venues.csv"), 'r')
 	except IOError:
 		render_template("index.html", venues=[], users=[])
 
