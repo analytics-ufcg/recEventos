@@ -3,13 +3,14 @@ rm(list = ls())
 source("src/rCode/common.R")
 source("src/rCode/sprint_3/recommender_eval_metrics.R")
 
-rec.files <- list.files("data_output/recommended/", pattern="recommeded_events*")
+rec.files <- list.files("data_output/recommendations/", pattern="recommended_events*")
 
 for (i in 1:length(rec.files)){
   print(noquote(paste("Evaluating the recommended_events_", i, ".csv", sep = "")))
   member.events <- read.csv(paste("data_output/partitions/member_events_", i,
                                   ".csv", sep = ""))
-  recommended.events <- read.csv(paste("data_output/recommended/recommeded_events_", 
+  member.events <- ReadAllCSVs("data_output/partitions/", "member_events")
+  recommended.events <- read.csv(paste("data_output/recommendations/recommended_events_", 
                                        i, ".csv", sep = ""))
   
   members_id <- unique(recommended.events$member_id)
@@ -17,17 +18,15 @@ for (i in 1:length(rec.files)){
   
   table.result <- NULL
   
-  for(m in members_id[1:100]){
+  for(m in members_id[1:10]){
     for(p in partitions){
       rec.events <- subset(recommended.events, member_id == m & partition == p)
-      test.events <- subset(member.events, event_time >= rec.events$p.time[1] & member_id == m)
+      test.events <- subset(member.events, event_time > rec.events$p_time & member_id == m)
       
-      rec.events <- as.character(t(rec.events[1,]))
+      rec.events <- as.character(t(rec.events[1,4:length(rec.events)]))
       test.events <- as.character(test.events[, "event_id"])
-      # TODO (Rodolfo): For rec.size in 1:length(4:length(rec.events))
-      # Selecionar os rec.events de 1:rec.size
       
-      for(rec.size in 1:length(4:length(rec.events))){
+      for(rec.size in 1:length(rec.events)){
         precision.result <- Precision(test.events, rec.events[1:rec.size])
         recall.result <- Recall(test.events, rec.events[1:rec.size])
         

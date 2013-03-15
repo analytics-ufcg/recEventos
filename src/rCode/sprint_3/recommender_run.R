@@ -80,7 +80,7 @@ for (i in 1:length(partition.files)){
   rec.events.df <- ddply(partitions, .(member_id, partition),
                          RecommendPerPartition, k, .parallel = T, .progress = "text")
   
-  persist.file <- paste("recommeded_events_", i, ".csv", sep = "")
+  persist.file <- paste("recommended_events_", i, ".csv", sep = "")
   print(noquote(paste("    Persisting the results:", persist.file)))
   write.csv(rec.events.df, file=paste(output.dir, persist.file, sep =""), row.names = F)
 }

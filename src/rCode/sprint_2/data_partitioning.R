@@ -57,15 +57,15 @@ CreateMemberEvents <- function(max.members){
     print(noquote("    Selecting the RSVPs with response equals yes..."))
     rsvps <- rsvps[rsvps$response == "yes", c("member_id", "event_id")]
     
-    print(noquote(paste("    Fixed number of partitions:", partitions.num)))
-    print(noquote(paste("    Selecting the members with at least", partitions.num + 1, "event(s)...")))
-    member.count <- count(rsvps, "member_id")
-    member.count <- member.count[member.count$freq >= (partitions.num+1),]
-    rsvps <- rsvps[rsvps$member_id %in% member.count$member_id,]
-    
     print(noquote("    Merging the RSVPs with EVENTs table (to add the EVENTs <time>)"))
     member.events <- merge(rsvps, events, 
                           by.x = "event_id", by.y = "id")
+
+    print(noquote(paste("    Fixed number of partitions:", partitions.num)))
+    print(noquote(paste("    Selecting the members with at least", partitions.num + 1, "event(s)...")))
+    member.count <- count(member.events, "member_id")
+    member.count <- member.count[member.count$freq > partitions.num,]
+    member.events <- member.events[member.events$member_id %in% member.count$member_id,]
 
     rm(rsvps, events, member.count)
     
