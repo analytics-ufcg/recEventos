@@ -43,8 +43,10 @@ def index():
 
 	users = []
 	try:
-		for i in range(1,6):
+		i = 1
+		while True:
 			f = open(os.path.join("data_output", "members_"+str(i)+".csv"), 'r')
+			i += 1
 			
 			first = True
 			for user in f.readlines():
@@ -65,13 +67,70 @@ def index():
 				users.append( { 'id' : user[0], 'name' : filter(lambda x: x in string.printable, user[1]), 'lon' : user[4], 'lat' : user[5] } )
 	except IOError:
 		pass
+	finally:
+		f.close()
 
 	return render_template("index.html", venues=venues, users=users)
 
 @app.route('/venue_events/<venue_ids>', methods=['GET'])
 def venue_events(venue_ids=None):
 	venue_ids = venue_ids.split("&")
-	return render_template("venue_events.html", venue_ids=venue_ids)
+
+	venues_events = []
+
+	try:
+		i = 1
+		while True:
+			f = open(os.path.join("data_output", "venue_events_"+str(i)+".csv"), 'r')
+			i += 1
+
+			first = True
+			for venue_event in f.readlines():
+				if first:
+					first = False
+					continue
+				venue_event = venue_event.replace("\"", "")
+				venue_event = venue_event.split(",")
+
+				venue = venue_event[0]
+				event = venue_event[1]
+
+				if venue in venue_ids:
+
+					#query event info
+					event_info = None
+					j = 1
+					found = False
+					try:
+						while not found:
+							f2 = open(os.path.join("data_output", "events_"+str(j)+".csv"), 'r')
+							j += 1
+	
+							first = True
+							for event_entry in f2.readlines():
+								if first:
+									first = False
+									continue
+								event_entry = event_entry.replace("\"", "")
+								event_entry = event_entry.split(",")
+
+								#event_entry[0] - id; event_entry[1] - name;
+	
+								if ( event_entry[0] == event ):
+									event_info = { 'id' : event, 'name' : event_entry[1] }
+									found = True
+									break
+					except IOError:
+						pass
+
+					if event_info == None:
+						continue
+
+					if not venues_events[venue]:
+						venues_events[venue] = []
+					venues_events[venue].append(event)
+
+	return render_template("venue_events.html", venue_ids=venue_ids, venues_events=venues_events)
 
 if __name__ == "__main__":
 	port = int(os.environ.get('PORT', 5000))
