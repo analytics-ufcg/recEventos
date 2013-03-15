@@ -130,6 +130,9 @@ def venue_events(venue_ids=None):
 						venues_events[venue] = []
 					venues_events[venue].append(event)
 
+	except IOError:
+		pass
+
 	return render_template("venue_events.html", venue_ids=venue_ids, venues_events=venues_events)
 
 if __name__ == "__main__":
