@@ -48,8 +48,14 @@ CreateMemberEvents <- function(max.members){
     print(noquote("    Reading the EVENTs..."))
     events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[, c("id", "time", "venue_id")]
     
-    print(noquote("    Selecting the EVENTs with location..."))
-    events <- events[!is.na(events$venue_id), c("id", "time")]
+    print(noquote("    Reading the VENUEs..."))
+    venues <- read.csv("data_csv/venues.csv")
+    
+    print(noquote("    Selecting the VENUEs with valid location (diff from (0,0))..."))
+    venues <- venues[!(venues$lon == 0 & venues$lat == 0),]
+    
+    print(noquote("    Selecting the EVENTs with valid locations..."))
+    events <- events[(!is.na(events$venue_id) & events$venue_id %in% venues$id), c("id", "time")]
     
     print(noquote("    Reading the RSVPs..."))
     rsvps <- ReadAllCSVs(dir="data_csv/", obj_name="rsvps")[, c("member_id", "event_id", "response")]
@@ -72,7 +78,6 @@ CreateMemberEvents <- function(max.members){
     # Reorganizing the data.frame
     member.events <- member.events[,c("member_id", "event_id", "time")]
     colnames(member.events) <- c("member_id", "event_id", "event_time")
-    
     
     print(noquote("    Persisting the member.events..."))
     members <- unique(member.events$member_id)
