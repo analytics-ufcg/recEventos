@@ -183,7 +183,7 @@
 
 		{% for user in users %}
 
-			users.push({ 'id' : {{user.id}}, 'name' : {{user.name}}, 'lat' : {{user.lat}}, 'lon' : {{user.lon}} });
+			users.push({ 'id' : {{user.id}}, 'name' : "{{user.name}}", 'lat' : {{user.lat}}, 'lon' : {{user.lon}} });
 
 		{% endfor %}		
 
