@@ -78,6 +78,7 @@ def venue_events(venue_ids=None):
 
 	venues_events = []
 
+	f = None
 	try:
 		i = 1
 		while True:
@@ -101,6 +102,7 @@ def venue_events(venue_ids=None):
 					event_info = None
 					j = 1
 					found = False
+					f2 = None
 					try:
 						while not found:
 							f2 = open(os.path.join("data_output", "events_"+str(j)+".csv"), 'r')
@@ -122,6 +124,8 @@ def venue_events(venue_ids=None):
 									break
 					except IOError:
 						pass
+					finally:
+						f2.close()
 
 					if event_info == None:
 						continue
@@ -129,11 +133,98 @@ def venue_events(venue_ids=None):
 					if not venues_events[venue]:
 						venues_events[venue] = []
 					venues_events[venue].append(event)
+			f.close()
 
 	except IOError:
 		pass
 
 	return render_template("venue_events.html", venue_ids=venue_ids, venues_events=venues_events)
+
+@app.route("/user_events/<user_id>", methods=["GET"])
+def user_events(user_id=None):
+
+	user_events = []
+	f = None
+	try:
+		i = 1
+		while True:
+			f = open(os.path.join("data_output", "member_events_"+str(i)+".csv"), 'r')
+			i += 1
+
+			first = True
+			for user_event in f.readlines():
+				if first:
+					first = False
+					continue
+				user_event = user_event.replace("\"", "")
+				user_event = user_event.split(",")
+
+				user = user_event[0]
+				event = user_event[1]
+
+				if user == user_id:
+
+					#query event info
+					event_info = None
+					j = 1
+					found = False
+					f2 = None
+					try:
+						while not found:
+							f2 = open(os.path.join("data_output", "events_"+str(j)+".csv"), 'r')
+							j += 1
+	
+							first = True
+							for event_entry in f2.readlines():
+								if first:
+									first = False
+									continue
+								event_entry = event_entry.replace("\"", "")
+								event_entry = event_entry.split(",")
+
+								#event_entry[0] - id; event_entry[1] - name;
+	
+								if ( event_entry[0] == event ):
+									event_info = { 'id' : event, 'name' : event_entry[1] }
+									found = True
+									break
+					except IOError:
+						pass
+					finally:
+						f2.close()
+
+					if event_info == None:
+						continue
+
+					#query event venue info (lat, lon)
+
+					try:
+						f2 = open(os.path.join("data_output", "venues.csv"), 'r')
+
+						first = True
+						for venue in f2.readlines():
+							if first:
+								first = False
+								continue
+							venue = venue.replace("\"", "")
+							venue = venue.split(",")
+
+							#venue[0] - id; venue[1] - longitude; venue[2] - latitude; venue[3] - name
+
+							event_info['lat'] = venue[2]
+							event_info['lon'] = venue[1]
+							break
+					except IOError:
+						continue
+					finally:
+						f2.close()
+
+					user_events.append(event_info)
+			f.close()
+	except IOError:
+		pass
+
+	return json.dumps(user_events)
 
 if __name__ == "__main__":
 	port = int(os.environ.get('PORT', 5000))

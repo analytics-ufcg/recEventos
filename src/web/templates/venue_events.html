@@ -3,5 +3,12 @@
 	<blockquote>
 		<h4>Venue {{venue_id}} </h4>
 		<p>This venue has id equals <strong>{{venue_id}}</strong> and the following events: </p>
+
+		{% for event in venues_events.venue_id }
+
+			<p>Event: {{event.id}} - {{event.name}} </p>
+
+		{% endfor %}
+
 	</blockquote>
 {% endfor %}

@@ -187,16 +187,24 @@
 
 		{% endfor %}		
 
-		var xlat = Math.floor((Math.random()*91)), xlon = Math.floor((Math.random()*181));
-		user_marker = new google.maps.Marker({position : new google.maps.LatLng(xlat, xlon),
-					map : map,
-					icon : 'static/user-marker.png' });
+		users.sort(sortbyLatLng);
 
-		var pos = new google.maps.LatLng(xlat, xlon);
-		map.panTo(pos);
+		for (var i=0; i<users.length; i++ ){
 
-		var showUserEventClosure = showUserEvents(xlat, xlon);
-		google.maps.event.addListener(user_marker, 'click', showUserEventClosure);
+			var user_marker = new google.maps.Marker({position : new google.maps.LatLng(users[i].lat, users[i].lon),
+						map : map,
+						title : users[i].name,
+						icon : 'static/user-marker.png' });
+			user_markers.push(user_marker);
+
+			var events = "";
+			$.get("user_events/"+ users[i].id, function(data){
+				events = data;	
+			});
+
+			var showUserEventClosure = showUserEvents(events);
+			google.maps.event.addListener(user_marker, 'click', showUserEventClosure);
+		}
 	}
 
 	function showUserEvents(xlat, xlon){
