@@ -70,6 +70,7 @@ def index():
 	finally:
 		f.close()
 
+	print "user: ", len(users), " users loaded"
 	return render_template("index.html", venues=venues, users=users)
 
 @app.route('/venue_events/<venue_ids>', methods=['GET'])

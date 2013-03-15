@@ -54,7 +54,7 @@
     var map;
 
     var venue_markers = new Array();
-    var user_marker = null;
+    var user_markers = new Array();
 
     function mapinitialize() {
         directionsDisplay = new google.maps.DirectionsRenderer();
@@ -101,9 +101,10 @@
 			venue_markers[i].setMap(null);
 		}
 		venue_markers.length = 0;
-		if ( user_marker ){
-			user_marker.setMap(null);
+		for (i in user_markers ){
+			user_markers[i].setMap(null);
 		}
+		user_markers.length = 0;
 	}
 
 	function sortbyLatLng(a, b){
@@ -208,6 +209,7 @@
 
 			var showUserEventClosure = showUserEvents(events, users[i].id);
 			google.maps.event.addListener(user_marker, 'click', showUserEventClosure);
+			console.log("created context call for user"+users[i].id);
 		}
 	}
 
