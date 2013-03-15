@@ -36,7 +36,7 @@
 			<h3 id="venue_events_label">Venue Events</h3>
 		</div>
 		<div id="venue_events_body" class="modal-body">
-			<p>Loading...</p>
+			<img src="static/ajax-loader.gif"></img>
 		</div>
 		<div class="modal-footer">
 			<button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Close</button>
@@ -91,7 +91,7 @@
 
 	function start(){
 		mapinitialize();
-		pinVenuesInMap(null);
+		pinVenuesInMap(null, null);
 		map.panTo(venue_markers[Math.floor((Math.random()*venue_markers.length+1))].getPosition());
 		$('#users_button').removeClass("disabled").attr("onclick", "showUsersView();");
 	}
@@ -126,7 +126,7 @@
 		}
 	}
 
-	function pinVenuesInMap(venues){
+	function pinVenuesInMap(venues, in_respect_to_user){
 		
 		if ( !venues ){
 			venues = new Array();
@@ -158,19 +158,23 @@
 						title : venues[i].name,
 						icon : 'static/venue-marker.png' });
 			venue_markers.push(venue_marker);
-			var showVenueEventClosure = showVenueEvents(close_venues);
+			var showVenueEventClosure = showVenueEvents(close_venues, in_respect_to_user);
 			google.maps.event.addListener(venue_marker, 'click', showVenueEventClosure);
 
 			close_venues.push(venues[i].id);
 		}
 	}
 
-	function showVenueEvents(close_venues){
+	function showVenueEvents(close_venues, in_respect_to_user){
 		function showModal(){
 			var url = "/" + close_venues[0];
 			for ( var i=1; i<close_venues.length; i++ ){
 				url += "&" + close_venues[i];
 			}
+			if ( in_respect_to_user ){
+				url += "/user_id/" + in_respect_to_user;
+			}
+			$("#venue_events_body").html("<img src='static/ajax-loader.gif'></img>");
 			$("#venue_events_body").load('venue_events'+url);
 			$("#venue_events").modal('show');
 		}
@@ -202,30 +206,22 @@
 				events = data;	
 			});
 
-			var showUserEventClosure = showUserEvents(events);
+			var showUserEventClosure = showUserEvents(events, users[i].id);
 			google.maps.event.addListener(user_marker, 'click', showUserEventClosure);
 		}
 	}
 
-	function showUserEvents(xlat, xlon){
+	function showUserEvents(events, user_id){
 
 		var venues = new Array();
 
-		for ( var i=0; i<5; i++ ){
-			var nlat = xlat + Math.floor((Math.random()*2));
-			if  ( Math.random() > .5 ){
-				nlat *= -1;
-			}
-			var nlon = xlon + Math.floor((Math.random()*2));
-			if  ( Math.random() > .5 ){
-				nlon *= -1;
-			}
-			venues.push( { 'id' : Math.floor((Math.random()*1000)), 'lat' : nlat, 'lon' : nlon } );
+		for ( var i=0; i<events.length; i++ ){
+			venues.push( { 'id' : events[i].venue_id, 'lat' : events[i].lat, 'lon' : events[i].lon } );
 		}
 		function pinUserVenuesInMap(){
 			removeMarkers();
 			pinUsersInMap();
-			pinVenuesInMap(venues);
+			pinVenuesInMap(venues, user_id);
 		}
 		return pinUserVenuesInMap;
 	}
@@ -241,7 +237,7 @@
 		$('#venues_button').addClass("disabled").attr("onclick", "");
 		$('#users_button').removeClass("disabled").attr("onclick", "showUsersView();");
 		removeMarkers();
-		pinVenuesInMap(null);
+		pinVenuesInMap(null, null);
 	}
 
 	$(document).ready(start());

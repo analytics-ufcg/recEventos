@@ -73,70 +73,99 @@ def index():
 	return render_template("index.html", venues=venues, users=users)
 
 @app.route('/venue_events/<venue_ids>', methods=['GET'])
-def venue_events(venue_ids=None):
+@app.route('/venue_events/<venue_ids>/user_id/<user_id>', methods=['GET'])
+def venue_events(venue_ids=None, user_id=None):
 	venue_ids = venue_ids.split("&")
 
-	venues_events = []
+	venues_events = {}
+
 
 	f = None
 	try:
-		i = 1
-		while True:
-			f = open(os.path.join("data_output", "venue_events_"+str(i)+".csv"), 'r')
-			i += 1
+		f = open(os.path.join("data_output", "venue_events.csv"), 'r')
 
-			first = True
-			for venue_event in f.readlines():
-				if first:
-					first = False
-					continue
-				venue_event = venue_event.replace("\"", "")
-				venue_event = venue_event.split(",")
+		first = True
+		for venue_event in f.readlines():
+			if first:
+				first = False
+				continue
 
-				venue = venue_event[0]
-				event = venue_event[1]
+			venue_event = venue_event.replace("\"", "")
+			venue_event = venue_event.split(",")
 
-				if venue in venue_ids:
+			venue = venue_event[1]
+			event = venue_event[2]
 
-					#query event info
-					event_info = None
-					j = 1
-					found = False
-					f2 = None
-					try:
-						while not found:
-							f2 = open(os.path.join("data_output", "events_"+str(j)+".csv"), 'r')
-							j += 1
-	
-							first = True
-							for event_entry in f2.readlines():
-								if first:
-									first = False
-									continue
-								event_entry = event_entry.replace("\"", "")
-								event_entry = event_entry.split(",")
+			if venue in venue_ids:
 
-								#event_entry[0] - id; event_entry[1] - name;
-	
-								if ( event_entry[0] == event ):
-									event_info = { 'id' : event, 'name' : event_entry[1] }
-									found = True
-									break
-					except IOError:
-						pass
-					finally:
-						f2.close()
+				#query event info
+				event_info = None
+				j = 1
+				found = False
+				f2 = None
+				try:
+					while not found:
+						f2 = open(os.path.join("data_output", "events_"+str(j)+".csv"), 'r')
+						j += 1
 
-					if event_info == None:
+						first = True
+						for event_entry in f2.readlines():
+							if first:
+								first = False
+								continue
+							event_entry = event_entry.replace("\"", "")
+							event_entry = event_entry.split(",")
+
+							#event_entry[0] - id; event_entry[1] - name;
+
+							if ( event_entry[0] == event ):
+								event_info = { 'id' : event, 'name' : event_entry[1] }
+								found = True
+								break
+				except IOError:
+					pass
+				finally:
+					f2.close()
+
+				if event_info == None:
+					event_info = { 'id' : event, 'name' : 'not_found' }
+
+				#if user_id is specified, see if user has this event
+
+				if user_id != None:
+
+					ok = False
+					i = 1
+					while True:
+						f = open(os.path.join("data_output", "member_events_"+str(i)+".csv"), 'r')
+						i += 1
+
+						first = True
+						for user_event in f.readlines():
+							if first:
+								first = False
+								continue
+							user_event = user_event.replace("\"", "")
+							user_event = user_event.split(",")
+
+							user = user_event[0]
+							event = user_event[1]
+
+							if user == user_id and event == event_info["id"]:
+								ok = True
+								break
+
+					if not ok:
 						continue
 
-					if not venues_events[venue]:
-						venues_events[venue] = []
-					venues_events[venue].append(event)
-			f.close()
 
+				if not venue in venues_events:
+					venues_events[venue] = []
+				venues_events[venue].append(event_info)
 	except IOError:
 		pass
+	finally:
+		f.close()
 
 	return render_template("venue_events.html", venue_ids=venue_ids, venues_events=venues_events)
 
@@ -213,6 +242,8 @@ def user_events(user_id=None):
 
 							event_info['lat'] = venue[2]
 							event_info['lon'] = venue[1]
+							event_info['venue_id'] = venue[0]
+							event_info['venue_name'] = venue[3]
 							break
 					except IOError:
 						continue
@@ -228,5 +259,6 @@ def user_events(user_id=None):
 
 if __name__ == "__main__":
 	port = int(os.environ.get('PORT', 5000))
-	app.run(host='0.0.0.0', port=port)
+	app.run(host='0.0.0.0', port=port, debug=False)
+	
 
