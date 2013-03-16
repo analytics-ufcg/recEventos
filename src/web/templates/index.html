@@ -175,7 +175,7 @@
 			if ( in_respect_to_user ){
 				url += "/user_id/" + in_respect_to_user;
 			}
-			if ( events_user_have.length != 0 ){
+			if ( events_user_have && events_user_have != 0 ){
 				url += "/" + events_user_have[0].id;
 				for ( var i=1; i<events_user_have.length; i++ ){
 					url += "&" + events_user_have[i].id;

@@ -23,19 +23,16 @@ def index():
 			venue = venue.replace("\"", "")
 			venue = venue.split(",")
 
-
 			#venue[0] - id; venue[1] - lat; venue[2] - lon; venue[3] - name; venue[4] - city
-			venues.append( { 'id' : venue[0], 'name' : filter(lambda x: x in string.printable, venue[3]), 'lon' : venue[2], 'lat' : venue[1], 'city' : venue[4] } )			
+			venues.append( { 'id' : venue[0], 'name' : filter(lambda x: x in string.printable, venue[3]).strip(), 'lon' : venue[2], 'lat' : venue[1], 'city' : filter(lambda x: x in string.printable, venue[4]).strip() } )
 	except:
-		print "Error parsing venues CSV occured"
+		pass
 	finally:
 		f.close()
 
 	users = []
 	try:
 		f = open(os.path.join("data_output", "members.csv"), 'r')
-		i += 1
-			
 		first = True
 		for user in f.readlines():
 			if first:
@@ -45,7 +42,7 @@ def index():
 			user = user.split(",")
 
 			#user[0] - id; user[3] - name; user[2] - longitude; user[1] - latitude
-			users.append( { 'id' : user[0], 'name' : filter(lambda x: x in string.printable, user[3]), 'lon' : user[2], 'lat' : user[1] } )
+			users.append( { 'id' : user[0], 'name' : filter(lambda x: x in string.printable, user[3]).strip(), 'lon' : user[2], 'lat' : user[1] } )
 	except IOError:
 		pass
 	finally:
@@ -176,6 +173,6 @@ def user_events(user_id=None):
 
 if __name__ == "__main__":
 	port = int(os.environ.get('PORT', 5000))
-	app.run(host='0.0.0.0', port=port, debug=False)
+	app.run(host='0.0.0.0', port=port, debug=True)
 	
 
