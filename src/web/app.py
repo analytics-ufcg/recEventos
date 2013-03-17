@@ -24,7 +24,7 @@ def index():
 			venue = venue.split(",")
 
 			#venue[0] - id; venue[1] - lat; venue[2] - lon; venue[3] - name; venue[4] - city
-			venues.append( { 'id' : venue[0], 'name' : filter(lambda x: x in string.printable, venue[3]).strip(), 'lon' : venue[2], 'lat' : venue[1], 'city' : filter(lambda x: x in string.printable, venue[4]).strip() } )
+			venues.append( { 'id' : venue[0].strip(), 'name' : filter(lambda x: x in string.printable, venue[3]).strip(), 'lon' : venue[2].strip(), 'lat' : venue[1].strip(), 'city' : filter(lambda x: x in string.printable, venue[4]).strip() } )
 	except:
 		pass
 	finally:
@@ -42,7 +42,7 @@ def index():
 			user = user.split(",")
 
 			#user[0] - id; user[3] - name; user[2] - longitude; user[1] - latitude
-			users.append( { 'id' : user[0], 'name' : filter(lambda x: x in string.printable, user[3]).strip(), 'lon' : user[2], 'lat' : user[1] } )
+			users.append( { 'id' : user[0].strip(), 'name' : filter(lambda x: x in string.printable, user[3]).strip(), 'lon' : user[2].strip(), 'lat' : user[1].strip() } )
 	except IOError:
 		pass
 	finally:
@@ -73,8 +73,8 @@ def venue_events(venue_ids=None, user_id=None, events_user_have=None):
 			event = event.split(",")
 
 			#event[0] - id; event[1] - name; event[2] - venue_id; event[3] - time
-			venue = event[2]
-			event_info = { 'id' : event[0], 'name' : event[1], 'time' : event[3] }
+			venue = event[2].strip()
+			event_info = { 'id' : event[0].strip(), 'name' : event[1].strip(), 'time' : event[3].strip() }
 			if ( venue in venue_ids ):
 				if not venue in venues_events:
 					venues_events[venue] = []
@@ -90,10 +90,11 @@ def venue_events(venue_ids=None, user_id=None, events_user_have=None):
 		f.close()
 	return render_template("venue_events.html", venue_ids=venue_ids, venues_events=venues_events)
 
-@app.route("/user_events/<user_id>", methods=["GET"])
-def user_events(user_id=None):
+@app.route("/users_events/<user_ids>", methods=["GET"])
+def user_events(user_ids=None):
+	user_ids = user_ids.split("&")
 
-	user_events = []
+	users_events = {}
 	f = None
 	try:
 		f = open(os.path.join("data_output", "member_events.csv"), 'r')
@@ -106,10 +107,16 @@ def user_events(user_id=None):
 			user_event = user_event.replace("\"", "")
 			user_event = user_event.split(",")
 
-			user = user_event[0]
-			event = user_event[1]
+			user = user_event[0].strip()
+			event = user_event[1].strip()
 
-			if user == user_id:
+			if user in user_ids:
+
+#				if not user in users_events:
+#					users_events[user] = []
+#				users_events[user].append(event)
+
+#				continue
 
 				#query event info
 				event_info = None
@@ -127,8 +134,8 @@ def user_events(user_id=None):
 
 						#event_entry[0] - id; event_entry[1] - name;
 	
-						if ( event_entry[0] == event ):
-							event_info = { 'id' : event, 'name' : event_entry[1], 'venue_id' : event_entry[2], 'time' : event_entry[3] }
+						if ( event_entry[0].strip() == event ):
+							event_info = { 'id' : event, 'name' : event_entry[1].strip(), 'venue_id' : event_entry[2].strip(), 'time' : event_entry[3].strip() }
 							break
 				except IOError:
 					pass
@@ -153,23 +160,27 @@ def user_events(user_id=None):
 
 						#venue[0] - id; venue[1] - longitude; venue[2] - latitude; venue[3] - name
 
-						if ( venue[0] == event_info["venue_id"] ):
-							event_info['lat'] = venue[2]
-							event_info['lon'] = venue[1]
-							event_info['venue_name'] = venue[3]
+						if ( venue[0].strip() == event_info["venue_id"] ):
+							event_info['lat'] = venue[1].strip()
+							event_info['lon'] = venue[2].strip()
+							event_info['venue_name'] = venue[3].strip()
+							event_info['venue_city'] = venue[4].strip()
 							break
 				except IOError:
 					continue
 				finally:
 					f2.close()
 
-				user_events.append(event_info)
+				if ( not user in users_events ):
+					users_events[user] = []
+				users_events[user].append(event_info)
+
 	except IOError:
 		pass
 	finally:
 		f.close()
 
-	return json.dumps(user_events)
+	return json.dumps(users_events)
 
 if __name__ == "__main__":
 	port = int(os.environ.get('PORT', 5000))
