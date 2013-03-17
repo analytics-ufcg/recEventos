@@ -25,10 +25,12 @@ def index():
 
 			#venue[0] - id; venue[1] - lat; venue[2] - lon; venue[3] - name; venue[4] - city
 			venues.append( { 'id' : venue[0].strip(), 'name' : filter(lambda x: x in string.printable, venue[3]).strip(), 'lon' : venue[2].strip(), 'lat' : venue[1].strip(), 'city' : filter(lambda x: x in string.printable, venue[4]).strip() } )
-	except:
-		pass
+	except IOError:
+		print "IO Error occured while parsing venues.csv"
 	finally:
 		f.close()
+
+	print "Loaded "+str(len(venues))+" venues..."
 
 	users = []
 	try:
@@ -44,10 +46,10 @@ def index():
 			#user[0] - id; user[3] - name; user[2] - longitude; user[1] - latitude
 			users.append( { 'id' : user[0].strip(), 'name' : filter(lambda x: x in string.printable, user[3]).strip(), 'lon' : user[2].strip(), 'lat' : user[1].strip() } )
 	except IOError:
-		pass
+		print "IO Error occured while parsing members.csv"
 	finally:
 		f.close()
-
+	print "Loaded "+str(len(users))+" users..."
 	return render_template("index.html", venues=venues, users=users)
 
 @app.route('/venue_events/<venue_ids>', methods=['GET'])

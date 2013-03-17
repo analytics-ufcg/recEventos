@@ -153,6 +153,8 @@
 
 		venues.sort(sortbyLatLng);
 
+		console.log("About to pin "+venues.length+" venues in map!");
+
 		var c_lat = -1, c_long = -1;
 		var close_venues = new Array();
 
@@ -287,15 +289,15 @@
 
 	function showVenuesView(){
 		$('#venues_button').addClass("disabled").attr("onclick", "");
-		$('#loading').modal({
-			keyboard : false,
-			backdrop : "static",
-			show : true
-		});
+//		$('#loading').modal({
+//			keyboard : false,
+//			backdrop : "static",
+//			show : true
+//		});
 		removeAllMarkers();
 		pinVenuesInMap(null, null, null);
 		$('#users_button').removeClass("disabled").attr("onclick", "showUsersView();");
-		$('#loading').modal('hide');
+//		$('#loading').modal('hide');
 	}
 
 	$(document).ready(start());
