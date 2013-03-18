@@ -13,7 +13,8 @@ lat VARCHAR(255) NOT NULL,
 members integer NOT NULL, 
 category_id integer DEFAULT NULL, 
 organizer_id integer DEFAULT NULL,
-PRIMARY KEY (id)
+PRIMARY KEY (id),
+FOREIGN KEY (category_id) REFERENCES categories(id)
 );
 
 COPY groups FROM 'C:\groups.csv' DELIMITERS ',' CSV HEADER;
