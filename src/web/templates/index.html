@@ -176,15 +176,15 @@
 			var showVenueEventClosure = showVenueEvents(close_venues, in_respect_to_user, events_user_have);
 			google.maps.event.addListener(venue_marker, 'click', showVenueEventClosure);
 
-			close_venues.push(venues[i].id);
+			close_venues.push(venues[i]);
 		}
 	}
 
 	function showVenueEvents(close_venues, in_respect_to_user, events_user_have){
 		function showModal(){
-			var url = "/" + close_venues[0];
+			var url = "/" + close_venues[0].id;
 			for ( var i=1; i<close_venues.length; i++ ){
-				url += "&" + close_venues[i];
+				url += "&" + close_venues[i].id;
 			}
 			if ( in_respect_to_user ){
 				url += "/user_id/" + in_respect_to_user;
@@ -196,7 +196,14 @@
 				}
 			}
 			$("#venue_events_body").html("<img src='static/ajax-loader.gif'></img>");
-			$("#venue_events_body").load('venue_events'+url);
+			$("#venue_events_body").load('venue_events'+url, function(data){
+				for ( var j=0; j<close_venues.length; j++ ){
+					var vid = close_venues[j].id;
+					var vname = close_venues[j].name;
+					$("#venue_"+vid).html(vname);
+				};
+			});
+
 			$("#venue_events").modal('show');
 		}
 		return showModal;

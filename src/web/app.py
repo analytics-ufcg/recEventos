@@ -1,5 +1,5 @@
 from flask import Flask, render_template
-import os, json, string
+import os, json, string, time
 
 
 DEBUG = True
@@ -71,12 +71,29 @@ def venue_events(venue_ids=None, user_id=None, events_user_have=None):
 			if first:
 				first = False
 				continue
-			event = event.replace("\"", "")
+
+#			print "before parsing", event
+
+			inside_quote = False
+			parsed = ""
+			for c in event:
+				if ( c == '\"' ):
+					inside_quote = not inside_quote
+					continue
+				if ( c == "," and inside_quote ):
+					continue
+				parsed += c
+
+#			print "parsed", parsed
+
+			event = parsed.replace("\"", "")
 			event = event.split(",")
+
+#			print "parsed list", event
 
 			#event[0] - id; event[1] - name; event[2] - venue_id; event[3] - time
 			venue = event[2].strip()
-			event_info = { 'id' : event[0].strip(), 'name' : event[1].strip(), 'time' : event[3].strip() }
+			event_info = { 'id' : event[0].strip(), 'name' : event[1].strip(), 'time' : time.asctime(time.localtime(float(event[3].strip())/1000)) }
 			if ( venue in venue_ids ):
 				if not venue in venues_events:
 					venues_events[venue] = []
@@ -137,7 +154,7 @@ def user_events(user_ids=None):
 						#event_entry[0] - id; event_entry[1] - name;
 	
 						if ( event_entry[0].strip() == event ):
-							event_info = { 'id' : event, 'name' : event_entry[1].strip(), 'venue_id' : event_entry[2].strip(), 'time' : event_entry[3].strip() }
+							event_info = { 'id' : event, 'name' : event_entry[1].strip(), 'venue_id' : event_entry[2].strip(), 'time' : time.asctime(time.localtime(float(event_entry[3].strip())/1000)) }
 							break
 				except IOError:
 					pass
