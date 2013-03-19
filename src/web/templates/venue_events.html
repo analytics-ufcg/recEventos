@@ -1,7 +1,7 @@
 {% for venue_id in venue_ids %}
 
 	<blockquote>
-		<h4>Venue #{{venue_id}} </h4>
+		<h4>Venue <strong id="venue_{{venue_id}}"></strong></h4>
 		<p>This venue has id equals <strong>{{venue_id}}</strong>
 		{% if venues_events[venue_id] %}
 			and the following events:</p>
@@ -13,7 +13,7 @@
 		{% for event in venues_events[venue_id] %}
 
 			<tr>
-				<td>{{event.id}}</td><td>{{event.name}}</td>
+				<td>{{event.name}}</td><td>{{event.time}}</td>
 			</tr>
 
 		{% endfor %}

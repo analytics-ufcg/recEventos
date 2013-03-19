@@ -10,7 +10,9 @@ visibility VARCHAR(255) NOT NULL,
 headcount integer NOT NULL, 
 rsvp_limit integer NOT NULL, 
 venue_id integer DEFAULT NULL, 
-group_id integer NOT NULL
+group_id integer NOT NULL,
+FOREIGN KEY (venue_id) REFERENCES venues(id),
+FOREIGN KEY (group_id) REFERENCES groups(id)
 );
 
 COPY events FROM 'C:\events_1.csv' DELIMITERS ',' CSV HEADER;
