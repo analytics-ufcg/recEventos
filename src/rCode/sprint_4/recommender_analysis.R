@@ -115,24 +115,24 @@ print(ggplot(summaryEvals, aes(x=rec_size, y=value, colour = eval_metric)) +
 dev.off()
 
 # Preparing the evaluation data to plot the results by CITY
-print(noquote("Reading the MEMBERs data..."))
-members <- ReadAllCSVs("data_csv/", "members")[,c("id", "city")]
-
-evaluations2 <- merge(evaluations, members, by.x = "member_id", by.y = "id", all.x = T)
-
-print(noquote("Re-Calculating the summary metrics..."))
-summaryPrec2 = summarySE(evaluations2, "precision", c("city", "partition", "rec_size"), conf.level = .95)
-summaryRecall2 = summarySE(evaluations2, "recall", c("city", "partition", "rec_size"), conf.level = .95)\
-
-summaryEvals2 = rbind(melt(summaryPrec2, measure.vars = "precision", variable_name = "eval_metric"),
-                      melt(summaryRecall2, measure.vars = "recall", variable_name = "eval_metric"))
-
-print(noquote("Re-Plotting the Precision and Recall (for all cities) - COMPLETE DATA"))
-png("data_output/evaluations/precision_recall.png", width=900, height=800)
-print(ggplot(summaryEvals, aes(x=rec_size, y=value, colour = eval_metric)) + 
-        geom_errorbar(aes(ymin=value-ci, ymax=value+ci), width=.05) +
-        geom_line() + geom_point() + 
-        facet_wrap(~partition) +
-        ggtitle("Precision and Recall Evaluation (per Partition)") + 
-        theme(plot.title = element_text(lineheight=.8, face="bold")))
-dev.off()
+# print(noquote("Reading the MEMBERs data..."))
+# members <- ReadAllCSVs("data_csv/", "members")[,c("id", "city")]
+# 
+# evaluations2 <- merge(evaluations, members, by.x = "member_id", by.y = "id", all.x = T)
+# 
+# print(noquote("Re-Calculating the summary metrics..."))
+# summaryPrec2 = summarySE(evaluations2, "precision", c("city", "partition", "rec_size"), conf.level = .95)
+# summaryRecall2 = summarySE(evaluations2, "recall", c("city", "partition", "rec_size"), conf.level = .95)\
+# 
+# summaryEvals2 = rbind(melt(summaryPrec2, measure.vars = "precision", variable_name = "eval_metric"),
+#                       melt(summaryRecall2, measure.vars = "recall", variable_name = "eval_metric"))
+# 
+# print(noquote("Re-Plotting the Precision and Recall (for all cities) - COMPLETE DATA"))
+# png("data_output/evaluations/precision_recall.png", width=900, height=800)
+# print(ggplot(summaryEvals, aes(x=rec_size, y=value, colour = eval_metric)) + 
+#         geom_errorbar(aes(ymin=value-ci, ymax=value+ci), width=.05) +
+#         geom_line() + geom_point() + 
+#         facet_wrap(~partition) +
+#         ggtitle("Precision and Recall Evaluation (per Partition)") + 
+#         theme(plot.title = element_text(lineheight=.8, face="bold")))
+# dev.off()

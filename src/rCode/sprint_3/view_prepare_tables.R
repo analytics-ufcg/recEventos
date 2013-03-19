@@ -5,11 +5,9 @@ source("src/rCode/common.R")
 print(noquote("Read the Member Events (already filtered)"))
 member.events <- ReadAllCSVs(dir="data_output/partitions/", obj_name="member_events")
 
-# Read and select the members
-print(noquote("Read and select the members"))
-members <- ReadAllCSVs(dir="data_csv/", obj_name="members")[, c("id", "lat", "lon", "name")]
-members <- members[members$id %in% unique(member.events$member_id),]
-# colnames(members) <- c("member_id", "member_lat", "member_lon", "member_name")
+# Delete the event.time in the member.events
+print(noquote("Delete the event.time in the member.events"))
+member.events$event_time <- NULL
 
 # Read and select the events
 print(noquote("Read and select the events"))
@@ -23,13 +21,19 @@ venues <- read.csv("data_csv/venues.csv")[, c("id", "lat", "lon", "name", "city"
 venues <- venues[venues$id %in% unique(events$venue_id),]
 colnames(venues) <- c("venue_id", "venue_lat", "venue_lon", "venue_name", "venue_city")
 
-# Delete the event.time in the member.events
-print(noquote("Delete the event.time in the member.events"))
-member.events$event_time <- NULL
+# Read and select the members
+print(noquote("Read and select the members"))
+members <- ReadAllCSVs(dir="data_csv/", obj_name="members")[, c("id", "lat", "lon", "name", "city")]
+members <- members[members$id %in% unique(member.events$member_id),]
+# Select the members with cities in the venues_city column (visualization constraint)
+members <- members[members$city %in% unique(venues$venue_city),]
+colnames(members) <- c("member_id", "member_lat", "member_lon", "member_name", "member_city")
 
 # Merge member.events, events and venues 
-print(noquote("Merging the member.events, events and venues"))
+print(noquote("Merge the member.events with events data "))
 member.events.venue <- merge(member.events, events, by = "event_id")
+
+print(noquote("Merge the member.events + events data with venues data"))
 member.events.venue <- merge(member.events.venue, venues, by = "venue_id")
 member.events.venue <- member.events.venue[,c("member_id", "event_id", "event_name", 
                                               "event_time", "venue_id", "venue_lat", 
