@@ -39,9 +39,6 @@ source("src/rCode/common.R")
 # =============================================================================
 # Executable script
 # =============================================================================
-# TODO (Augusto) - Recommendation focus
-# 7 - Nº de eventos por membro por cidade
-
 print(noquote("Reading the RSVPs..."))
 
 # rsvps <- read.csv("data_csv/rsvps_12.csv")[, c("member_id", "event_id", "response")]
@@ -89,20 +86,3 @@ print(ggplot(member.event.count[1:10000,], aes(x = member_id, y = freq)) +
         xlab("Members") + ylab ("Number of Events"))
 dev.off()
 
-
-# -----------------------------------------------------------------------------
-# Count the MEMBER EVENTs per CITY
-# -----------------------------------------------------------------------------
-# members <- read.csv("data_csv/members_1.csv")[,c("id", "city")]
-# members <- ReadAllCSVs(dir="data_csv/", obj_name="members")[, c("id", "city")]
-# 
-# print(noquote("Generating bar charts of events per member BY city "))
-# 
-# member.events.per.city <- count(member.events.partitions, vars=c("member_city", "member_id"))
-# 
-# png("data_output/data_partition_analysis-member_events_count.png", width=2000, height=1600)
-# print(ggplot(member.events.per.city, aes(x = freq)) + 
-#         geom_histogram(binwidth = 1) + 
-#         facet_wrap(~ member_city, scales="free") + 
-#         xlab("Number of Events") + ylab ("Number of Members"))
-# dev.off()
