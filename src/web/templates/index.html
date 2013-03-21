@@ -213,6 +213,8 @@
 
 	function doPinUsersInMap(users, users_events){
 
+		panToMe = null;
+
 		removeAllMarkers();
 		for (var i=0; i<users.length; i++ ){
 
@@ -223,12 +225,24 @@
 			user_markers.push(user_marker);
 
 			events = users_events[users[i].id];
+			if ( events == undefined ){
+				events = new Array();
+			}
+			else{
+				panToMe = new Array(users[i].lat, users[i].lon);
+			}
+
 			var showUserEventClosure = showUserEvents(events, users[i].id);
 			google.maps.event.addListener(user_marker, 'click', showUserEventClosure);
 		}
 
 		$('#venues_button').removeClass("disabled").attr("onclick", "showVenuesView();");
-		$('#loading').modal('hide');
+//		$('#loading').modal('hide');
+
+		if ( panToMe ){
+			map.panTo(new google.maps.LatLng(panToMe[0], panToMe[1]));
+		}
+
 	}
 
 	function pinUsersInMap(){
@@ -245,11 +259,7 @@
 
 		if ( users_events == null ){
 
-			var url = users[0].id;
-			for (var i=1; i<users.length; i++ ){
-				url += "&" + users[i].id;
-			}
-			$.get("users_events/"+url, function(data){
+			$.get("users_events", function(data){
 				users_events = JSON.parse(data);
 				doPinUsersInMap(users, users_events);
 			});
@@ -278,6 +288,7 @@
 			venues.push( { 'id' : events[i].venue_id, 'name' : events[i].venue_name, 'lat' : events[i].lat, 'lon' : events[i].lon } );
 		}
 		function pinUserVenuesInMap(){
+			window.alert("will pin all "+ venues.length +" events of user "+user_id);
 			removeVenueMarkers();
 			pinVenuesInMap(venues, user_id, events);
 		}
@@ -286,11 +297,11 @@
 
 	function showUsersView(){
 		$('#users_button').addClass("disabled").attr("onclick", "");
-		$('#loading').modal({
+/*		$('#loading').modal({
 			keyboard : false,
 			backdrop : "static",
 			show : true
-		});
+		});*/
 		pinUsersInMap();
 	}
 
