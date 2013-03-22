@@ -1,5 +1,5 @@
 rm(list = ls())
-require(plyr)
+source("src/rCode/common.R")
 
 # Read the Member Events (already filtered)
 print(noquote("Read the Member Events (already filtered)"))
