@@ -47,6 +47,7 @@ library(stringr)
 library(Hmisc)
 library(fossil)
 library(data.table)
+library(reshape)
 
 if (Sys.info()['sysname'] == "Linux"){
   library(doMC)
