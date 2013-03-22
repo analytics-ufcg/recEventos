@@ -120,6 +120,7 @@ PartitionEvents <- function(df, partitions.num){
 
 partitions.num <- 4
 max.members <- 15000 # "Empirically" selected
+dir.create("data_output/", showWarnings=F)
 dir.create("data_output/partitions/", showWarnings=F)
 
 member.events <- CreateMemberEvents(max.members)
