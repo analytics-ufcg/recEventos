@@ -41,11 +41,13 @@
 library(lubridate)
 library(plyr)
 library(foreach)
+library(iterators)
 library(ggplot2)
 library(stringr)
 library(Hmisc)
 library(fossil)
 library(data.table)
+library(reshape)
 
 if (Sys.info()['sysname'] == "Linux"){
   library(doMC)

@@ -36,10 +36,17 @@
 			<h3 id="venue_events_label">Venue Events</h3>
 		</div>
 		<div id="venue_events_body" class="modal-body">
-			<p>Loading...</p>
+			<img src="static/ajax-loader.gif"></img>
 		</div>
 		<div class="modal-footer">
 			<button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Close</button>
+		</div>
+	</div>
+
+	<div id="loading" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+		<div id="loading_modal_body" class="modal-body">
+			<h2>Loading...</h2>
+			<img src="static/ajax-loader.gif"></img>
 		</div>
 	</div>
 
@@ -54,7 +61,7 @@
     var map;
 
     var venue_markers = new Array();
-    var user_marker = null;
+    var user_markers = new Array();
 
     function mapinitialize() {
         directionsDisplay = new google.maps.DirectionsRenderer();
@@ -91,19 +98,24 @@
 
 	function start(){
 		mapinitialize();
-		pinVenuesInMap(null);
+		pinVenuesInMap(null, null, null);
 		map.panTo(venue_markers[Math.floor((Math.random()*venue_markers.length+1))].getPosition());
 		$('#users_button').removeClass("disabled").attr("onclick", "showUsersView();");
 	}
 
-	function removeMarkers(){
+	function removeVenueMarkers(){
 		for (i in venue_markers){
 			venue_markers[i].setMap(null);
 		}
 		venue_markers.length = 0;
-		if ( user_marker ){
-			user_marker.setMap(null);
+	}
+
+	function removeAllMarkers(){
+		removeVenueMarkers();
+		for (i in user_markers ){
+			user_markers[i].setMap(null);
 		}
+		user_markers.length = 0;
 	}
 
 	function sortbyLatLng(a, b){
@@ -126,9 +138,9 @@
 		}
 	}
 
-	function pinVenuesInMap(venues){
-		
-		if ( !venues ){
+	function pinVenuesInMap(venues, in_respect_to_user, events_user_have){
+
+		if ( venues == null ){
 			venues = new Array();
 
 			{% for venue in venues %}
@@ -137,8 +149,11 @@
 
 			{% endfor %}
 
-			venues.sort(sortbyLatLng);
 		}
+
+		venues.sort(sortbyLatLng);
+
+		console.log("About to pin "+venues.length+" venues in map!");
 
 		var c_lat = -1, c_long = -1;
 		var close_venues = new Array();
@@ -150,7 +165,7 @@
 					close_venues = new Array();
 				}
 			}
-			c_long = parseInt(venues[i].lon);
+			c_long = parseFloat(venues[i].lon);
 			c_lat = parseFloat(venues[i].lat);
 
 			var venue_marker = new google.maps.Marker({position : new google.maps.LatLng(venues[i].lat, venues[i].lon),
@@ -158,23 +173,62 @@
 						title : venues[i].name,
 						icon : 'static/venue-marker.png' });
 			venue_markers.push(venue_marker);
-			var showVenueEventClosure = showVenueEvents(close_venues);
+			var showVenueEventClosure = showVenueEvents(close_venues, in_respect_to_user, events_user_have);
 			google.maps.event.addListener(venue_marker, 'click', showVenueEventClosure);
 
-			close_venues.push(venues[i].id);
+			close_venues.push(venues[i]);
 		}
 	}
 
-	function showVenueEvents(close_venues){
+	function showVenueEvents(close_venues, in_respect_to_user, events_user_have){
 		function showModal(){
-			var url = "/" + close_venues[0];
+			var url = "/" + close_venues[0].id;
 			for ( var i=1; i<close_venues.length; i++ ){
-				url += "&" + close_venues[i];
+				url += "&" + close_venues[i].id;
 			}
-			$("#venue_events_body").load('venue_events'+url);
+			if ( in_respect_to_user ){
+				url += "/user_id/" + in_respect_to_user;
+			}
+			if ( events_user_have && events_user_have != 0 ){
+				url += "/" + events_user_have[0].id;
+				for ( var i=1; i<events_user_have.length; i++ ){
+					url += "&" + events_user_have[i].id;
+				}
+			}
+			$("#venue_events_body").html("<img src='static/ajax-loader.gif'></img>");
+			$("#venue_events_body").load('venue_events'+url, function(data){
+				for ( var j=0; j<close_venues.length; j++ ){
+					var vid = close_venues[j].id;
+					var vname = close_venues[j].name;
+					$("#venue_"+vid).html(vname);
+				};
+			});
+
 			$("#venue_events").modal('show');
 		}
 		return showModal;
+	}
+
+	var users_events = null;
+
+	function doPinUsersInMap(users, users_events){
+
+		removeAllMarkers();
+		for (var i=0; i<users.length; i++ ){
+
+			var user_marker = new google.maps.Marker({position : new google.maps.LatLng(users[i].lat, users[i].lon),
+						map : map,
+						title : users[i].name,
+						icon : 'static/user-marker.png' });
+			user_markers.push(user_marker);
+
+			events = users_events[users[i].id];
+			var showUserEventClosure = showUserEvents(events, users[i].id);
+			google.maps.event.addListener(user_marker, 'click', showUserEventClosure);
+		}
+
+		$('#venues_button').removeClass("disabled").attr("onclick", "showVenuesView();");
+		$('#loading').modal('hide');
 	}
 
 	function pinUsersInMap(){
@@ -183,57 +237,74 @@
 
 		{% for user in users %}
 
-			users.push({ 'id' : {{user.id}}, 'name' : {{user.name}}, 'lat' : {{user.lat}}, 'lon' : {{user.lon}} });
+			users.push({ 'id' : {{user.id}}, 'name' : "{{user.name}}", 'lat' : {{user.lat}}, 'lon' : {{user.lon}} });
 
-		{% endfor %}		
+		{% endfor %}
 
-		var xlat = Math.floor((Math.random()*91)), xlon = Math.floor((Math.random()*181));
-		user_marker = new google.maps.Marker({position : new google.maps.LatLng(xlat, xlon),
-					map : map,
-					icon : 'static/user-marker.png' });
+		users.sort(sortbyLatLng);
 
-		var pos = new google.maps.LatLng(xlat, xlon);
-		map.panTo(pos);
+		if ( users_events == null ){
 
-		var showUserEventClosure = showUserEvents(xlat, xlon);
-		google.maps.event.addListener(user_marker, 'click', showUserEventClosure);
+			var url = users[0].id;
+			for (var i=1; i<users.length; i++ ){
+				url += "&" + users[i].id;
+			}
+			$.get("users_events/"+url, function(data){
+				users_events = JSON.parse(data);
+				doPinUsersInMap(users, users_events);
+			});
+		}
+		else{
+			doPinUsersInMap(users, users_events);
+		}
 	}
 
-	function showUserEvents(xlat, xlon){
+	function showUserEvents(events, user_id){
+
 
 		var venues = new Array();
 
-		for ( var i=0; i<5; i++ ){
-			var nlat = xlat + Math.floor((Math.random()*2));
-			if  ( Math.random() > .5 ){
-				nlat *= -1;
+		for ( var i=0; i<events.length; i++ ){
+			var filterThis = false;
+			for ( var j=0; j<venues.length; j++ ){
+				if ( venues[j].id == events[i].venue_id ){
+					filterThis = true;
+					break;
+				}
 			}
-			var nlon = xlon + Math.floor((Math.random()*2));
-			if  ( Math.random() > .5 ){
-				nlon *= -1;
+			if ( filterThis ){
+				continue;
 			}
-			venues.push( { 'id' : Math.floor((Math.random()*1000)), 'lat' : nlat, 'lon' : nlon } );
+			venues.push( { 'id' : events[i].venue_id, 'name' : events[i].venue_name, 'lat' : events[i].lat, 'lon' : events[i].lon } );
 		}
 		function pinUserVenuesInMap(){
-			removeMarkers();
-			pinUsersInMap();
-			pinVenuesInMap(venues);
+			removeVenueMarkers();
+			pinVenuesInMap(venues, user_id, events);
 		}
 		return pinUserVenuesInMap;
 	}
 
 	function showUsersView(){
 		$('#users_button').addClass("disabled").attr("onclick", "");
-		$('#venues_button').removeClass("disabled").attr("onclick", "showVenuesView();");
-		removeMarkers();
+		$('#loading').modal({
+			keyboard : false,
+			backdrop : "static",
+			show : true
+		});
 		pinUsersInMap();
 	}
 
 	function showVenuesView(){
 		$('#venues_button').addClass("disabled").attr("onclick", "");
+//		$('#loading').modal({
+//			keyboard : false,
+//			backdrop : "static",
+//			show : true
+//		});
+		removeAllMarkers();
+		pinVenuesInMap(null, null, null);
 		$('#users_button').removeClass("disabled").attr("onclick", "showUsersView();");
-		removeMarkers();
-		pinVenuesInMap(null);
+//		$('#loading').modal('hide');
 	}
 
 	$(document).ready(start());
