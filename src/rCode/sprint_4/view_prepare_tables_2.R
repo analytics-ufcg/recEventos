@@ -29,7 +29,6 @@ members <- ReadAllCSVs(dir="data_csv/", obj_name="members")[, c("id", "lat", "lo
 members <- members[members$id %in% unique(member.events$member_id),]
 colnames(members) <- c("member_id", "member_lat", "member_lon", "member_name", "member_city")
 
-
 # ------------------------------------------------------------------------------
 # Visualization Constraint: The member_city should always be in venues_city, but
 # the opposite is not right because there are 1956 venues with other venue_city
@@ -56,7 +55,7 @@ members <- members[members$member_city %in% cities.intersect,]
 # Group member.events by member_id -> member_id, all_event_ids
 print(noquote("Selecting the EVENTs of the MEMBERs..."))
 
-member.all.events <- ddply(member.events, .(member_id), function(m.events){
+member.all.events <- ddply(member.events[1:1000,], .(member_id), function(m.events){
   data.frame(all_event_ids = paste(m.events$event_id, collapse = ","))
 }, .progress = "text")
 
@@ -67,7 +66,7 @@ members <- merge(members, member.all.events, by = "member_id")
 
 # Group events by venue_id -> venue_id, all_event_ids
 print(noquote("Selecting the EVENTs of the VENUEs..."))
-venue.all.events <- ddply(events[1:150,], .(venue_id), function(v.events){
+venue.all.events <- ddply(events[1:1000,], .(venue_id), function(v.events){
   data.frame(all_event_ids = paste(v.events$event_id, collapse = ","))
 }, .progress = "text")
 
@@ -75,7 +74,9 @@ venue.all.events <- ddply(events[1:150,], .(venue_id), function(v.events){
 print(noquote("Merging the the EVENTs of the VENUEs with the VENUEs data..."))
 venues <- merge(venues, venue.all.events, by = "venue_id")
 
-
+# -----------------------------------------------------------------------------
+# PERSISTING ORGANIZED
+# -----------------------------------------------------------------------------
 print(noquote("Creating the directories..."))
 dir.create("data_output/view", showWarnings=F)
 view.dir <- "data_output/view/optimized/"
