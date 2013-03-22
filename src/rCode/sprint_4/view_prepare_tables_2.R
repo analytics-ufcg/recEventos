@@ -55,7 +55,7 @@ members <- members[members$member_city %in% cities.intersect,]
 # Group member.events by member_id -> member_id, all_event_ids
 print(noquote("Selecting the EVENTs of the MEMBERs..."))
 
-member.all.events <- ddply(member.events[1:1000,], .(member_id), function(m.events){
+member.all.events <- ddply(member.events, .(member_id), function(m.events){
   data.frame(all_event_ids = paste(m.events$event_id, collapse = ","))
 }, .progress = "text")
 
@@ -66,8 +66,8 @@ members <- merge(members, member.all.events, by = "member_id")
 
 # Group events by venue_id -> venue_id, all_event_ids
 print(noquote("Selecting the EVENTs of the VENUEs..."))
-venue.all.events <- ddply(events[1:1000,], .(venue_id), function(v.events){
-  data.frame(all_event_ids = paste(v.events$event_id, collapse = ","))
+venue.all.events <- ddply(events, .(venue_id), function(v.events){
+  data.frame(all_event_ids = paste(v.events$event_id, collapse = "|"))
 }, .progress = "text")
 
 # Merge venues with this result
