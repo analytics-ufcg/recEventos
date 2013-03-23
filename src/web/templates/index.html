@@ -68,6 +68,7 @@
 
     var venue_markers = new Array();
     var user_markers = new Array();
+    var user_venue_markers = new Array();
 
     var current_city = null;
     var city_venues = {};
@@ -122,14 +123,14 @@
 
 		city_members[current_city] = [];
 		{% for user in users %}
-		city_members[current_city].push({ 'id' : "{{user.id}}", 'lat' : {{user.lat}}, 'lon' : {{user.lon}}, 'name' : "{{user.name}}", 'events' : "{{user.events}}".split("|"), 'city' : "{{user.city}}" });
+		city_members[current_city].push({ 'id' : "{{user.id}}", 'lat' : {{user.lat}}, 'lon' : {{user.lon}}, 'name' : "{{user.name}}", 'events' : "{{user.events}}".split(","), 'city' : "{{user.city}}" });
 		{% endfor %}
 
 		{% for event in events %}
-		events["{{event.id}}"] = { 'id' : "{{event.id}}", 'name' : "{{event.name}}", 'venue_id' : "{{event.venue_id}}", 'time' : "{{event.time}}" };
+		events["{{event.id}}"] = { 'id' : "{{event.id}}", 'name' : "{{event.name}}", 'venue_id' : "{{event.venue_id}}", 'time' : "{{event.time}}", 'venue_name' : "{{event.venue_name}}", 'venue_city' : "{{event.venue_city}}", 'lat' : {{event.lat}}, 'lon' : {{event.lon}} };
 		{% endfor %}
 
-		pinVenuesInMap(null, null, null);
+		pinVenuesInMap(null, null);
 		pinUsersInMap();
 		if ( venue_markers.length != 0 ){
 			map.panTo(venue_markers[Math.floor((Math.random()*venue_markers.length))].getPosition());
@@ -143,7 +144,7 @@
 		$("#cities_button").html(city);
 		if ( city_venues[current_city] ){
 			removeAllMarkers();
-			pinVenuesInMap(null, null, null);
+			pinVenuesInMap(null, null);
 			pinUsersInMap();
 			if ( venue_markers.length != 0 ){
 				map.panTo(venue_markers[Math.floor((Math.random()*venue_markers.length))].getPosition());
@@ -161,11 +162,11 @@
 
 				city_members[current_city] = [];
 				for ( var i=0; i<data.users.length; i++){
-					city_members[current_city].push(data.users[i]);
+					city_members[current_city].push({ 'id' : data.users[i].id, 'lat' : data.users[i].lat, 'lon' : data.users[i].lon, 'name' : data.users[i].name, 'events' : data.users[i].events.split(","), 'city' : data.users[i].city });
 				};
 
 				removeAllMarkers();
-				pinVenuesInMap(null, null, null);
+				pinVenuesInMap(null, null);
 				pinUsersInMap();
 				if ( venue_markers.length != 0 ){
 					map.panTo(venue_markers[Math.floor((Math.random()*venue_markers.length))].getPosition());
@@ -173,6 +174,13 @@
 			});
 		}
 
+	}
+
+	function removeUserVenueMarkers(){
+		for (i in user_venue_markers){
+			user_venue_markers[i].setMap(null);
+		}
+		user_venue_markers.length = 0;
 	}
 
 	function removeVenueMarkers(){
@@ -184,6 +192,7 @@
 
 	function removeAllMarkers(){
 		removeVenueMarkers();
+		removeUserVenueMarkers();
 		for (i in user_markers ){
 			user_markers[i].setMap(null);
 		}
@@ -210,7 +219,7 @@
 		}
 	}
 
-	function pinVenuesInMap(venues, in_respect_to_user, events_user_have){
+	function pinVenuesInMap(venues, in_respect_to_user){
 
 		if ( venues == null ){
 			venues = city_venues[current_city];
@@ -235,13 +244,22 @@
 			var venue_marker = new google.maps.Marker({position : new google.maps.LatLng(venues[i].lat, venues[i].lon),
 						map : map,
 						title : venues[i].name,
-						icon : 'static/venue-marker.png' });
-			venue_markers.push(venue_marker);
-			var showVenueEventClosure = showVenueEvents(close_venues, in_respect_to_user, events_user_have);
+						icon : (in_respect_to_user == null ? 'static/venue-marker.png' : 'static/chosen-marker.png') });
+
+			if ( in_respect_to_user != null ){
+				console.log("lat: "+venues[i].lat+" lon: "+venues[i].lon);
+				user_venue_markers.push(venue_marker);
+			}
+			else{
+				venue_markers.push(venue_marker);
+			}
+			console.log("Just pinned!");
+			var showVenueEventClosure = showVenueEvents(close_venues, in_respect_to_user);
 			google.maps.event.addListener(venue_marker, 'click', showVenueEventClosure);
 
 			close_venues.push(venues[i]);
 		}
+		console.log("Pinned.");
 	}
 
 	function pinUsersInMap(){
@@ -268,13 +286,49 @@
 						title : users[i].name,
 						icon : 'static/user-marker.png' });
 			user_markers.push(user_marker);
-//			var showUserEventClosure = showUserEvents(users[i].id);
-//			google.maps.event.addListener(user_marker, 'click', showUserEventClosure);
+			var showUserEventClosure = showUserEvents(users[i]);
+			google.maps.event.addListener(user_marker, 'click', showUserEventClosure);
 			close_users.push(users[i]);
 		}
 	}
 
-	function showVenueEvents(close_venues, in_respect_to_user, events_user_have){
+	function showUserEvents(user){
+		function pinUserVenuesInMap(){
+			var venues = new Array();
+			var user_events = user.events;
+			for ( var i=0; i<city_venues[current_city].length; i++ ){
+
+//				console.log("Check if user "+user.name+" has event in this venue "+city_venues[current_city][i].id+"......");
+
+				var ev = null;
+				for ( var j=0; j<user_events.length; j++ ){
+					if ( user_events[j] == undefined ){
+						continue;
+					}
+//					console.log("    Considering event "+user_events[j]+" with venue_id = "+events[user_events[j]].venue_id+"...");
+					if ( city_venues[current_city][i].id == events[user_events[j]].venue_id ){
+						ev = city_venues[current_city][i].events;
+						console.log("Found.");
+						break;
+					}
+				}
+				if ( ev != null ){
+					venue_info = { 'id' : events[user_events[j]].id, 'name' : events[user_events[j]].venue_name, 'lat' : events[user_events[j]].lat, 'lon' : events[user_events[j]].lon, 'city' : events[user_events[j]].venue_city, 'events' : ev };
+					console.log(venue_info);
+					venues.push( venue_info );
+					delete user_events[j];
+				}
+			}
+
+			if ( venues.length != 0 ){
+				removeUserVenueMarkers();
+				pinVenuesInMap(venues, user);
+			}
+		}
+		return pinUserVenuesInMap;
+	}
+
+	function showVenueEvents(close_venues, in_respect_to_user){
 		function showModal(){
 
 			$("#venue_events_body").html("<img src='static/ajax-loader.gif'></img>");
@@ -288,11 +342,33 @@
 					content += "This venue has no events...";
 				}
 				else{
-					content += "<table class='table table-hover table-condensed'>";
+
+					var ev = "";
 					for ( var j=0; j<event_ids.length; j++ ){
-						content += "<tr> <td> " + events[event_ids[j]].name + "</td> <td> " + events[event_ids[j]].time + "</td> </tr>";
+						if ( in_respect_to_user != null ){
+							var is_user_event = false;
+							for ( var k=0; k<in_respect_to_user.events; k++ ){
+								if ( event_ids[j] == in_respect_to_user[k] ){
+									is_user_event = true;
+									break;
+								}
+							}
+							if ( is_user_event ){
+								ev += "<tr> <td> " + events[event_ids[j]].name + "</td> <td> " + events[event_ids[j]].time + "</td> </tr>";
+							}
+						}
+						else{
+							ev += "<tr> <td> " + events[event_ids[j]].name + "</td> <td> " + events[event_ids[j]].time + "</td> </tr>";
+						}
 					}
-					content += "</table>";
+					if ( ev != "" ){
+						content += "<table class='table table-hover table-condensed'>";
+						content += ev;
+						content += "</table>";
+					}
+					else{
+						content += in_respect_to_user.name + " has no events here...";
+					}
 				}
 				content += "</blockquote>";
 			}
