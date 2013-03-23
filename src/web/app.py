@@ -59,6 +59,10 @@ def read_events():
 
 @app.route('/')
 def index():
+	return "hey ho let's go"
+
+@app.route('/aaa')
+def index():
 
 	r = read_venues_and_members("Menlo Park")
 	venues = r[0]
