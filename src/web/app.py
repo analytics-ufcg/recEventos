@@ -59,10 +59,6 @@ def read_events():
 
 @app.route('/')
 def index():
-	return "hey ho let's go"
-
-@app.route('/aaa')
-def index():
 
 	r = read_venues_and_members("Menlo Park")
 	venues = r[0]
@@ -101,6 +97,7 @@ def index():
 		"Boston" ]
 
 
+	print "index will send data now"
 	return render_template("index.html", venues=venues, users=users, events=events, cities=cities)
 
 @app.route('/load_city/<city>')
@@ -109,7 +106,8 @@ def load_city(city=None):
 	r = read_venues_and_members(city.replace("_", " "))
 	venues = r[0]
 	users = r[1]
-	
+
+	print "load city will send data now"
 	return json.dumps({ 'venues' : venues, 'users' : users })
 
 if __name__ == "__main__":
