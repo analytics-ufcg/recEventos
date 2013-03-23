@@ -41,13 +41,20 @@ def read_venues_and_members(city):
 def read_events():
 
 	events = []
-	with open(os.path.join("src", "web", "files", "events.csv"), 'r') as source:
+	with open(os.path.join("src", "web", "files", "events_with_venues.csv"), 'r') as source:
 		csv_reader = csv.reader(source)
 		csv_reader.next()
 		for event in csv_reader:
-			#event[0] - event_id; event[1] - event_name; event[2] - event_time; event[3] - venue_id
-			eid = event[0].strip()
-			events.append({ 'id' : eid, 'name' : filter(lambda x: x in string.printable, event[1]).strip().encode('utf8').replace("\\", ""), 'venue_id' : event[3].strip(), 'time' : time.asctime(time.localtime(float(event[3].strip())/1000)).encode('utf8') })
+			#event[0] - event_id; event[1] - event_name; event[2] - event_time; event[3] - venue_id, event[4] - venue_lat, event[5] = venue_lon, event[6] - venue_name, event[7] - venue_city
+			events.append({ 'id' : event[0].strip(),
+				'name' : filter(lambda x: x in string.printable, event[1]).strip().encode('utf8').replace("\\", ""),
+				'venue_id' : event[3].strip(),
+				'time' : time.asctime(time.localtime(float(event[3].strip())/1000)).encode('utf8'),
+				'lat' : event[4].strip(),
+				'lon' : event[5].strip(),
+				'venue_name' : filter(lambda x: x in string.printable, event[6]).strip().encode('utf8').replace("\\", ""),
+				'venue_city' : filter(lambda x: x in string.printable, event[7]).strip().encode('utf8').replace("\\", ""),
+				})
 	return events
 
 @app.route('/')

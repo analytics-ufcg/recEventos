@@ -117,12 +117,12 @@
 
 		city_venues[current_city] = [];
 		{% for venue in venues %}
-		city_venues[current_city].push({ 'id' : "{{venue.id}}", 'lat' : {{venue.lat}}, 'lon' : {{venue.lon}}, 'name' : "{{venue.name}}", 'events' : "{{venue.events}}".split(","), 'city' : "{{venue.city}}" });
+		city_venues[current_city].push({ 'id' : "{{venue.id}}", 'lat' : {{venue.lat}}, 'lon' : {{venue.lon}}, 'name' : "{{venue.name}}", 'events' : "{{venue.events}}".split("|"), 'city' : "{{venue.city}}" });
 		{% endfor %}
 
 		city_members[current_city] = [];
 		{% for user in users %}
-		city_members[current_city].push({ 'id' : "{{user.id}}", 'lat' : {{user.lat}}, 'lon' : {{user.lon}}, 'name' : "{{user.name}}", 'events' : "{{user.events}}".split(","), 'city' : "{{user.city}}" });
+		city_members[current_city].push({ 'id' : "{{user.id}}", 'lat' : {{user.lat}}, 'lon' : {{user.lon}}, 'name' : "{{user.name}}", 'events' : "{{user.events}}".split("|"), 'city' : "{{user.city}}" });
 		{% endfor %}
 
 		{% for event in events %}
@@ -156,7 +156,7 @@
 
 				city_venues[current_city] = [];
 				for ( var i=0; i<data.venues.length; i++){
-					city_venues[current_city].push({ 'id' : data.venues[i].id, 'lat' : data.venues[i].lat, 'lon' : data.venues[i].lon, 'name' : data.venues[i].name, 'events' : data.venues[i].events.split(","), 'city' : data.venues[i].city });
+					city_venues[current_city].push({ 'id' : data.venues[i].id, 'lat' : data.venues[i].lat, 'lon' : data.venues[i].lon, 'name' : data.venues[i].name, 'events' : data.venues[i].events.split("|"), 'city' : data.venues[i].city });
 				};
 
 				city_members[current_city] = [];
