@@ -50,12 +50,19 @@ members <- members[members$member_city %in% cities.intersect,]
 # <CITY>/VENUEs c("venue_id", "venue_lat", "venue_lon", "venue_name", "venue_city", "all_event_ids")
 # ------------------------------------------------------------------------------
 
+# Merging the events with venues
+print(noquote("Mergint the EVENTs with VENUEs..."))
+events.with.venue <- merge(events, venues, by = "venue_id")[,c("event_id", "event_name", 
+                                                               "event_time", "venue_id", 
+                                                               "venue_lat", "venue_lon",
+                                                               "venue_name", "venue_city")]
+
 # Selecting the Events of the Member and of the Venues
 
 # Group member.events by member_id -> member_id, all_event_ids
 print(noquote("Selecting the EVENTs of the MEMBERs..."))
 
-member.all.events <- ddply(member.events[1:1000,], .(member_id), function(m.events){
+member.all.events <- ddply(member.events, .(member_id), function(m.events){
   data.frame(all_event_ids = paste(m.events$event_id, collapse = ","))
 }, .progress = "text")
 
@@ -66,8 +73,8 @@ members <- merge(members, member.all.events, by = "member_id")
 
 # Group events by venue_id -> venue_id, all_event_ids
 print(noquote("Selecting the EVENTs of the VENUEs..."))
-venue.all.events <- ddply(events[1:1000,], .(venue_id), function(v.events){
-  data.frame(all_event_ids = paste(v.events$event_id, collapse = ","))
+venue.all.events <- ddply(events, .(venue_id), function(v.events){
+  data.frame(all_event_ids = paste(v.events$event_id, collapse = "|"))
 }, .progress = "text")
 
 # Merge venues with this result
@@ -84,7 +91,7 @@ dir.create(view.dir, showWarnings=F)
 
 # EVENTS
 print(noquote("Persisting all EVENTs"))
-write.csv(events, paste(view.dir, "events.csv", sep = ""), row.names = F)
+write.csv(events.with.venue, paste(view.dir, "events_with_venues.csv", sep = ""), row.names = F)
 
 # Split the Members per City (465 cities only) and Apply the function in it
 print(noquote("Splitting by City and persisting the MEMBER and VENUEs..."))
