@@ -63,16 +63,23 @@
     var venue_markers = new Array();
     var user_markers = new Array();
 
+    var current_city = null;
+    var city_venues = {};
+    var city_members = {};
+    var events = {};
+
     function mapinitialize() {
-        directionsDisplay = new google.maps.DirectionsRenderer();
-        var cg = new google.maps.LatLng(-7.242598, -35.892334);
+	console.log("will initialize map");
+    	directionsDisplay = new google.maps.DirectionsRenderer();
+       	var cg = new google.maps.LatLng(-7.242598, -35.892334);
         var myOptions = {
             zoom:16,
             mapTypeId:google.maps.MapTypeId.ROADMAP,
             center:cg
         }
         map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
-        directionsDisplay.setMap(map);
+	directionsDisplay.setMap(map);
+	console.log("map initialized. new map: " + map);
     }
 
     function calcRoute(r) {
@@ -98,9 +105,27 @@
 
 	function start(){
 		mapinitialize();
+
+		current_city = "Menlo Park";
+
+		city_venues[current_city] = [];
+		{% for venue in venues %}
+		city_venues[current_city].push({ 'id' : "{{venue.id}}", 'lat' : {{venue.lat}}, 'lon' : {{venue.lon}}, 'name' : "{{venue.name}}", 'events' : "{{venue.events}}".split(","), 'city' : "{{venue.city}}" });
+		{% endfor %}
+
+		city_members[current_city] = [];
+		{% for user in users %}
+		city_members[current_city].push({ 'id' : "{{user.id}}", 'lat' : {{user.lat}}, 'lon' : {{user.lon}}, 'name' : "{{user.name}}", 'events' : "{{user.events}}".split(","), 'city' : "{{user.city}}" });
+		{% endfor %}
+
+		{% for event in events %}
+		events["{{event.id}}"] = { 'id' : "{{event.id}}", 'name' : "{{event.name}}", 'venue_id' : "{{event.venue_id}}", 'time' : "{{event.time}}" };
+		{% endfor %}
+
 		pinVenuesInMap(null, null, null);
-		pinUsersInMap();
-		map.panTo(venue_markers[Math.floor((Math.random()*venue_markers.length+1))].getPosition());
+		if ( venue_markers.length != 0 ){
+			map.panTo(venue_markers[Math.floor((Math.random()*venue_markers.length))].getPosition());
+		}
 //		$('#users_button').removeClass("disabled").attr("onclick", "showUsersView();");
 	}
 
@@ -142,14 +167,7 @@
 	function pinVenuesInMap(venues, in_respect_to_user, events_user_have){
 
 		if ( venues == null ){
-			venues = new Array();
-
-			{% for venue in venues %}
-
-				venues.push( { 'id' : {{venue.id}}, 'name' : "{{venue.name}}", 'lat' : {{venue.lat}}, 'lon' : {{venue.lon}} });
-
-			{% endfor %}
-
+			venues = city_venues[current_city];
 		}
 
 		venues.sort(sortbyLatLng);
@@ -183,111 +201,31 @@
 
 	function showVenueEvents(close_venues, in_respect_to_user, events_user_have){
 		function showModal(){
-			var url = "/" + close_venues[0].id;
-			for ( var i=1; i<close_venues.length; i++ ){
-				url += "&" + close_venues[i].id;
-			}
-			if ( in_respect_to_user ){
-				url += "/user_id/" + in_respect_to_user;
-			}
-			if ( events_user_have && events_user_have != 0 ){
-				url += "/" + events_user_have[0].id;
-				for ( var i=1; i<events_user_have.length; i++ ){
-					url += "&" + events_user_have[i].id;
-				}
-			}
-			$("#venue_events_body").html("<img src='static/ajax-loader.gif'></img>");
-			$("#venue_events_body").load('venue_events'+url, function(data){
-				for ( var j=0; j<close_venues.length; j++ ){
-					var vid = close_venues[j].id;
-					var vname = close_venues[j].name;
-					$("#venue_"+vid).html(vname);
-				};
-			});
 
+			$("#venue_events_body").html("<img src='static/ajax-loader.gif'></img>");
+
+			var content = "";
+			for (var i=0; i<close_venues.length; i++){
+				console.log("close venues: "+JSON.stringify(close_venues));
+				content += "<blockquote> <h4><strong>"+close_venues[i].name+"</strong></h4>";
+				var event_ids = close_venues[i].events;
+				if ( event_ids.length == 0 ){
+					content += "This venue has no events...";
+				}
+				else{
+					content += "<table class='table table-hover table-condensed'>";
+					for ( var j=0; j<event_ids.length; j++ ){
+						content += "<tr> <td> " + events[event_ids[j]].name + "</td> <td> " + events[event_ids[j]].time + "</td> </tr>";
+					}
+					content += "</table>";
+				}
+				content += "</blockquote>";
+			}
+
+			$("#venue_events_body").html(content);
 			$("#venue_events").modal('show');
 		}
 		return showModal;
-	}
-
-	function pinUsersInMap(){
-
-		var users = new Array();
-
-		{% for user in users %}
-
-			users.push({ 'id' : {{user.id}}, 'name' : "{{user.name}}", 'lat' : {{user.lat}}, 'lon' : {{user.lon}} });
-
-		{% endfor %}
-
-		users.sort(sortbyLatLng);
-
-		for (var i=0; i<users.length; i++ ){
-
-			var user_marker = new google.maps.Marker({position : new google.maps.LatLng(users[i].lat, users[i].lon),
-						map : map,
-						title : users[i].name,
-						icon : 'static/user-marker.png' });
-			user_markers.push(user_marker);
-
-			var showUserEventClosure = showUserEvents(users[i].id);
-			google.maps.event.addListener(user_marker, 'click', showUserEventClosure);
-		}
-
-//		$('#venues_button').removeClass("disabled").attr("onclick", "showVenuesView();");
-//		$('#loading').modal('hide');
-
-	}
-
-	function showUserEvents(user_id){
-
-		function pinUserVenuesInMap(){
-
-			//HTML GET REQUEST TO QUERY EVENTS OF A GIVEN USER FROM SERVER
-			
-			var venues = new Array();
-
-			for ( var i=0; i<events.length; i++ ){
-				var filterThis = false;
-				for ( var j=0; j<venues.length; j++ ){
-					if ( venues[j].id == events[i].venue_id ){
-						filterThis = true;
-						break;
-					}
-				}
-				if ( filterThis ){
-					continue;
-				}
-				venues.push( { 'id' : events[i].venue_id, 'name' : events[i].venue_name, 'lat' : events[i].lat, 'lon' : events[i].lon } );
-			}
-
-//			removeVenueMarkers();
-//			pinVenuesInMap(venues, user_id, events);
-		}
-		return pinUserVenuesInMap;
-	}
-
-	function showUsersView(){
-//		$('#users_button').addClass("disabled").attr("onclick", "");
-/*		$('#loading').modal({
-			keyboard : false,
-			backdrop : "static",
-			show : true
-		});*/
-		pinUsersInMap();
-	}
-
-	function showVenuesView(){
-//		$('#venues_button').addClass("disabled").attr("onclick", "");
-//		$('#loading').modal({
-//			keyboard : false,
-//			backdrop : "static",
-//			show : true
-//		});
-		removeAllMarkers();
-		pinVenuesInMap(null, null, null);
-//		$('#users_button').removeClass("disabled").attr("onclick", "showUsersView();");
-//		$('#loading').modal('hide');
 	}
 
 	$(document).ready(start());
