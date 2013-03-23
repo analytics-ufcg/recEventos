@@ -11,7 +11,7 @@ app.config.from_object(__name__)
 def read_venues_and_members(city):
 
 	venues = []
-	with open(os.path.join("src", "web", "data", city, "venues.csv"), 'r') as source:
+	with open(os.path.join("src", "web", "files", city, "venues.csv"), 'r') as source:
 		csv_reader = csv.reader(source)
 		csv_reader.next()
 		for venue in csv_reader:
@@ -24,7 +24,7 @@ def read_venues_and_members(city):
 	print "Loaded "+str(len(venues))+" venues from ", city
 
 	users = []
-	with open(os.path.join("src", "web", "data", city, "members.csv"), 'r') as source:
+	with open(os.path.join("src", "web", "files", city, "members.csv"), 'r') as source:
 		csv_reader = csv.reader(source)
 		csv_reader.next()
 		for user in csv_reader:
@@ -41,7 +41,7 @@ def read_venues_and_members(city):
 def read_events():
 
 	events = []
-	with open(os.path.join("src", "web", "data", "events.csv"), 'r') as source:
+	with open(os.path.join("src", "web", "files", "events.csv"), 'r') as source:
 		csv_reader = csv.reader(source)
 		csv_reader.next()
 		for event in csv_reader:
@@ -59,12 +59,43 @@ def index():
 
 	events = read_events()
 
-	return render_template("index.html", venues=venues, users=users, events=events)
+	cities = [ "Addison",
+		"Union City",
+		"Sunnyvale",
+		"Stanford",
+		"Saratoga",
+		"Santa Cruz",
+		"Santa Clara",
+		"San Ramon",
+		"San Mateo",
+		"San Jose",
+		"San Francisco",
+		"San Diego",
+		"San Bruno",
+		"Redwood City",
+		"Palo Alto",
+		"Mountain View",
+		"Morgan Hill",
+		"Milpitas",
+		"Menlo Park",
+		"Los Gatos",
+		"Los Angeles",
+		"Los Altos",
+		"Livermore",
+		"Fremont",
+		"Cupertino",
+		"Castro Valley",
+		"Campbell",
+		"Boulder Creek",
+		"Boston" ]
+
+
+	return render_template("index.html", venues=venues, users=users, events=events, cities=cities)
 
 @app.route('/load_city/<city>')
 def load_city(city=None):
 
-	r = read_venues_and_members(city)
+	r = read_venues_and_members(city.replace("_", " "))
 	venues = r[0]
 	users = r[1]
 	
