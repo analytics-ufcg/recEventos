@@ -35,7 +35,7 @@ if (!file.exists(filename)){
     
     my.events.ids <- as.character(subset(member.events, member_id == m)$event_id)
     my.events <- events.with.location[my.events.ids]
-    dists <- deg.dist(member$lon, member$lat, my.events$lon, my.events$lat)
+    dists <- geodDist(my.events$lat, my.events$lon, member$lat, member$lon)
     
     data.frame(member=rep(m, length(dists)), event_id = my.events.ids, dist_km = dists)
   }

@@ -76,7 +76,7 @@ KNearestEvents <- function(member.id, k.events, p.time){
   member <- subset(members, id == member.id)
 
   venue.distance <- data.table(venue_id = venues$id, 
-                               dist = deg.dist(member$lon, member$lat, venues$lon, venues$lat))
+                               dist = geodDist(venues$lat, venues$lon, member$lat, member$lon))
   setkey(venue.distance, "dist")  # Now it is ordered by dist
 
   events.dist <- merge(subset(events.with.location, time >= p.time), 
