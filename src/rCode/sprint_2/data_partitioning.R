@@ -138,7 +138,7 @@ for (i in 1:data.divisions){
   
   print(noquote(paste("    Partitioning the member's events (", partitions.num, 
                       " partitions)...", sep = "")))
-  partitioned.data <- ddply(member.events[member.events$member_id %in% members[indexes], ], 
+  partitioned.data <- ddply(idata.frame(member.events[member.events$member_id %in% members[indexes], ]), 
                             .(member_id), PartitionEvents, partitions.num, 
                             .parallel=T, .progress="text")
   

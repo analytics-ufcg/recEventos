@@ -28,7 +28,7 @@ public class MainParser {
 
 			String[] headers = relation.split("_");
 			if (new File(dataDir + relation + "s").exists())
-				ParserToCsv.geraCsvRelacoes(dataDir + relation + "s/"
+				ParserToCsv.createCsvRelations(dataDir + relation + "s/"
 						+ relation + "_ids.txt", dataCsvDir + relation
 						+ "s.csv", headers[0] + "_id", headers[1] + "_id");
 		}

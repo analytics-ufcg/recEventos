@@ -77,8 +77,8 @@ for (i in 1:length(partition.files)){
   partitions <- read.csv(paste(partition.dir, file, sep =""))
   
   print(noquote("    Start recommending..."))
-  rec.events.df <- ddply(partitions, .(member_id, partition),
-                         RecommendPerPartition, k, .parallel = T, .progress = "text")
+  system.time(rec.events.df <- ddply(idata.frame(partitions), .(member_id, partition),
+                         RecommendPerPartition, k, .parallel = T, .progress = "text"))
   
   persist.file <- paste("recommended_events_", i, ".csv", sep = "")
   print(noquote(paste("    Persisting the results:", persist.file)))

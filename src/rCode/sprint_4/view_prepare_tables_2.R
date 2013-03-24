@@ -18,7 +18,7 @@ colnames(events) <- c("event_id", "event_name", "event_time", "venue_id")
 
 # Read and select the VENUEs
 print(noquote("Read and select the events"))
-venues <- read.csv("data_csv/venues.csv")[, c("id", "lat", "lon", "name", "city")]
+venues <- ReadAllCSVs(dir="data_csv/", obj_name="venues")[, c("id", "lat", "lon", "name", "city")]
 venues <- venues[venues$id %in% unique(events$venue_id),]
 colnames(venues) <- c("venue_id", "venue_lat", "venue_lon", "venue_name", "venue_city")
 
@@ -51,7 +51,7 @@ members <- members[members$member_city %in% cities.intersect,]
 # ------------------------------------------------------------------------------
 
 # Merging the events with venues
-print(noquote("Mergint the EVENTs with VENUEs..."))
+print(noquote("Merging the EVENTs with VENUEs..."))
 events.with.venue <- merge(events, venues, by = "venue_id")[,c("event_id", "event_name", 
                                                                "event_time", "venue_id", 
                                                                "venue_lat", "venue_lon",
@@ -62,9 +62,10 @@ events.with.venue <- merge(events, venues, by = "venue_id")[,c("event_id", "even
 # Group member.events by member_id -> member_id, all_event_ids
 print(noquote("Selecting the EVENTs of the MEMBERs..."))
 
-member.all.events <- ddply(member.events, .(member_id), function(m.events){
+# NEW VERSION (ddply with: idata.frame)
+member.all.events <- ddply(idata.frame(member.events), .(member_id), function(m.events){
   data.frame(all_event_ids = paste(m.events$event_id, collapse = ","))
-}, .progress = "text")
+}, .progress = "text"))
 
 # Merge members with this result
 print(noquote("Merging the the EVENTs of the MEMBERs with the MEMBERs data..."))
@@ -73,7 +74,9 @@ members <- merge(members, member.all.events, by = "member_id")
 
 # Group events by venue_id -> venue_id, all_event_ids
 print(noquote("Selecting the EVENTs of the VENUEs..."))
-venue.all.events <- ddply(events, .(venue_id), function(v.events){
+
+# NEW VERSION (ddply with: idata.frame)
+venue.all.events <- ddply(idata.frame(events), .(venue_id), function(v.events){
   data.frame(all_event_ids = paste(v.events$event_id, collapse = "|"))
 }, .progress = "text")
 
@@ -95,7 +98,7 @@ write.csv(events.with.venue, paste(view.dir, "events_with_venues.csv", sep = "")
 
 # Split the Members per City (465 cities only) and Apply the function in it
 print(noquote("Splitting by City and persisting the MEMBER and VENUEs..."))
-thrash = ddply(members, .(member_city), function(m){
+d_ply(idata.frame(members), .(member_city), function(m){
   city <- m$member_city[1]
 
   # Create the city directory

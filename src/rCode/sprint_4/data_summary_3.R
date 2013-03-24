@@ -30,6 +30,7 @@ if (!file.exists(filename)){
   
   member.ids <- sort(unique(member.events$member_id))
   
+  print(noquote("Calculating the member-event distances..."))
   dists <- foreach(m = member.ids, .combine = rbind) %do% {
     member <- subset(members, id == m)
     

@@ -54,8 +54,8 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, conf.level=.95, na.
     else       length(x)
   }
   
-  # This is does the summary; it's not easy to understand...
-  datac <- ddply(data, groupvars, .drop=.drop,
+  # This does the summary; it's not easy to understand...
+  datac <- ddply(idata.frame(data, groupvars, .drop=.drop,
                  .fun= function(xx, col, na.rm) {
                    c( N    = length2(xx[,col], na.rm=na.rm),
                       mean = mean   (xx[,col], na.rm=na.rm),

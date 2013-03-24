@@ -35,7 +35,7 @@ public class ParserToCsv {
 	private static TreeSet<Long> topicIds = new TreeSet<Long>();
 	private static TreeSet<Long> categoryIds = new TreeSet<Long>();
 
-	public static void geraCsvRelacoes(String arquivoLeitura,
+	public static void createCsvRelations(String arquivoLeitura,
 			String arquivoEscrita, String header1, String header2)
 			throws IOException {
 
@@ -394,7 +394,7 @@ public class ParserToCsv {
 
 		ObjectMapper mapper = new ObjectMapper();
 		CSVWriter topicWriter = new CSVWriter(new OutputStreamWriter(
-				new FileOutputStream(topicCsvFilename), CHAR_SET),
+				new FileOutputStream(topicCsvFilename, true), CHAR_SET),
 				CSV_SEPARATOR);
 		CSVWriter groupTopicWriter = new CSVWriter(new OutputStreamWriter(
 				new FileOutputStream(groupTopicCsvFilename), CHAR_SET),
