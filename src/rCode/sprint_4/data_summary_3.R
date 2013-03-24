@@ -49,5 +49,5 @@ if (!file.exists(filename)){
 png("data_output/evaluations/analysis/cdf-dist_member-events(1.148.224_pairs).png", width = 800, height = 700)
 plot(Ecdf(~ dists$dist_km, scales=list(x=list(log=T)),
           q=c(.05, .1, .2, .5, .6, .7, .8, .9, .95, .99), main = "", 
-          xlab = "Member-Event distance(in Km)", ylab = "Events quantile"))
+          xlab = "Member-Event distance(in Km)", ylab = "Member-Events quantile"))
 dev.off()
