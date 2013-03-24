@@ -17,9 +17,15 @@
 					<small>Events recommendation &copy FRH-Analytics <cite title="Universidade Federal de Campina Grande">UFCG</cite>/<cite title="Hewlett-Packard">HP</cite></small>
 				</blockquote>
 			</div>
-			<div class="span2" style="height:10%;">
-				<button id="venues_button" style="padding-top:10px; margin-top:2px;" class="btn btn-small btn-danger btn-block disabled" type="button">Venues</button>
-				<button id="users_button" style="padding-bottom:10px; margin-bottom:2px;" class="btn btn-small btn-success btn-block disabled" type="button" onclick="" >Users</button>
+			<div class="span2 dropdown" style="height:10%;">
+				<button id="cities_button" style="padding-top:50px; margin-top:2px;" class="btn btn-large btn-success btn-block dropdown-toggle" data-toggle="dropdown" type="button">Menlo Park</button>
+				<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu">
+					{% for city in cities %}
+						<li><a tabindex="-1" href="#" onclick="changeCity('{{city}}')">{{city}}</a></li>
+					{% endfor %}
+				</ul>
+				<!-- <button id="venues_button" style="padding-top:10px; margin-top:2px;" class="btn btn-small btn-danger btn-block disabled" type="button">Venues</button>
+				<button id="users_button" style="padding-bottom:10px; margin-bottom:2px;" class="btn btn-small btn-success btn-block disabled" type="button" onclick="" >Users</button> -->
 			</div>
 		</div>
 	</div>
@@ -63,16 +69,23 @@
     var venue_markers = new Array();
     var user_markers = new Array();
 
+    var current_city = null;
+    var city_venues = {};
+    var city_members = {};
+    var events = {};
+
     function mapinitialize() {
-        directionsDisplay = new google.maps.DirectionsRenderer();
-        var cg = new google.maps.LatLng(-7.242598, -35.892334);
+	console.log("will initialize map");
+    	directionsDisplay = new google.maps.DirectionsRenderer();
+       	var cg = new google.maps.LatLng(-7.242598, -35.892334);
         var myOptions = {
-            zoom:16,
+            zoom:11,
             mapTypeId:google.maps.MapTypeId.ROADMAP,
             center:cg
         }
         map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
-        directionsDisplay.setMap(map);
+	directionsDisplay.setMap(map);
+	console.log("map initialized. new map: " + map);
     }
 
     function calcRoute(r) {
@@ -98,10 +111,68 @@
 
 	function start(){
 		mapinitialize();
+
+		current_city = "Menlo Park";
+		$("#cities_button").html("Menlo Park");
+
+		city_venues[current_city] = [];
+		{% for venue in venues %}
+		city_venues[current_city].push({ 'id' : "{{venue.id}}", 'lat' : {{venue.lat}}, 'lon' : {{venue.lon}}, 'name' : "{{venue.name}}", 'events' : "{{venue.events}}".split(","), 'city' : "{{venue.city}}" });
+		{% endfor %}
+
+		city_members[current_city] = [];
+		{% for user in users %}
+		city_members[current_city].push({ 'id' : "{{user.id}}", 'lat' : {{user.lat}}, 'lon' : {{user.lon}}, 'name' : "{{user.name}}", 'events' : "{{user.events}}".split(","), 'city' : "{{user.city}}" });
+		{% endfor %}
+
+		{% for event in events %}
+		events["{{event.id}}"] = { 'id' : "{{event.id}}", 'name' : "{{event.name}}", 'venue_id' : "{{event.venue_id}}", 'time' : "{{event.time}}" };
+		{% endfor %}
+
 		pinVenuesInMap(null, null, null);
 		pinUsersInMap();
-		map.panTo(venue_markers[Math.floor((Math.random()*venue_markers.length+1))].getPosition());
+		if ( venue_markers.length != 0 ){
+			map.panTo(venue_markers[Math.floor((Math.random()*venue_markers.length))].getPosition());
+		}
 //		$('#users_button').removeClass("disabled").attr("onclick", "showUsersView();");
+	}
+
+	function changeCity(city){
+
+		current_city = city;
+		$("#cities_button").html(city);
+		if ( city_venues[current_city] ){
+			removeAllMarkers();
+			pinVenuesInMap(null, null, null);
+			pinUsersInMap();
+			if ( venue_markers.length != 0 ){
+				map.panTo(venue_markers[Math.floor((Math.random()*venue_markers.length))].getPosition());
+			}
+		}
+		else{
+			$.get("load_city/"+city.replace(" ", "_"), function(data){
+
+				data = JSON.parse(data);
+
+				city_venues[current_city] = [];
+				for ( var i=0; i<data.venues.length; i++){
+					city_venues[current_city].push({ 'id' : data.venues[i].id, 'lat' : data.venues[i].lat, 'lon' : data.venues[i].lon, 'name' : data.venues[i].name, 'events' : data.venues[i].events.split(","), 'city' : data.venues[i].city });
+				};
+
+				city_members[current_city] = [];
+				for ( var i=0; i<data.users.length; i++){
+					city_members[current_city].push(data.users[i]);
+				};
+
+				removeAllMarkers();
+				pinVenuesInMap(null, null, null);
+				pinUsersInMap();
+				if ( venue_markers.length != 0 ){
+					map.panTo(venue_markers[Math.floor((Math.random()*venue_markers.length))].getPosition());
+				}
+			});
+		}
+
 	}
 
 	function removeVenueMarkers(){
@@ -142,18 +213,10 @@
 	function pinVenuesInMap(venues, in_respect_to_user, events_user_have){
 
 		if ( venues == null ){
-			venues = new Array();
-
-			{% for venue in venues %}
-
-				venues.push( { 'id' : {{venue.id}}, 'name' : "{{venue.name}}", 'lat' : {{venue.lat}}, 'lon' : {{venue.lon}} });
-
-			{% endfor %}
-
+			venues = city_venues[current_city];
 		}
 
 		venues.sort(sortbyLatLng);
-
 		console.log("About to pin "+venues.length+" venues in map!");
 
 		var c_lat = -1, c_long = -1;
@@ -181,113 +244,63 @@
 		}
 	}
 
-	function showVenueEvents(close_venues, in_respect_to_user, events_user_have){
-		function showModal(){
-			var url = "/" + close_venues[0].id;
-			for ( var i=1; i<close_venues.length; i++ ){
-				url += "&" + close_venues[i].id;
-			}
-			if ( in_respect_to_user ){
-				url += "/user_id/" + in_respect_to_user;
-			}
-			if ( events_user_have && events_user_have != 0 ){
-				url += "/" + events_user_have[0].id;
-				for ( var i=1; i<events_user_have.length; i++ ){
-					url += "&" + events_user_have[i].id;
-				}
-			}
-			$("#venue_events_body").html("<img src='static/ajax-loader.gif'></img>");
-			$("#venue_events_body").load('venue_events'+url, function(data){
-				for ( var j=0; j<close_venues.length; j++ ){
-					var vid = close_venues[j].id;
-					var vname = close_venues[j].name;
-					$("#venue_"+vid).html(vname);
-				};
-			});
-
-			$("#venue_events").modal('show');
-		}
-		return showModal;
-	}
-
 	function pinUsersInMap(){
 
-		var users = new Array();
-
-		{% for user in users %}
-
-			users.push({ 'id' : {{user.id}}, 'name' : "{{user.name}}", 'lat' : {{user.lat}}, 'lon' : {{user.lon}} });
-
-		{% endfor %}
-
+		var users = city_members[current_city];
 		users.sort(sortbyLatLng);
+		console.log("About to pin "+users.length+" users in map!");
+
+		var c_lat = -1, c_long = -1;
+		var close_users = new Array();
 
 		for (var i=0; i<users.length; i++ ){
+
+			if ( c_lat != -1 && c_long != -1 ){
+				if (Math.abs(c_lat - users[i].lat) > 0.000001 && Math.abs(c_long - users[i].lon) > 0.000001){
+					close_users = new Array();
+				}
+			}
+			c_long = parseFloat(users[i].lon);
+			c_lat = parseFloat(users[i].lat);
 
 			var user_marker = new google.maps.Marker({position : new google.maps.LatLng(users[i].lat, users[i].lon),
 						map : map,
 						title : users[i].name,
 						icon : 'static/user-marker.png' });
 			user_markers.push(user_marker);
-
-			var showUserEventClosure = showUserEvents(users[i].id);
-			google.maps.event.addListener(user_marker, 'click', showUserEventClosure);
+//			var showUserEventClosure = showUserEvents(users[i].id);
+//			google.maps.event.addListener(user_marker, 'click', showUserEventClosure);
+			close_users.push(users[i]);
 		}
-
-//		$('#venues_button').removeClass("disabled").attr("onclick", "showVenuesView();");
-//		$('#loading').modal('hide');
-
 	}
 
-	function showUserEvents(user_id){
+	function showVenueEvents(close_venues, in_respect_to_user, events_user_have){
+		function showModal(){
 
-		function pinUserVenuesInMap(){
+			$("#venue_events_body").html("<img src='static/ajax-loader.gif'></img>");
 
-			//HTML GET REQUEST TO QUERY EVENTS OF A GIVEN USER FROM SERVER
-			
-			var venues = new Array();
-
-			for ( var i=0; i<events.length; i++ ){
-				var filterThis = false;
-				for ( var j=0; j<venues.length; j++ ){
-					if ( venues[j].id == events[i].venue_id ){
-						filterThis = true;
-						break;
+			var content = "";
+			for (var i=0; i<close_venues.length; i++){
+				console.log("close venues: "+JSON.stringify(close_venues));
+				content += "<blockquote> <h4><strong>"+close_venues[i].name+"</strong></h4>";
+				var event_ids = close_venues[i].events;
+				if ( event_ids.length == 0 ){
+					content += "This venue has no events...";
+				}
+				else{
+					content += "<table class='table table-hover table-condensed'>";
+					for ( var j=0; j<event_ids.length; j++ ){
+						content += "<tr> <td> " + events[event_ids[j]].name + "</td> <td> " + events[event_ids[j]].time + "</td> </tr>";
 					}
+					content += "</table>";
 				}
-				if ( filterThis ){
-					continue;
-				}
-				venues.push( { 'id' : events[i].venue_id, 'name' : events[i].venue_name, 'lat' : events[i].lat, 'lon' : events[i].lon } );
+				content += "</blockquote>";
 			}
 
-//			removeVenueMarkers();
-//			pinVenuesInMap(venues, user_id, events);
+			$("#venue_events_body").html(content);
+			$("#venue_events").modal('show');
 		}
-		return pinUserVenuesInMap;
-	}
-
-	function showUsersView(){
-//		$('#users_button').addClass("disabled").attr("onclick", "");
-/*		$('#loading').modal({
-			keyboard : false,
-			backdrop : "static",
-			show : true
-		});*/
-		pinUsersInMap();
-	}
-
-	function showVenuesView(){
-//		$('#venues_button').addClass("disabled").attr("onclick", "");
-//		$('#loading').modal({
-//			keyboard : false,
-//			backdrop : "static",
-//			show : true
-//		});
-		removeAllMarkers();
-		pinVenuesInMap(null, null, null);
-//		$('#users_button').removeClass("disabled").attr("onclick", "showUsersView();");
-//		$('#loading').modal('hide');
+		return showModal;
 	}
 
 	$(document).ready(start());
