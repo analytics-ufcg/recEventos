@@ -5,23 +5,23 @@ filename <- "data_output/evaluations/analysis/member_events_dists.csv"
 
 if (!file.exists(filename)){
   
-  print(noquote("Read the Member Events (already filtered)"))
+  cat("Read the Member Events (already filtered)")
   member.events <- data.table(ReadAllCSVs(dir="data_output/partitions/", obj_name="member_events"))
   setkey(member.events, "member_id")
   
-  print(noquote("Reading the members..."))
+  cat("Reading the members...")
   members <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="members")[,c("id","lat","lon")])
   setkey(members, "id")
   
-  print(noquote("Reading the events..."))
+  cat("Reading the events...")
   events <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="events")[,c("id","time","venue_id")])
   setkey(events, "venue_id")
   
-  print(noquote("Reading the venues..."))
+  cat("Reading the venues...")
   venues <- data.table(read.csv("data_csv/venues.csv",sep = ",")[,c("id", "lat", "lon")])
   setkey(venues, "id")
   
-  print(noquote("Filtering the events with location..."))
+  cat("Filtering the events with location...")
   events.with.location = events[venues]
   events.with.location$id <- as.character(events.with.location$id)
   setkey(events.with.location, "id")
@@ -30,7 +30,7 @@ if (!file.exists(filename)){
   
   member.ids <- sort(unique(member.events$member_id))
   
-  print(noquote("Calculating the member-event distances..."))
+  cat("Calculating the member-event distances...")
   dists <- foreach(m = member.ids, .combine = rbind) %do% {
     member <- subset(members, id == m)
     

@@ -44,10 +44,10 @@ source("src/rCode/common.R")
 # Executable Script
 # =============================================================================
 
-print(noquote("Reading the venues..."))
+cat("Reading the venues...")
 venues <- read.csv("data_csv/venues.csv")
 
-print(noquote("Rewriting the cities collumn from the VENUEs table"))
+cat("Rewriting the cities collumn from the VENUEs table")
 # Regex algorithm
 # 1 - Exclude the state names and single letter cities
 # 2 - Substitute digits and punctuations with an whitespace
@@ -70,5 +70,5 @@ venues$city <- as.factor(gsub("(?:\\b)([[:alpha:]])", "\\U\\1",
                               perl=T)
                          )
 
-print(noquote("Rewriting the VENUEs table"))
+cat("Rewriting the VENUEs table")
 write.csv(venues, file = "data_csv/venues.csv", row.names = F)

@@ -41,23 +41,23 @@ source("src/rCode/common.R")
 # Inputs
 # =============================================================================
 
-print(noquote("Reading the members..."))
+cat("Reading the members...")
 member_events <- ReadAllCSVs(dir="data_output/partitions/", obj_name="member_events")
 setkey(members, "id")
 
-print(noquote("Reading the members..."))
+cat("Reading the members...")
 members <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="members")[,c("id","lat","lon")])
 setkey(members, "id")
 
-print(noquote("Reading the events..."))
+cat("Reading the events...")
 events <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="events")[,c("id", "created", "time","venue_id")])
 setkey(events, "venue_id")
 
-print(noquote("Reading the venues..."))
+cat("Reading the venues...")
 venues <- data.table(read.csv("data_csv/venues.csv",sep = ",")[,c("id", "lat", "lon")])
 setkey(venues, "id")
 
-print(noquote("Filtering the events with location..."))
+cat("Filtering the events with location...")
 events.with.location = events[venues]
 events.with.location$lat <- NULL
 events.with.location$lon <- NULL

@@ -83,7 +83,7 @@ k <- 5
 algorithms <- c("Distance"))
 
 for (alg in algorithms){
-  print(noquote(paste("Recommending with:", alg)))
+  cat("Recommending with:", alg)
 
   # Call the SetEnvironment of the algorithm
   match.fun(paste("SetEnvironment.", alg, sep = ""))()
@@ -91,21 +91,21 @@ for (alg in algorithms){
   for (i in 1:length(partition.files)){
     file <- partition.files[i]
     
-    print(noquote(paste("Partition file:", file)))
+    cat("Partition file:", file)
     partitions <- read.csv(paste(partition.dir, file, sep =""))
     
-    print(noquote("    Start recommending..."))
+    cat("    Start recommending...")
     rec.events.df <- ddply(idata.frame(partitions), .(member_id, partition),
                            RecommendPerPartition, k, .parallel = T, .progress = "text",
                            alg)
     
     persist.file <- paste("rec_events_", tolower(alg), "_",  i, ".csv", sep = "")
-    print(noquote(paste("    Persisting the results:", persist.file)))
+    cat("    Persisting the results:", persist.file)
     write.csv(rec.events.df, file=paste(output.dir, persist.file, sep =""), row.names = F)
   }
 
   # Clean the Environment of the algorithm 
-  print(noquote("Cleaning the Algorithm Environment"))
+  cat("Cleaning the Algorithm Environment")
   algEnv <- environment(match.fun(paste("RecEvents.", alg, sep = "")))
   rm(list = ls(envir=algEnv), envir=algEnv)
   gc()

@@ -40,35 +40,35 @@ source("src/rCode/common.R")
 # Function definition
 # =============================================================================
 CreateMemberEvents <- function(max.members){
-  print(noquote("Reading the MEMBER.EVENTs (if there was any)..."))
+  cat("Reading the MEMBER.EVENTs (if there was any)...")
   member.events <- ReadAllCSVs(dir="data_output/partitions/", obj_name="member_events")
   
   if (is.null(member.events)){
-    print(noquote("Creating the MEMBER.EVENTs (no there wasn't)..."))
-    print(noquote("    Reading the EVENTs..."))
+    cat("Creating the MEMBER.EVENTs (no there wasn't)...")
+    cat("    Reading the EVENTs...")
     events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[, c("id", "time", "venue_id")]
     
-    print(noquote("    Reading the VENUEs..."))
+    cat("    Reading the VENUEs...")
     venues <- read.csv("data_csv/venues.csv")
     
-    print(noquote("    Selecting the VENUEs with valid location (diff from (0,0))..."))
+    cat("    Selecting the VENUEs with valid location (diff from (0,0))...")
     venues <- venues[!(venues$lon == 0 & venues$lat == 0),]
     
-    print(noquote("    Selecting the EVENTs with valid locations..."))
+    cat("    Selecting the EVENTs with valid locations...")
     events <- events[(!is.na(events$venue_id) & events$venue_id %in% venues$id), c("id", "time")]
     
-    print(noquote("    Reading the RSVPs..."))
+    cat("    Reading the RSVPs...")
     rsvps <- ReadAllCSVs(dir="data_csv/", obj_name="rsvps")[, c("member_id", "event_id", "response")]
     
-    print(noquote("    Selecting the RSVPs with response equals yes..."))
+    cat("    Selecting the RSVPs with response equals yes...")
     rsvps <- rsvps[rsvps$response == "yes", c("member_id", "event_id")]
     
-    print(noquote("    Merging the RSVPs with EVENTs table (to add the EVENTs <time>)"))
+    cat("    Merging the RSVPs with EVENTs table (to add the EVENTs <time>)")
     member.events <- merge(rsvps, events, 
                           by.x = "event_id", by.y = "id")
 
-    print(noquote(paste("    Fixed number of partitions:", partitions.num)))
-    print(noquote(paste("    Selecting the members with at least", partitions.num + 1, "event(s)...")))
+    cat("    Fixed number of partitions:", partitions.num)
+    cat("    Selecting the members with at least", partitions.num + 1, "event(s)...")
     member.count <- count(member.events, "member_id")
     member.count <- member.count[member.count$freq > partitions.num,]
     member.events <- member.events[member.events$member_id %in% member.count$member_id,]
@@ -79,7 +79,7 @@ CreateMemberEvents <- function(max.members){
     member.events <- member.events[,c("member_id", "event_id", "time")]
     colnames(member.events) <- c("member_id", "event_id", "event_time")
     
-    print(noquote("    Persisting the member.events..."))
+    cat("    Persisting the member.events...")
     members <- unique(member.events$member_id)
     data.divisions <- ceil(length(members)/max.members)
     
@@ -88,10 +88,10 @@ CreateMemberEvents <- function(max.members){
                               ((length(members)/data.divisions) * i)) + 1
       indexes <- indexes[indexes <= length(members)]
       
-      print(noquote(paste("Data Division ", i, "/", data.divisions, " - ", length(indexes), 
-                          " members", sep = "")))
+      cat("Data Division ", i, "/", data.divisions, " - ", length(indexes), 
+                          " members", sep = "")
       
-      print(noquote("    Persisting the member_events data in a csv file..."))
+      cat("    Persisting the member_events data in a csv file...")
       write.csv(member.events[member.events$member_id %in% members[indexes], ], 
                 file = paste("data_output/partitions/member_events_",i,".csv", sep = ""), 
                 row.names = F)
@@ -133,19 +133,19 @@ for (i in 1:data.divisions){
                           ((length(members)/data.divisions) * i)) + 1
   indexes <- indexes[indexes <= length(members)]
 
-  print(noquote(paste("Data Division ", i, "/", data.divisions, " - ", length(indexes), 
-                      " members", sep = "")))
+  cat("Data Division ", i, "/", data.divisions, " - ", length(indexes), 
+                      " members", sep = "")
   
-  print(noquote(paste("    Partitioning the member's events (", partitions.num, 
-                      " partitions)...", sep = "")))
+  cat("    Partitioning the member's events (", partitions.num, 
+                      " partitions)...", sep = "")
   partitioned.data <- ddply(idata.frame(member.events[member.events$member_id %in% members[indexes], ]), 
                             .(member_id), PartitionEvents, partitions.num, 
                             .parallel=T, .progress="text")
   
-  print(noquote("    Persisting the partitions in a csv file..."))
+  cat("    Persisting the partitions in a csv file...")
   write.csv(partitioned.data, 
             file = paste("data_output/partitions/member_partitions_", i,".csv", sep = ""), 
             row.names = F)
   
-  print(noquote(""))
+  cat(" ")
 }

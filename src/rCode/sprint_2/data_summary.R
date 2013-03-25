@@ -61,16 +61,16 @@ table[,2] = "NULL"
 # -----------------------------------------------------------------------------
 # Reading the members and Count the number of members
 # -----------------------------------------------------------------------------
-print(noquote("Reading the members..."))
+cat("Reading the members...")
 members = ReadAllCSVs(dir="data_csv/", obj_name="members")
 
-print(noquote("Counting the number of members"))
+cat("Counting the number of members")
 table[table$metric == "number_members",][2] = length(unique(members$id))
 
 # -----------------------------------------------------------------------------
 # Count number of members with locatins
 # -----------------------------------------------------------------------------
-print(noquote("Counting the number of members with locations..."))
+cat("Counting the number of members with locations...")
 
 table[table$metric == "number_members_with_locations",][2] = 
   length(unique(members[is.numeric(members$lat) && is.numeric(members$lon),]$id))
@@ -80,10 +80,10 @@ rm(members)
 # -----------------------------------------------------------------------------
 # Reading the file groups.csv and counting the number of groups
 # -----------------------------------------------------------------------------
-print(noquote("Reading the groups..."))
+cat("Reading the groups...")
 groups = read.csv("data_csv/groups.csv",sep=",")
 
-print(noquote("Counting the number of groups..."))
+cat("Counting the number of groups...")
 table[table$metric == "number_groups",][2] = length(unique(groups$id))
 
 rm(groups)
@@ -91,10 +91,10 @@ rm(groups)
 # -----------------------------------------------------------------------------
 # Reading the file topics.csv and counting the number of topics
 # -----------------------------------------------------------------------------
-print(noquote("Reading the topics..."))
+cat("Reading the topics...")
 topics = read.csv("data_csv/topics.csv",sep=",")
 
-print(noquote("Counting the number of topics..."))
+cat("Counting the number of topics...")
 table[table$metric == "number_topics",][2] = length(unique(topics$id))
 
 
@@ -104,10 +104,10 @@ rm(topics)
 # -----------------------------------------------------------------------------
 # Reading the file groups_topics.csv and counting th number of group-tag pairs
 # -----------------------------------------------------------------------------
-print(noquote("Reading the group-topics..."))
+cat("Reading the group-topics...")
 group.topic = read.csv("data_csv/group_topics.csv",sep = ",")
 
-print(noquote("Counting the group-topics pairs..."))
+cat("Counting the group-topics pairs...")
 table[table$metric == "number_group_topic_pairs",][2] = nrow(group.topic)
 
 rm(group.topic)
@@ -115,10 +115,10 @@ rm(group.topic)
 # -----------------------------------------------------------------------------
 # Reading the file group_members.csv and count number of pair group-member
 # -----------------------------------------------------------------------------
-print(noquote("Reading the group-members..."))
+cat("Reading the group-members...")
 member.group = read.csv("data_csv/group_members.csv",sep = ",")
 
-print(noquote("Counting the number of group-member pairs..."))
+cat("Counting the number of group-member pairs...")
 table[table$metric == "number_member_group_pairs",][2] = nrow(member.group)
 
 rm(member.group)
@@ -126,10 +126,10 @@ rm(member.group)
 # -----------------------------------------------------------------------------
 # Reading the file members_topics.csv and counting the number of member-topic pairs
 # -----------------------------------------------------------------------------
-print(noquote("Reading the member-topics..."))
+cat("Reading the member-topics...")
 member.topic = read.csv("data_csv/member_topics.csv", sep = ",")
 
-print(noquote("Counting the number of member-topic pairs..."))
+cat("Counting the number of member-topic pairs...")
 table[table$metric == "number_member_topic_pairs",][2] = nrow(member.topic)
 
 rm(member.topic)
@@ -137,33 +137,33 @@ rm(member.topic)
 # -----------------------------------------------------------------------------
 # Read all the files events_[1..*].csv and Counting the number of events
 # -----------------------------------------------------------------------------
-print(noquote("Reading the events..."))
+cat("Reading the events...")
 events <- ReadAllCSVs(dir="data_csv/", obj_name="events")
 
-print(noquote("Counting the number of events..."))
+cat("Counting the number of events...")
 table[table$metric == "number_events",][2] = length(unique(events$id))
 
 # -----------------------------------------------------------------------------
 # Counting the events with locations
 # -----------------------------------------------------------------------------
-print(noquote("Counting the number of events with locations..."))
+cat("Counting the number of events with locations...")
 table[table$metric == "number_events_with_locations",][2] = sum(!is.na(events$venue_id))
 
 # -----------------------------------------------------------------------------
 # Reading all the files rsvps[1..*].csv and counting the number of members that 
 # answer(yes/no) for events
 # -----------------------------------------------------------------------------
-print(noquote("Reading the rsvps..."))
+cat("Reading the rsvps...")
 member.event <- ReadAllCSVs(dir="data_csv/", obj_name="rsvps")
 
-print(noquote("Counting the number of member-events pairs..."))
+cat("Counting the number of member-events pairs...")
 table[table$metric == "number_member_event_pairs",][2] <- nrow(member.event)
 
 # -----------------------------------------------------------------------------
 # Reading all the files rsvps[1..*].csv and counting the number of members that 
 # answered yes for the event's rsvps
 # -----------------------------------------------------------------------------
-print(noquote("Counting the number of member-events pairs (with yes)..."))
+cat("Counting the number of member-events pairs (with yes)...")
 
 member.event.yes <- member.event[member.event$response == "yes", 
                                  c("member_id", "event_id")]
@@ -180,10 +180,10 @@ venues <- read.csv("data_csv/venues.csv",sep = ",")
 # -----------------------------------------------------------------------------
 # Printing the resultant summary metric values
 # -----------------------------------------------------------------------------
-print(noquote("Printing the resultant summary metric values..."))
-print(noquote(""))
-print(noquote(table))
-print(noquote(""))
+cat("Printing the resultant summary metric values...")
+cat("")
+cat(table)
+cat("")
 # -----------------------------------------------------------------------------
 # Generate a .png image showing the number of events per cities  
 # -----------------------------------------------------------------------------
@@ -191,7 +191,7 @@ print(noquote(""))
 # Pre-processing and reading the venues
 source("src/rCode/sprint_2/data_pre_process.R")
 
-print(noquote("Generating the bar plot with the number of EVENTs per location (min.: 30 events)..."))
+cat("Generating the bar plot with the number of EVENTs per location (min.: 30 events)...")
 
 events.with.location = merge(events, 
                              venues[,c("id", "city")], 
@@ -228,8 +228,8 @@ rm(events.with.location, selected.locations)
 # Generate a .png image showing the number of members per event  
 # -----------------------------------------------------------------------------
 sample.size <- 50000
-print(noquote(paste("Generating the histogram with the number of MEMBERs per EVENT (sample size: ", 
-                    sample.size, ")...", sep = "")))
+cat(paste("Generating the histogram with the number of MEMBERs per EVENT (sample size: ", 
+                    sample.size, ")...", sep = ""))
 
 member.event.yes.count <- count(member.event.yes[sample(1:nrow(member.event.yes), 
                                                         sample.size),], vars= "event_id")

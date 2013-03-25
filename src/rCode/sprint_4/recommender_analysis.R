@@ -91,14 +91,14 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, conf.level=.95, na.
 # Main
 # =============================================================================
 
-print(noquote("Reading Recommender Evaluations..."))
+cat("Reading Recommender Evaluations...")
 evaluations <- ReadAllCSVs("data_output/evaluations/", "rec_events_eval")
 evaluations <- evaluations[!is.na(evaluations$recall),]
 
 # -----------------------------------------------------------------------------
 # Preparing the evaluation data to plot the COMPLETE RESULTS
 # -----------------------------------------------------------------------------
-print(noquote("Calculating the summary metrics..."))
+cat("Calculating the summary metrics...")
 summaryPrec = summarySE(evaluations, "precision", c("partition", "rec_size"), conf.level = .95)
 summaryRecall = summarySE(evaluations, "recall", c("partition", "rec_size"), conf.level = .95)
 
@@ -106,7 +106,7 @@ summaryEvals = rbind(melt(summaryPrec, measure.vars = "precision", variable_name
                      melt(summaryRecall, measure.vars = "recall", variable_name = "eval_metric"))
 
 dir.create("data_output/evaluations/analysis", showWarnings=F)
-print(noquote("Plotting the Precision and Recall for: All Cities"))
+cat("Plotting the Precision and Recall for: All Cities")
 png("data_output/evaluations/analysis/precision_recall-all.png", width=1200, height=350)
 print(ggplot(summaryEvals, aes(x=rec_size, y=value, colour = eval_metric)) + 
   geom_errorbar(aes(ymin=value-ci, ymax=value+ci), width=.1) +
@@ -119,11 +119,11 @@ dev.off()
 # -----------------------------------------------------------------------------
 # Preparing the evaluation data to plot the RESULTS by CITY
 # -----------------------------------------------------------------------------
-print(noquote("Reading the MEMBERs data..."))
+cat("Reading the MEMBERs data...")
 members <- ReadAllCSVs("data_csv/", "members")[,c("id", "city")]
 
 num.cities <- 10
-print(noquote(paste("Selecting the members from the", num.cities, "biggest cities...")))
+cat("Selecting the members from the", num.cities, "biggest cities...")
 
 members.per.city <- count(members, "city")
 members.per.city <- members.per.city[order(members.per.city$freq, decreasing = T),]
@@ -131,10 +131,10 @@ cities.count <- members.per.city[1:num.cities,]
 cities.count$city <- as.character(cities.count$city)
 members <- members[members$city %in% cities.count$city,]
 
-print(noquote(paste("Selecting the evaluations of the selected members only...")))
+cat("Selecting the evaluations of the selected members only...")
 evaluations2 <- merge(evaluations, members, by.x = "member_id", by.y = "id")
 
-print(noquote("Re-Calculating the summary metrics..."))
+cat("Re-Calculating the summary metrics...")
 summaryPrec2 = summarySE(evaluations2, "precision", c("city", "partition", "rec_size"), conf.level = .95)
 summaryRecall2 = summarySE(evaluations2, "recall", c("city", "partition", "rec_size"), conf.level = .95)
 
@@ -144,7 +144,7 @@ summaryEvals2 = rbind(melt(summaryPrec2, measure.vars = "precision", variable_na
 for (i in 1:nrow(cities.count)){
   city <- cities.count$city[i]
   count <- cities.count$freq[i]
-  print(noquote(paste("Re-Plotting the Precision and Recall for:", city)))
+  cat("Re-Plotting the Precision and Recall for:", city)
   png(paste("data_output/evaluations/analysis/precision_recall-", i, "-", city, ".png", sep=""), width=1200, height=350)
   print(ggplot(summaryEvals2[summaryEvals2$city == city,], aes(x=rec_size, y=value, colour=eval_metric)) + 
           geom_errorbar(aes(ymin=value-ci, ymax=value+ci), width=.1) +

@@ -2,29 +2,29 @@ rm(list = ls())
 source("src/rCode/common.R")
 
 # Read the Member Events (already filtered)
-print(noquote("Read the Member Events (already filtered)"))
+cat("Read the Member Events (already filtered)")
 member.events <- ReadAllCSVs(dir="data_output/partitions/", obj_name="member_events")
 # Delete the event.time in the member.events
-print(noquote("Delete the event.time in the member.events"))
+cat("Delete the event.time in the member.events")
 member.events$event_time <- NULL
 
 
 # Read and select the EVENTs
-print(noquote("Read and select the events"))
+cat("Read and select the events")
 events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[, c("id", "name", "time", "venue_id")]
 events <- events[events$id %in% unique(member.events$event_id),]
 colnames(events) <- c("event_id", "event_name", "event_time", "venue_id")
 
 
 # Read and select the VENUEs
-print(noquote("Read and select the events"))
+cat("Read and select the events")
 venues <- ReadAllCSVs(dir="data_csv/", obj_name="venues")[, c("id", "lat", "lon", "name", "city")]
 venues <- venues[venues$id %in% unique(events$venue_id),]
 colnames(venues) <- c("venue_id", "venue_lat", "venue_lon", "venue_name", "venue_city")
 
 
 # Read and select the MEMBERs
-print(noquote("Read and select the members"))
+cat("Read and select the members")
 members <- ReadAllCSVs(dir="data_csv/", obj_name="members")[, c("id", "lat", "lon", "name", "city")]
 members <- members[members$id %in% unique(member.events$member_id),]
 colnames(members) <- c("member_id", "member_lat", "member_lon", "member_name", "member_city")
@@ -51,7 +51,7 @@ members <- members[members$member_city %in% cities.intersect,]
 # ------------------------------------------------------------------------------
 
 # Merging the events with venues
-print(noquote("Merging the EVENTs with VENUEs..."))
+cat("Merging the EVENTs with VENUEs...")
 events.with.venue <- merge(events, venues, by = "venue_id")[,c("event_id", "event_name", 
                                                                "event_time", "venue_id", 
                                                                "venue_lat", "venue_lon",
@@ -60,7 +60,7 @@ events.with.venue <- merge(events, venues, by = "venue_id")[,c("event_id", "even
 # Selecting the Events of the Member and of the Venues
 
 # Group member.events by member_id -> member_id, all_event_ids
-print(noquote("Selecting the EVENTs of the MEMBERs..."))
+cat("Selecting the EVENTs of the MEMBERs...")
 
 # NEW VERSION (ddply with: idata.frame)
 member.all.events <- ddply(idata.frame(member.events), .(member_id), function(m.events){
@@ -68,12 +68,12 @@ member.all.events <- ddply(idata.frame(member.events), .(member_id), function(m.
 }, .progress = "text"))
 
 # Merge members with this result
-print(noquote("Merging the the EVENTs of the MEMBERs with the MEMBERs data..."))
+cat("Merging the the EVENTs of the MEMBERs with the MEMBERs data...")
 members <- merge(members, member.all.events, by = "member_id")
 
 
 # Group events by venue_id -> venue_id, all_event_ids
-print(noquote("Selecting the EVENTs of the VENUEs..."))
+cat("Selecting the EVENTs of the VENUEs...")
 
 # NEW VERSION (ddply with: idata.frame)
 venue.all.events <- ddply(idata.frame(events), .(venue_id), function(v.events){
@@ -81,23 +81,23 @@ venue.all.events <- ddply(idata.frame(events), .(venue_id), function(v.events){
 }, .progress = "text")
 
 # Merge venues with this result
-print(noquote("Merging the the EVENTs of the VENUEs with the VENUEs data..."))
+cat("Merging the the EVENTs of the VENUEs with the VENUEs data...")
 venues <- merge(venues, venue.all.events, by = "venue_id")
 
 # -----------------------------------------------------------------------------
 # PERSISTING ORGANIZED
 # -----------------------------------------------------------------------------
-print(noquote("Creating the directories..."))
+cat("Creating the directories...")
 dir.create("data_output/view", showWarnings=F)
 view.dir <- "data_output/view/optimized/"
 dir.create(view.dir, showWarnings=F)
 
 # EVENTS
-print(noquote("Persisting all EVENTs"))
+cat("Persisting all EVENTs")
 write.csv(events.with.venue, paste(view.dir, "events_with_venues.csv", sep = ""), row.names = F)
 
 # Split the Members per City (465 cities only) and Apply the function in it
-print(noquote("Splitting by City and persisting the MEMBER and VENUEs..."))
+cat("Splitting by City and persisting the MEMBER and VENUEs...")
 d_ply(idata.frame(members), .(member_city), function(m){
   city <- m$member_city[1]
 
