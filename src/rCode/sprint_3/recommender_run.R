@@ -44,11 +44,20 @@ source("src/rCode/sprint_3/recommender_alg_distance.R")
 # =============================================================================
 # Function definition
 # =============================================================================
-RecommendPerPartition <- function(partition, k){
-  p.time <- partition$partition_time
+RecommendPerPartition <- function(partition, k, algorithm = "Distance"){
   member.id <- partition$member_id
-  rec.events <- KNearestEvents (member.id, k, p.time)
-  return(cbind(data.frame(p_time = p.time), t(rec.events)))
+  
+  p.time <- partition$partition_time
+  if (algorithm == "Distance"){
+    rec.events <- RecEvents.Distance(member.id, k, p.time)
+  }
+  if (algorithm == "Topic"){
+    #     rec.events <- RecEventsByTopic (member.id, k, p.time)
+  }
+  if (algorithm == "Weighted"){
+    #     rec.events <- RecEventsWeighting (rec.events.distance, rec.events.topic)
+  }
+  return(cbind(data.frame(p_time = p.time, algorithm = algorithm), t(rec.events)))
 }
 
 # =============================================================================
@@ -67,20 +76,37 @@ if (length(partition.files) <= 0){
              "\" (run the \"src/rCode/sprint_2/data_partitioning.R\" to create the partitions)", sep = ""))
 }
 
+# TODO (Augusto): Propagar mudanças para eval e analysis
+
 # Number of recommended events
 k <- 5
+algorithms <- c("Distance"))
 
-for (i in 1:length(partition.files)){
-  file <- partition.files[i]
+for (alg in algorithms){
+  cat("Recommending with:", alg)
+
+  # Call the SetEnvironment of the algorithm
+  match.fun(paste("SetEnvironment.", alg, sep = ""))()
   
-  print(noquote(paste("Partition file:", file)))
-  partitions <- read.csv(paste(partition.dir, file, sep =""))
-  
-  print(noquote("    Start recommending..."))
-  rec.events.df <- ddply(partitions, .(member_id, partition),
-                         RecommendPerPartition, k, .parallel = T, .progress = "text")
-  
-  persist.file <- paste("recommended_events_", i, ".csv", sep = "")
-  print(noquote(paste("    Persisting the results:", persist.file)))
-  write.csv(rec.events.df, file=paste(output.dir, persist.file, sep =""), row.names = F)
+  for (i in 1:length(partition.files)){
+    file <- partition.files[i]
+    
+    cat("Partition file:", file)
+    partitions <- read.csv(paste(partition.dir, file, sep =""))
+    
+    cat("    Start recommending...")
+    rec.events.df <- ddply(idata.frame(partitions), .(member_id, partition),
+                           RecommendPerPartition, k, .parallel = T, .progress = "text",
+                           alg)
+    
+    persist.file <- paste("rec_events_", tolower(alg), "_",  i, ".csv", sep = "")
+    cat("    Persisting the results:", persist.file)
+    write.csv(rec.events.df, file=paste(output.dir, persist.file, sep =""), row.names = F)
+  }
+
+  # Clean the Environment of the algorithm 
+  cat("Cleaning the Algorithm Environment")
+  algEnv <- environment(match.fun(paste("RecEvents.", alg, sep = "")))
+  rm(list = ls(envir=algEnv), envir=algEnv)
+  gc()
 }

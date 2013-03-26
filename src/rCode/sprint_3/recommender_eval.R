@@ -45,7 +45,7 @@ rec.files <- list.files("data_output/recommendations/", pattern="recommended_eve
 
 for(i in 1:length(rec.files)) {
   
-  print(noquote(paste("Evaluating the recommended_events_", i, ".csv", sep = "")))
+  cat("Evaluating the recommended_events_", i, ".csv", sep = "")
   member.events <- read.csv(paste("data_output/partitions/member_events_", i,
                                   ".csv", sep = ""))
   member.events <- ReadAllCSVs("data_output/partitions/", "member_events")
@@ -74,7 +74,7 @@ for(i in 1:length(rec.files)) {
   
   dir.create("data_output/evaluations/", showWarnings=F)
   
-  print(noquote("Persisting the recommendation evaluations..."))
+  cat("Persisting the recommendation evaluations...")
   write.csv(table.result, 
             file = paste("data_output/evaluations/rec_events_eval_", i, ".csv", sep = ""), 
             row.names = F)

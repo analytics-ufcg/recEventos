@@ -24,12 +24,11 @@
 #
 # File: recommender_alg_popularity.R
 #
-#   * Description: This file have two functions, k.nearest.events and recomendation.                     
+#   * Description: 
 #
-#   * Inputs: Venues' table, events with location table, members' table
+#   * Inputs: 
 #
-#   * Outputs: List of k events recomeded for users gived.The recomendation is made
-#              according of distance between user's geo-location and event's geo-location
+#   * Outputs:
 #
 # =============================================================================
 
@@ -42,23 +41,23 @@ source("src/rCode/common.R")
 # Inputs
 # =============================================================================
 
-print(noquote("Reading the members..."))
+cat("Reading the members...")
 member_events <- ReadAllCSVs(dir="data_output/partitions/", obj_name="member_events")
 setkey(members, "id")
 
-print(noquote("Reading the members..."))
+cat("Reading the members...")
 members <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="members")[,c("id","lat","lon")])
 setkey(members, "id")
 
-print(noquote("Reading the events..."))
-events <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="events")[,c("id","time","venue_id")])
+cat("Reading the events...")
+events <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="events")[,c("id", "created", "time","venue_id")])
 setkey(events, "venue_id")
 
-print(noquote("Reading the venues..."))
+cat("Reading the venues...")
 venues <- data.table(read.csv("data_csv/venues.csv",sep = ",")[,c("id", "lat", "lon")])
 setkey(venues, "id")
 
-print(noquote("Filtering the events with location..."))
+cat("Filtering the events with location...")
 events.with.location = events[venues]
 events.with.location$lat <- NULL
 events.with.location$lon <- NULL
@@ -75,6 +74,7 @@ rm(events)
 # Return k lagest distance between receiver user and all events.
 # ----------------------------------------------------------------------------
 
+#TODO(Rodolfo):Essa funcao eh utilizada?
 MostPopularEvents <- function(event.id, k.events, p.time){
   count.var <- count(member_events, "event_id")
   count.var <- count.var[order(count.var$freq, decreasing = T),]
@@ -89,7 +89,8 @@ MostClosePopularEvents <- function(member.id, k.events, p.time){
                                dist = deg.dist(member$lon, member$lat, venues$lon, venues$lat))
   setkey(venue.distance, "dist")  # Now it is ordered by dist
   
-  events.dist <- merge(subset(events.with.location, time >= p.time), 
+  # TODO (Rodolfo): Entenda o porque de eu ter mudado esse subset vvvvvvvvvv
+  events.dist <- merge(subset(events.with.location, (created < p.time & time >= p.time)), 
                        venue.distance, 
                        by= "venue_id")
   setkey(events.dist, "dist")  # Now it is ordered by dist
@@ -104,6 +105,7 @@ MostClosePopularEvents <- function(member.id, k.events, p.time){
   
   merge.tables <- merge.tables[order(merge.tables$freq, decreasing = T),]
   
+  # TODO (Rodolfo): A saida deve ser apenas as k.events ids
   merge.tables[1:10,]
   
 }

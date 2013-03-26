@@ -45,7 +45,7 @@ library(iterators)
 library(ggplot2)
 library(stringr)
 library(Hmisc)
-library(fossil)
+library(oce)
 library(data.table)
 library(reshape)
 
@@ -60,12 +60,15 @@ if (Sys.info()['sysname'] == "Linux"){
 # =============================================================================
 # Function definitions
 # =============================================================================
-
 ReadAllCSVs = function(dir, obj_name){
   df = NULL
-  for (file in list.files(path = dir, pattern=paste(obj_name, "_[0-9]*.csv", sep = ""))){
-   
-    df = rbind(df, read.csv(paste(dir, file, sep = "")))
+  for (file in list.files(path = dir, pattern=paste("^", obj_name, "_?[0-9]*.csv", sep = ""))){
+  
+    # This the optimized version of read.table (the arguments: nrows and colClasses 
+    # are not being used because of the wide variety of tables this function reads)
+    df = rbind(df, read.table(file = paste(dir, file, sep = ""), header = T, 
+                              sep = ",", quote = "\"", dec = ".", fill = T, 
+                              stringsAsFactors = F, comment.char = ""))
   }
   return(df)
 }
