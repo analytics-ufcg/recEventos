@@ -89,18 +89,32 @@ MostClosePopularEvents <- function(member.id, k.events, p.time){
                        by= "venue_id")
   setkey(events.dist, "dist")  # Now it is ordered by dist
   
-  events.dist.recommended <- events.dist[1:100]
+  #events.dist.recommended <- events.dist[1:100]
+  dist.norm <- normalizacao(events.dist$dist)
+  events.dist.norm <- cbind(events.dist ,dist.norm)
   
   count.events <- count(member_events, "event_id")
   
   count.events <- data.table(count.events[order(count.events$freq, decreasing = T),])
   
-  merge.tables <- merge(count.events, events.dist.recommended, by.x="event_id", by.y="id")
+  freq.norm <- normalizacao(count.events$freq)
+  count.events.norm <- cbind(count.events, freq.norm)
   
-  merge.tables <- merge.tables[order(merge.tables$freq, decreasing = T),]
+  #merge.tables <- merge(count.events, events.dist.recommended, by.x="event_id", by.y="id")
   
-  merge.tables[1:10,]
+  #merge.tables <- merge.tables[order(merge.tables$freq, decreasing = T),]
   
-  events.ids.result <- data.frame(merge.tables[1:10,]$"event_id")
+  #merge.tables[1:10,]
+  
+  #events.ids.result <- data.frame(merge.tables[1:10,]$"event_id")
   
 }
+
+normalizacao <- function(vetor){
+  v.norm <- (vetor - min(vetor))/(max(vetor) - min(vetor))
+  return (v.norm)
+}
+
+#R_Comb <- function(vetor, vetor){
+#  return()
+#}
