@@ -90,7 +90,7 @@ MostClosePopularEvents <- function(member.id, k.events, p.time){
   setkey(events.dist, "dist")  # Now it is ordered by dist
   
   #events.dist.recommended <- events.dist[1:100]
-  dist.norm <- normalizacao(events.dist$dist)
+  dist.norm <- normalizacao(1 - events.dist$dist)
   events.dist.norm <- cbind(events.dist ,dist.norm)
   
   count.events <- count(member_events, "event_id")
@@ -115,6 +115,12 @@ normalizacao <- function(vetor){
   return (v.norm)
 }
 
-#R_Comb <- function(vetor, vetor){
-#  return()
-#}
+R_Comb <- function(vetor.dist, vetor.pop){
+  alfa <- 0.5
+  merged <- merge(events.dist.norm, count.events.norm, by.x="id", by.y="event_id")
+  value <- (merged$freq.norm * alfa) + (merged$dist.norm * alfa)
+  binded <- cbind(merged, value)
+  binded <- binded[order(binded$value, decreasing = T),]
+  
+  return(binded$id)
+}
