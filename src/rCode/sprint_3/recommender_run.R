@@ -40,24 +40,53 @@ rm(list=ls())
 # =============================================================================
 source("src/rCode/common.R")
 source("src/rCode/sprint_3/recommender_alg_distance.R")
+# source("src/rCode/sprint_4/recommender_alg_popularity.R")
 
 # =============================================================================
-# Function definition
+# Function definitions
 # =============================================================================
-RecommendPerPartition <- function(partition, k, algorithm = "Distance"){
+RecommendPerPartition <- function(partition, k, rec.fun, rec.fun.name){
   member.id <- partition$member_id
-  
   p.time <- partition$partition_time
-  if (algorithm == "Distance"){
-    rec.events <- RecEvents.Distance(member.id, k, p.time)
-  }
-  if (algorithm == "Topic"){
-    #     rec.events <- RecEventsByTopic (member.id, k, p.time)
-  }
-  if (algorithm == "Weighted"){
-    #     rec.events <- RecEventsWeighting (rec.events.distance, rec.events.topic)
-  }
-  return(cbind(data.frame(p_time = p.time, algorithm = algorithm), t(rec.events)))
+  
+  rec.events <- rec.fun(member.id, k, p.time)
+  
+  return(cbind(data.frame(p_time = p.time, algorithm = rec.fun.name), t(rec.events)))
+}
+
+CreateAndSharingRecEnvironment <- function(){
+  cat("Creating Rec Environment...")
+  
+  cat("  Reading the members...")
+  members <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="members")[,c("id","lat","lon")])
+  setkey(members, "id")
+  
+  cat("  Reading the events...")
+  events <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="events")[,c("id","time","venue_id")])
+  setkey(events, "venue_id")
+  
+  cat("  Reading the venues...")
+  venues <- data.table(read.csv("data_csv/venues.csv",sep = ",")[,c("id", "lat", "lon")])
+  setkey(venues, "id")
+  
+  cat("  Filtering the events with location...")
+  events.with.location <- events[venues]
+  events.with.location$lat <- NULL
+  events.with.location$lon <- NULL
+  events.with.location$id <- as.character(events.with.location$id)
+  setkey(events.with.location, "time")
+  
+  rm(events)
+
+  # Share Environment is the same as: This function environment will be the 
+  # environment of the RecEvents.Distance function (this is different from its 
+  # evaluation environment, created during its evaluation)
+  # The special assignment operator (<<-) is used to force the assignment occur 
+  # in the RecEvents.Distance actual environment, not as a temp variable in this 
+  # evaluation environment
+  cat("  Sharing Environment with algorithms...")
+  environment(RecEvents.Distance) <<- environment()
+  # environment(MostClosePopularEvents) <- environment()
 }
 
 # =============================================================================
@@ -80,13 +109,14 @@ if (length(partition.files) <= 0){
 
 # Number of recommended events
 k <- 5
-algorithms <- c("Distance"))
+algorithms <- c("Distance") #, "MostClosePopularEvents")
+
+CreateAndSharingRecEnvironment()
 
 for (alg in algorithms){
   cat("Recommending with:", alg)
-
-  # Call the SetEnvironment of the algorithm
-  match.fun(paste("SetEnvironment.", alg, sep = ""))()
+  
+  rec.fun <- match.fun(paste("RecEvents.", alg, sep = ""))
   
   for (i in 1:length(partition.files)){
     file <- partition.files[i]
@@ -95,18 +125,17 @@ for (alg in algorithms){
     partitions <- read.csv(paste(partition.dir, file, sep =""))
     
     cat("    Start recommending...")
-    rec.events.df <- ddply(idata.frame(partitions), .(member_id, partition),
-                           RecommendPerPartition, k, .parallel = T, .progress = "text",
-                           alg)
+    rec.events.df <- ddply(idata.frame(partitions[1:10,]), .(member_id, partition),
+                           RecommendPerPartition, k, .parallel = F, .progress = "text",
+                           rec.fun, alg)
     
     persist.file <- paste("rec_events_", tolower(alg), "_",  i, ".csv", sep = "")
     cat("    Persisting the results:", persist.file)
     write.csv(rec.events.df, file=paste(output.dir, persist.file, sep =""), row.names = F)
   }
-
-  # Clean the Environment of the algorithm 
-  cat("Cleaning the Algorithm Environment")
-  algEnv <- environment(match.fun(paste("RecEvents.", alg, sep = "")))
-  rm(list = ls(envir=algEnv), envir=algEnv)
-  gc()
 }
+
+# Clean the Environment of the algorithm 
+# cat("Cleaning the Environments...")
+# rm(list = ls(envir=environment(recom.fun)), envir=environment(recom.fun))
+# gc()

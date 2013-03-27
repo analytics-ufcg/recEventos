@@ -39,44 +39,6 @@
 source("src/rCode/common.R")
 
 # =============================================================================
-# Inputs
-# =============================================================================
-
-SetEnvironment.Distance <- function(){
-  cat("Setting Environment: Distance...")
-  
-  cat("  Reading the members...")
-  members <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="members")[,c("id","lat","lon")])
-  setkey(members, "id")
-  
-  cat("  Reading the events...")
-  events <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="events")[,c("id","time","venue_id")])
-  setkey(events, "venue_id")
-  
-  cat("  Reading the venues...")
-  venues <- data.table(read.csv("data_csv/venues.csv",sep = ",")[,c("id", "lat", "lon")])
-  setkey(venues, "id")
-  
-  cat("  Filtering the events with location...")
-  events.with.location <- events[venues]
-  events.with.location$lat <- NULL
-  events.with.location$lon <- NULL
-  events.with.location$id <- as.character(events.with.location$id)
-  setkey(events.with.location, "time")
-  
-  rm(events)
-  
-  cat("  Sharing Environment with RecEvents.Distance...")
-  # Share Environment is the same as: This function environment will be the 
-  # environment of the RecEvents.Distance function (this is different from its 
-  # evaluation environment, created during its evaluation)
-  # The special assignment operator (<<-) is used to force the assignment occur 
-  # in the RecEvents.Distance actual environment, not as a temp variable in this 
-  # evaluation environment
-  environment(RecEvents.Distance) <<- environment() 
-}
-
-# =============================================================================
 # Function definitions
 # =============================================================================
 
@@ -89,7 +51,7 @@ RecEvents.Distance <- function(member.id, k.events, p.time){
   member <- subset(members, id == member.id)
 
   venue.distance <- data.table(venue_id = venues$id, 
-                               dist = deg.dist(member$lon, member$lat, venues$lon, venues$lat))
+                               dist = geodDist(venues$lat, venues$lon, member$lat, member$lon))
   setkey(venue.distance, "dist")  # Now it is ordered by dist
 
   events.dist <- merge(subset(events.with.location, time >= p.time), 
