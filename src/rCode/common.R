@@ -38,22 +38,22 @@
 # =============================================================================
 # source() and library()
 # =============================================================================
-library(lubridate)
-library(plyr)
-library(foreach)
-library(iterators)
-library(ggplot2)
-library(stringr)
-library(Hmisc)
-library(oce)
-library(data.table)
-library(reshape)
+library(lubridate, warn.conflicts=F, quietly=T, verbose=F)
+library(plyr, warn.conflicts=F, quietly=T, verbose=F)
+library(foreach, warn.conflicts=F, quietly=T, verbose=F)
+library(iterators, warn.conflicts=F, quietly=T, verbose=F)
+library(ggplot2, warn.conflicts=F, quietly=T, verbose=F)
+library(stringr, warn.conflicts=F, quietly=T, verbose=F)
+library(Hmisc, warn.conflicts=F, quietly=T, verbose=F)
+library(oce, warn.conflicts=F, quietly=T, verbose=F)
+library(data.table, warn.conflicts=F, quietly=T, verbose=F)
+library(reshape, warn.conflicts=F, quietly=T, verbose=F)
 
 if (Sys.info()['sysname'] == "Linux"){
-  library(doMC)
+  library(doMC, warn.conflicts=F, quietly=T, verbose=F)
   registerDoMC(2)
 }else{
-  library(doSNOW)
+  library(doSNOW, warn.conflicts=F, quietly=T, verbose=F)
 }
 
 
