@@ -71,15 +71,10 @@ rm(events)
 # =============================================================================
 
 # ----------------------------------------------------------------------------
-# Return k lagest distance between receiver user and all events.
+# Return k lagest distance between receiver user and all events and then the
+# most popular ones.
 # ----------------------------------------------------------------------------
 
-#TODO(Rodolfo):Essa funcao eh utilizada?
-MostPopularEvents <- function(event.id, k.events, p.time){
-  count.var <- count(member_events, "event_id")
-  count.var <- count.var[order(count.var$freq, decreasing = T),]
-  return(count.var)
-}
 
 MostClosePopularEvents <- function(member.id, k.events, p.time){
   
@@ -89,23 +84,37 @@ MostClosePopularEvents <- function(member.id, k.events, p.time){
                                dist = deg.dist(member$lon, member$lat, venues$lon, venues$lat))
   setkey(venue.distance, "dist")  # Now it is ordered by dist
   
-  # TODO (Rodolfo): Entenda o porque de eu ter mudado esse subset vvvvvvvvvv
   events.dist <- merge(subset(events.with.location, (created < p.time & time >= p.time)), 
                        venue.distance, 
                        by= "venue_id")
   setkey(events.dist, "dist")  # Now it is ordered by dist
   
-  events.dist.recommended <- events.dist[1:100]
+  #events.dist.recommended <- events.dist[1:100]
+  dist.norm <- normalizacao(events.dist$dist)
+  events.dist.norm <- cbind(events.dist ,dist.norm)
   
   count.events <- count(member_events, "event_id")
   
   count.events <- data.table(count.events[order(count.events$freq, decreasing = T),])
   
-  merge.tables <- merge(count.events, events.dist.recommended, by.x="event_id", by.y="id")
+  freq.norm <- normalizacao(count.events$freq)
+  count.events.norm <- cbind(count.events, freq.norm)
   
-  merge.tables <- merge.tables[order(merge.tables$freq, decreasing = T),]
+  #merge.tables <- merge(count.events, events.dist.recommended, by.x="event_id", by.y="id")
   
-  # TODO (Rodolfo): A saida deve ser apenas as k.events ids
-  merge.tables[1:10,]
+  #merge.tables <- merge.tables[order(merge.tables$freq, decreasing = T),]
+  
+  #merge.tables[1:10,]
+  
+  #events.ids.result <- data.frame(merge.tables[1:10,]$"event_id")
   
 }
+
+normalizacao <- function(vetor){
+  v.norm <- (vetor - min(vetor))/(max(vetor) - min(vetor))
+  return (v.norm)
+}
+
+#R_Comb <- function(vetor, vetor){
+#  return()
+#}
