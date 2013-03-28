@@ -53,30 +53,28 @@ CreateMemberEvents <- function(min.events.per.member, max.members.per.file){
     
     cat("    Selecting the VENUEs with valid location (diff from (0,0))...\n")
     venues <- venues[!(venues$lon == 0 & venues$lat == 0),]
-    
+
     cat("    Selecting the EVENTs with valid locations...\n")
-    events <- events[(!is.na(events$venue_id) & events$venue_id %in% venues$id), c("id", "created", "time")]
+    events <- events[(!is.na(events$venue_id) & events$venue_id %in% venues$id), c("id")]
     
     cat("    Reading the RSVPs...\n")
-    rsvps <- ReadAllCSVs(dir="data_csv/", obj_name="rsvps")[, c("member_id", "event_id", "response")]
+    rsvps <- ReadAllCSVs(dir="data_csv/", obj_name="rsvps")[, c("member_id", "event_id", "mtime", "response")]
     
     cat("    Selecting the RSVPs with response equals yes...\n")
-    rsvps <- rsvps[rsvps$response == "yes", c("member_id", "event_id")]
+    rsvps <- rsvps[rsvps$response == "yes", c("member_id", "event_id", "mtime")]
     
-    cat("    Merging the RSVPs with EVENTs table (to add the EVENTs <time>)\n")
-    member.events <- merge(rsvps, events, 
-                           by.x = "event_id", by.y = "id")
+    cat("    Selecting the RSVPs with valid EVENTs\n")
+    member.events <- subset(rsvps, event_id %in% events)
     
     cat("    Selecting the members with at least", min.events.per.member, "complete event(s)...\n")
     member.count <- count(member.events, "member_id")
     member.count <- member.count[member.count$freq >= min.events.per.member,]
     member.events <- member.events[member.events$member_id %in% member.count$member_id,]
     
-    rm(rsvps, events, member.count)
+    rm(venues, events, rsvps, member.count)
 
     # Reorganizing the data.frame
-    member.events <- member.events[,c("member_id", "event_id", "created", "time")]
-    colnames(member.events) <- c("member_id", "event_id", "event_created", "event_time")
+    colnames(member.events) <- c("member_id", "event_id", "rsvp_time")
     
     cat("    Persisting the member.events...\n")
     members <- unique(member.events$member_id)
@@ -117,7 +115,7 @@ PartitionEvents <- function(df, partition.num){
   p.times <- NULL
   for (j in order(sizes, decreasing=T)[1:partition.num]){
     actions <- df.melt[j:(j+1),"value"]/1000
-    p.times <- c(p.times, sample((actions[1] + 1):(actions[2] - 1), 1))
+    p.times <- c(p.times, sample((actions[1] + 1):(actions[2] - 1), 1) * 1000)
   }
   
   return(data.frame(partition = 1:partition.num, partition_time = p.times,
@@ -140,6 +138,15 @@ dir.create("data_output/partitions/", showWarnings=F)
 # Read/Create the MemberEvents
 member.events <- CreateMemberEvents(min.events.per.member, max.members.per.file)
 
+# Remove the rsvp_time
+member.events$rsvp_time <- NULL
+
+# Read the events and merge to get the creation and time
+events <- ReadAllCSVs("data_csv/", "events")[,c("id", "created", "time")]
+colnames(events) <- c("event_id", "event_created", "event_time")
+member.events <- merge(member.events, events, by = "event_id")
+rm(events)
+
 cat("Partitioning the member's events (", partition.num, " partition(s))...\n", sep = "")
 members <- unique(member.events$member_id)
 data.divisions <- ceil(length(members)/max.members.per.file)
@@ -149,11 +156,10 @@ for (i in 1:data.divisions){
   
   cat("Data Division ", i, "/", data.divisions, "\n", sep = "")
   
-  some.member.events <- subset(member.events, 
-                               member_id %in% members[(index.divisions[i]+1) : index.divisions[i+1]])
-  partitioned.data <- ddply(some.member.events, 
-                            .(member_id), PartitionEvents, partition.num, 
-                            .parallel=F, .progress="text")
+  system.time(partitioned.data <- ddply(subset(member.events, 
+                                               member_id %in% members[(index.divisions[i]+1) : index.divisions[i+1]]), 
+                                        .(member_id), PartitionEvents, partition.num, 
+                                        .parallel=F, .progress="text"))
   
   cat("Persisting the partitions in a csv file...\n")
   write.csv(partitioned.data, 

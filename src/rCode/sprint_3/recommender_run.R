@@ -40,43 +40,43 @@ rm(list=ls())
 # =============================================================================
 source("src/rCode/common.R")
 source("src/rCode/sprint_3/recommender_alg_distance.R")
-# source("src/rCode/sprint_4/recommender_alg_popularity.R")
 
 # =============================================================================
 # Function definitions
 # =============================================================================
-RecommendPerPartition <- function(partition, k, rec.fun, rec.fun.name){
-  member.id <- partition$member_id
-  p.time <- partition$partition_time
+CreateAndShareRecEnvironment <- function(){
+  cat("Creating the Recommendation Environment...\n")
   
-  rec.events <- rec.fun(member.id, k, p.time)
+  cat("  Reading the member.events...\n")
+  member.events <- data.table(ReadAllCSVs("data_output/partitions/", "member_events"))
   
-  return(cbind(data.frame(p_time = p.time, algorithm = rec.fun.name), t(rec.events)))
-}
-
-CreateAndSharingRecEnvironment <- function(){
-  cat("Creating Rec Environment...")
-  
-  cat("  Reading the members...")
+  cat("  Reading the members...\n")
   members <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="members")[,c("id","lat","lon")])
   setkey(members, "id")
+  setkey(member.events, "member_id")
+  members <- subset(members, id %in% unique(member.events$member_id))
   
-  cat("  Reading the events...")
-  events <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="events")[,c("id","time","venue_id")])
+  cat("  Reading the events...\n")
+  events <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="events")[,c("id", "created", "time", "venue_id")])
   setkey(events, "venue_id")
+  setkey(member.events, "event_id")
+  events <- subset(events, id %in% unique(member.events$event_id))
   
-  cat("  Reading the venues...")
+  cat("  Reading the venues...\n")
   venues <- data.table(read.csv("data_csv/venues.csv",sep = ",")[,c("id", "lat", "lon")])
-  setkey(venues, "id")
+  setnames(venues, old=1, new="venue_id")
+  setkey(venues, "venue_id")
   
-  cat("  Filtering the events with location...")
-  events.with.location <- events[venues]
+  cat("  Filtering the events with location...\n")
+  events.with.location <- merge(events, venues)
   events.with.location$lat <- NULL
   events.with.location$lon <- NULL
   events.with.location$id <- as.character(events.with.location$id)
-  setkey(events.with.location, "time")
   
-  rm(events)
+  # Just to order and make the subset in the distance algorithm faster
+  setkey(events.with.location, "created")
+  
+  rm(member.events, events)
 
   # Share Environment is the same as: This function environment will be the 
   # environment of the RecEvents.Distance function (this is different from its 
@@ -84,9 +84,19 @@ CreateAndSharingRecEnvironment <- function(){
   # The special assignment operator (<<-) is used to force the assignment occur 
   # in the RecEvents.Distance actual environment, not as a temp variable in this 
   # evaluation environment
-  cat("  Sharing Environment with algorithms...")
+  cat("  Sharing Environment with algorithms...\n")
   environment(RecEvents.Distance) <<- environment()
-  # environment(MostClosePopularEvents) <- environment()
+  
+}
+
+RecommendPerPartition <- function(partition, k, rec.fun, rec.fun.name){
+  member.id <- partition$member_id
+  p.time <- partition$partition_time
+  
+  # Call the recommender function
+  rec.events <- rec.fun(member.id, k, p.time)
+  
+  return(cbind(data.frame(p_time = p.time, algorithm = rec.fun.name), t(rec.events)))
 }
 
 # =============================================================================
@@ -105,37 +115,33 @@ if (length(partition.files) <= 0){
              "\" (run the \"src/rCode/sprint_2/data_partitioning.R\" to create the partitions)", sep = ""))
 }
 
-# TODO (Augusto): Propagar mudanças para eval e analysis
-
 # Number of recommended events
 k <- 5
-algorithms <- c("Distance") #, "MostClosePopularEvents")
+algorithms <- c("Distance") # c("Distance", "Popularity", "Topic", "Weighted")
 
-CreateAndSharingRecEnvironment()
+CreateAndShareRecEnvironment()
 
-for (alg in algorithms){
-  cat("Recommending with:", alg)
+for (rec.fun.name in algorithms){
+  cat("Recommending with:", rec.fun.name, "\n")
   
-  rec.fun <- match.fun(paste("RecEvents.", alg, sep = ""))
+  rec.fun <- match.fun(paste("RecEvents.", rec.fun.name, sep = ""))
   
-  for (i in 1:length(partition.files)){
+  for (i in 2:length(partition.files)){
     file <- partition.files[i]
     
-    cat("Partition file:", file)
+    cat("Partition file:", file, "\n")
     partitions <- read.csv(paste(partition.dir, file, sep =""))
+
+    print(noquote(paste("    Started running at: ", Sys.time(), sep = "")))
     
-    cat("    Start recommending...")
-    rec.events.df <- ddply(idata.frame(partitions[1:10,]), .(member_id, partition),
+    rec.events.df <- ddply(idata.frame(partitions[1:3,]), .(member_id, partition),
                            RecommendPerPartition, k, .parallel = F, .progress = "text",
-                           rec.fun, alg)
+                           rec.fun, rec.fun.name)
     
-    persist.file <- paste("rec_events_", tolower(alg), "_",  i, ".csv", sep = "")
-    cat("    Persisting the results:", persist.file)
+    print(noquote(paste("    Finished running at: ", Sys.time(), sep = "")))
+    
+    persist.file <- paste("rec_events_", tolower(rec.fun.name), "_",  i, ".csv", sep = "")
+    cat("    Persisting the results:", persist.file, "\n")
     write.csv(rec.events.df, file=paste(output.dir, persist.file, sep =""), row.names = F)
   }
 }
-
-# Clean the Environment of the algorithm 
-# cat("Cleaning the Environments...")
-# rm(list = ls(envir=environment(recom.fun)), envir=environment(recom.fun))
-# gc()

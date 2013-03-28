@@ -79,8 +79,7 @@ venues <- read.csv("data_csv/venues.csv",sep = ",")[,c("id","city")]
 # Read events data csv and filt events that hasn't venue
 # -----------------------------------------------------------------------------
 cat("Reading Events...")
-all.events <- ReadAllCSVs(dir="data_csv/", obj_name="events")
-              [,c("id","venue_id","group_id", "created", "time")]
+all.events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[,c("id","venue_id","group_id", "created", "time")]
 cat("Filting Events...")
 all.events <- subset(all.events, all.events$id %in% member.events$event_id)
 

@@ -50,13 +50,12 @@ RecEvents.Distance <- function(member.id, k.events, p.time){
   
   member <- subset(members, id == member.id)
 
-  venue.distance <- data.table(venue_id = venues$id, 
+  venue.distance <- data.table(venue_id = venues$venue_id, 
                                dist = geodDist(venues$lat, venues$lon, member$lat, member$lon))
   setkey(venue.distance, "dist")  # Now it is ordered by dist
 
-  events.dist <- merge(subset(events.with.location, time >= p.time), 
-                       venue.distance, 
-                       by= "venue_id")
+  events.dist <- merge(subset(events.with.location, created <= p.time & time >= p.time), 
+                       venue.distance, by= "venue_id")
   setkey(events.dist, "dist")  # Now it is ordered by dist
   
   return(events.dist[1:min(k.events, nrow(events.dist)), id])
