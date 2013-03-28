@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 # SOFTWARE.
 #
-# Author: Elias Paulino
+# Author: Elias Paulino and Augusto Queiroz
 #
 # File: dist_user_event.R
 #
@@ -39,31 +39,6 @@
 source("src/rCode/common.R")
 
 # =============================================================================
-# Inputs
-# =============================================================================
-
-print(noquote("Reading the members..."))
-members <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="members")[,c("id","lat","lon")])
-setkey(members, "id")
-
-print(noquote("Reading the events..."))
-events <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="events")[,c("id","time","venue_id")])
-setkey(events, "venue_id")
-
-print(noquote("Reading the venues..."))
-venues <- data.table(read.csv("data_csv/venues.csv",sep = ",")[,c("id", "lat", "lon")])
-setkey(venues, "id")
-
-print(noquote("Filtering the events with location..."))
-events.with.location = events[venues]
-events.with.location$lat <- NULL
-events.with.location$lon <- NULL
-events.with.location$id <- as.character(events.with.location$id)
-setkey(events.with.location, "time")
-
-rm(events)
-
-# =============================================================================
 # Function definitions
 # =============================================================================
 
@@ -71,12 +46,12 @@ rm(events)
 # Return k lagest distance between receiver user and all events.
 # ----------------------------------------------------------------------------
 
-KNearestEvents <- function(member.id, k.events, p.time){
+RecEvents.Distance <- function(member.id, k.events, p.time){
   
   member <- subset(members, id == member.id)
 
   venue.distance <- data.table(venue_id = venues$id, 
-                               dist = deg.dist(member$lon, member$lat, venues$lon, venues$lat))
+                               dist = geodDist(venues$lat, venues$lon, member$lat, member$lon))
   setkey(venue.distance, "dist")  # Now it is ordered by dist
 
   events.dist <- merge(subset(events.with.location, time >= p.time), 
@@ -86,4 +61,3 @@ KNearestEvents <- function(member.id, k.events, p.time){
   
   return(events.dist[1:min(k.events, nrow(events.dist)), id])
 }
-

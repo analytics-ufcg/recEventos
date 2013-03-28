@@ -38,33 +38,37 @@
 # =============================================================================
 # source() and library()
 # =============================================================================
-library(lubridate)
-library(plyr)
-library(foreach)
-library(iterators)
-library(ggplot2)
-library(stringr)
-library(Hmisc)
-library(fossil)
-library(data.table)
+library(lubridate, warn.conflicts=F, quietly=T, verbose=F)
+library(plyr, warn.conflicts=F, quietly=T, verbose=F)
+library(foreach, warn.conflicts=F, quietly=T, verbose=F)
+library(iterators, warn.conflicts=F, quietly=T, verbose=F)
+library(ggplot2, warn.conflicts=F, quietly=T, verbose=F)
+library(stringr, warn.conflicts=F, quietly=T, verbose=F)
+library(Hmisc, warn.conflicts=F, quietly=T, verbose=F)
+library(oce, warn.conflicts=F, quietly=T, verbose=F)
+library(data.table, warn.conflicts=F, quietly=T, verbose=F)
+library(reshape, warn.conflicts=F, quietly=T, verbose=F)
 
 if (Sys.info()['sysname'] == "Linux"){
-  library(doMC)
+  library(doMC, warn.conflicts=F, quietly=T, verbose=F)
   registerDoMC(2)
 }else{
-  library(doSNOW)
+  library(doSNOW, warn.conflicts=F, quietly=T, verbose=F)
 }
 
 
 # =============================================================================
 # Function definitions
 # =============================================================================
-
 ReadAllCSVs = function(dir, obj_name){
   df = NULL
-  for (file in list.files(path = dir, pattern=paste(obj_name, "_[0-9]*.csv", sep = ""))){
-   
-    df = rbind(df, read.csv(paste(dir, file, sep = "")))
+  for (file in list.files(path = dir, pattern=paste("^", obj_name, "_?[0-9]*.csv", sep = ""))){
+  
+    # This the optimized version of read.table (the arguments: nrows and colClasses 
+    # are not being used because of the wide variety of tables this function reads)
+    df = rbind(df, read.table(file = paste(dir, file, sep = ""), header = T, 
+                              sep = ",", quote = "\"", dec = ".", fill = T, 
+                              stringsAsFactors = F, comment.char = ""))
   }
   return(df)
 }

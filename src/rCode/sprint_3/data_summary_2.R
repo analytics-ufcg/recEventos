@@ -45,7 +45,7 @@ source("src/rCode/common.R")
 # Executable script
 # =============================================================================
 
-print(noquote("Reading the RSVPs..."))
+cat("Reading the RSVPs...")
 
 rsvps <- ReadAllCSVs(dir="data_csv/", obj_name="rsvps")[, c("member_id", "event_id", "response")]
 rsvps <- rsvps[rsvps$response == "yes", c("event_id", "member_id")]
@@ -56,7 +56,7 @@ rm(rsvps)
 # -----------------------------------------------------------------------------
 # Generate a .png image showing the CDF of the number of members per event  
 # -----------------------------------------------------------------------------
-print(noquote(paste("Generating the CDF with the number of MEMBERs per EVENT")))
+cat("Generating the CDF with the number of MEMBERs per EVENT")
 
 png("data_output/summary_stats/cdf-members_per_event.png", width = 800, height = 700)
 plot(Ecdf(~ event.members.count$freq, scales=list(x=list(log=T)),
@@ -67,19 +67,19 @@ dev.off()
 # ------------------------------------------------------------------------------
 # Reading the Events data and Cleaning the attendants "garbage"
 # ------------------------------------------------------------------------------
-print(noquote("Reading the EVENTs..."))
+cat("Reading the EVENTs...")
 
 events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[, c("id", "headCount", "rsvp_limit")]
 colnames(events) <- c("event_id", "headCount", "rsvp_limit")
 
-print(noquote("Cleaning some garbage (possible outliers, headCount >= 5000)..."))
+cat("Cleaning some garbage (possible outliers, headCount >= 5000)...")
 events <- events[events$headCount < 5000,]
 
 # ------------------------------------------------------------------------------
 # Generating the matrix scatterplot
 # ------------------------------------------------------------------------------
-print(noquote("Generating the scatterplot matrix between:"))
-print(noquote("RSVP yes Limit - AND - RSVP yes - AND - Attendants"))
+cat("Generating the scatterplot matrix between:")
+cat("RSVP yes Limit - AND - RSVP yes - AND - Attendants")
 
 events.data <- merge(events[events$headCount > 0 & events$rsvp_limit > 0,],
            event.members.count, by="event_id", all.x = T)

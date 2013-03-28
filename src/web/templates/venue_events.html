@@ -1,19 +1,17 @@
 {% for venue_id in venue_ids %}
 
 	<blockquote>
-		<h4>Venue #{{venue_id}} </h4>
-		<p>This venue has id equals <strong>{{venue_id}}</strong>
+		<h4><strong id="venue_{{venue_id}}"></strong></h4>
 		{% if venues_events[venue_id] %}
-			and the following events:</p>
 			<table class="table table-hover table-condensed">
 		{% else %}
-			and has no events...</p>
+			This venue has no events...</p>
 		{% endif %}
 
 		{% for event in venues_events[venue_id] %}
 
 			<tr>
-				<td>{{event.id}}</td><td>{{event.name}}</td>
+				<td>{{event.name}}</td><td>{{event.time}}</td>
 			</tr>
 
 		{% endfor %}
