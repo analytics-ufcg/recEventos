@@ -44,7 +44,7 @@ library(reshape, warn.conflicts=F, quietly=T, verbose=F)
 
 if (Sys.info()['sysname'] == "Linux"){
   library(doMC, warn.conflicts=F, quietly=T, verbose=F)
-  registerDoMC(3)
+  registerDoMC(2)
 }else{
   library(doSNOW, warn.conflicts=F, quietly=T, verbose=F)
 }
