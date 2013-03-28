@@ -41,23 +41,23 @@ source("src/rCode/common.R")
 # Inputs
 # =============================================================================
 
-print(noquote("Reading the members..."))
+cat("Reading the members...")
 member_events <- ReadAllCSVs(dir="data_output/partitions/", obj_name="member_events")
 setkey(members, "id")
 
-print(noquote("Reading the members..."))
+cat("Reading the members...")
 members <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="members")[,c("id","lat","lon")])
 setkey(members, "id")
 
-print(noquote("Reading the events..."))
+cat("Reading the events...")
 events <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="events")[,c("id", "created", "time","venue_id")])
 setkey(events, "venue_id")
 
-print(noquote("Reading the venues..."))
+cat("Reading the venues...")
 venues <- data.table(read.csv("data_csv/venues.csv",sep = ",")[,c("id", "lat", "lon")])
 setkey(venues, "id")
 
-print(noquote("Filtering the events with location..."))
+cat("Filtering the events with location...")
 events.with.location = events[venues]
 events.with.location$lat <- NULL
 events.with.location$lon <- NULL
@@ -71,15 +71,10 @@ rm(events)
 # =============================================================================
 
 # ----------------------------------------------------------------------------
-# Return k lagest distance between receiver user and all events.
+# Return k lagest distance between receiver user and all events and then the
+# most popular ones.
 # ----------------------------------------------------------------------------
 
-#TODO(Rodolfo):Essa funcao eh utilizada?
-MostPopularEvents <- function(event.id, k.events, p.time){
-  count.var <- count(member_events, "event_id")
-  count.var <- count.var[order(count.var$freq, decreasing = T),]
-  return(count.var)
-}
 
 MostClosePopularEvents <- function(member.id, k.events, p.time){
   
@@ -89,23 +84,43 @@ MostClosePopularEvents <- function(member.id, k.events, p.time){
                                dist = deg.dist(member$lon, member$lat, venues$lon, venues$lat))
   setkey(venue.distance, "dist")  # Now it is ordered by dist
   
-  # TODO (Rodolfo): Entenda o porque de eu ter mudado esse subset vvvvvvvvvv
   events.dist <- merge(subset(events.with.location, (created < p.time & time >= p.time)), 
                        venue.distance, 
                        by= "venue_id")
   setkey(events.dist, "dist")  # Now it is ordered by dist
   
-  events.dist.recommended <- events.dist[1:100]
+  #events.dist.recommended <- events.dist[1:100]
+  dist.norm <- normalizacao(1 - events.dist$dist)
+  events.dist.norm <- cbind(events.dist ,dist.norm)
   
   count.events <- count(member_events, "event_id")
   
   count.events <- data.table(count.events[order(count.events$freq, decreasing = T),])
   
-  merge.tables <- merge(count.events, events.dist.recommended, by.x="event_id", by.y="id")
+  freq.norm <- normalizacao(count.events$freq)
+  count.events.norm <- cbind(count.events, freq.norm)
   
-  merge.tables <- merge.tables[order(merge.tables$freq, decreasing = T),]
+  #merge.tables <- merge(count.events, events.dist.recommended, by.x="event_id", by.y="id")
   
-  # TODO (Rodolfo): A saida deve ser apenas as k.events ids
-  merge.tables[1:10,]
+  #merge.tables <- merge.tables[order(merge.tables$freq, decreasing = T),]
   
+  #merge.tables[1:10,]
+  
+  #events.ids.result <- data.frame(merge.tables[1:10,]$"event_id")
+  
+}
+
+normalizacao <- function(vetor){
+  v.norm <- (vetor - min(vetor))/(max(vetor) - min(vetor))
+  return (v.norm)
+}
+
+R_Comb <- function(vetor.dist, vetor.pop){
+  alfa <- 0.5
+  merged <- merge(events.dist.norm, count.events.norm, by.x="id", by.y="event_id")
+  value <- (merged$freq.norm * alfa) + (merged$dist.norm * alfa)
+  binded <- cbind(merged, value)
+  binded <- binded[order(binded$value, decreasing = T),]
+  
+  return(binded$id)
 }

@@ -20,17 +20,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 # SOFTWARE.
 #
-# Author: Elias Paulino and Augusto Queiroz
+# Author: Augusto Queiroz
 #
-# File: dist_user_event.R
-#
-#   * Description: This file have two functions, k.nearest.events and recomendation.                     
-#
-#   * Inputs: Venues' table, events with location table, members' table
-#
-#   * Outputs: List of k events recomeded for users gived.The recomendation is made
-#              according of distance between user's geo-location and event's geo-location
-#
+# File: 
+#   * Description: 
+#   * Inputs: 
+#   * Outputs: 
 # =============================================================================
 
 # =============================================================================
@@ -39,25 +34,32 @@
 source("src/rCode/common.R")
 
 # =============================================================================
-# Function definitions
+# Executable script
 # =============================================================================
 
-# ----------------------------------------------------------------------------
-# Return k lagest distance between receiver user and all events.
-# ----------------------------------------------------------------------------
 
-RecEvents.Distance <- function(member.id, k.events, p.time){
+members <- ReadAllCSVs(dir="data_csv/", obj_name="members")[,c("id","city")]
+member.topics <- read.csv("data_csv/member_topics.csv",sep = ",")
+group.topics <- read.csv("data_csv/group_topics.csv",sep = ",")
+member.events <- count(ReadAllCSVs(dir="data_output/partitions/", obj_name="member_events"))[,c("event_id","event_time")]
+venues <- read.csv("data_csv/venues.csv",sep = ",")[,c("id","city")]
+all.events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[,c("id","venue_id","group_id", "created", "time")]
+all.events <- subset(all.events, all.events$id %in% member.events$event_id)
+event.venue <- merge(member.events,all.events,by.x = "event_id",by.y = "id")
+merge.final <- merge(event.venue,venues,by.x = "venue_id" , by.y = "id")
+
+
+
+
+recomedation2 <- function(member.id,k.events,p.time){
   
-  member <- subset(members, id == member.id)
-
-  venue.distance <- data.table(venue_id = venues$id, 
-                               dist = geodDist(venues$lat, venues$lon, member$lat, member$lon))
-  setkey(venue.distance, "dist")  # Now it is ordered by dist
-
-  events.dist <- merge(subset(events.with.location, time >= p.time), 
-                       venue.distance, 
-                       by= "venue_id")
-  setkey(events.dist, "dist")  # Now it is ordered by dist
+  cit <- as.character(subset(members,id == member.id)[,c("city")])
+  user.topics <- subset(member.topics,member_id == member.id)
+  groups.topics <- merge(user.topics,group.topics,by.x = "topic_id",by.y = "topic_id")[,c("group_id","topic_id")]
+  count.groups <- count(groups.topics,"group_id")
+  merge.final.filt.per.city <- subset(merge.final,city == cit & event_time > p.time)
+  events.groups <- merge(merge.final.filt.per.city,count.groups,by.x = "group_id", by.y="group_id")[,c("event_id","freq")]
+  events.recomended <- as.character(events.groups[ order(-events.groups[,c("event_id")], events.groups[,c("freq")], decreasing = TRUE), ][1:k.events,1])
   
-  return(events.dist[1:min(k.events, nrow(events.dist)), id])
+  
 }

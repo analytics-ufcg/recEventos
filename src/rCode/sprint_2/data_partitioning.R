@@ -23,7 +23,7 @@
 #
 # Author: Augusto Queiroz
 #
-# File: partition_data.R
+# File: data_partitioning.R
 #   * Description: This file partition the events of a member chronologically 
 #                  in 10 sequential data splits of train/test. 
 #   * Inputs: the data_csv directory containing the events and  rsvps csv files
@@ -39,60 +39,54 @@ source("src/rCode/common.R")
 # =============================================================================
 # Function definition
 # =============================================================================
-CreateMemberEvents <- function(max.members){
-  print(noquote("Reading the MEMBER.EVENTs (if there was any)..."))
+CreateMemberEvents <- function(min.events.per.member, max.members.per.file){
+  cat("Reading the MEMBER.EVENTs (if there is any)...\n")
   member.events <- ReadAllCSVs(dir="data_output/partitions/", obj_name="member_events")
   
   if (is.null(member.events)){
-    print(noquote("Creating the MEMBER.EVENTs (no there wasn't)..."))
-    print(noquote("    Reading the EVENTs..."))
-    events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[, c("id", "time", "venue_id")]
+    cat("Creating the MEMBER.EVENTs (no there isn't)...\n")
+    cat("    Reading the EVENTs...\n")
+    events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[, c("id", "created", "time", "venue_id")]
     
-    print(noquote("    Reading the VENUEs..."))
+    cat("    Reading the VENUEs...\n")
     venues <- read.csv("data_csv/venues.csv")
     
-    print(noquote("    Selecting the VENUEs with valid location (diff from (0,0))..."))
+    cat("    Selecting the VENUEs with valid location (diff from (0,0))...\n")
     venues <- venues[!(venues$lon == 0 & venues$lat == 0),]
     
-    print(noquote("    Selecting the EVENTs with valid locations..."))
-    events <- events[(!is.na(events$venue_id) & events$venue_id %in% venues$id), c("id", "time")]
+    cat("    Selecting the EVENTs with valid locations...\n")
+    events <- events[(!is.na(events$venue_id) & events$venue_id %in% venues$id), c("id", "created", "time")]
     
-    print(noquote("    Reading the RSVPs..."))
+    cat("    Reading the RSVPs...\n")
     rsvps <- ReadAllCSVs(dir="data_csv/", obj_name="rsvps")[, c("member_id", "event_id", "response")]
     
-    print(noquote("    Selecting the RSVPs with response equals yes..."))
+    cat("    Selecting the RSVPs with response equals yes...\n")
     rsvps <- rsvps[rsvps$response == "yes", c("member_id", "event_id")]
     
-    print(noquote("    Merging the RSVPs with EVENTs table (to add the EVENTs <time>)"))
+    cat("    Merging the RSVPs with EVENTs table (to add the EVENTs <time>)\n")
     member.events <- merge(rsvps, events, 
-                          by.x = "event_id", by.y = "id")
-
-    print(noquote(paste("    Fixed number of partitions:", partitions.num)))
-    print(noquote(paste("    Selecting the members with at least", partitions.num + 1, "event(s)...")))
+                           by.x = "event_id", by.y = "id")
+    
+    cat("    Selecting the members with at least", min.events.per.member, "complete event(s)...\n")
     member.count <- count(member.events, "member_id")
-    member.count <- member.count[member.count$freq > partitions.num,]
+    member.count <- member.count[member.count$freq >= min.events.per.member,]
     member.events <- member.events[member.events$member_id %in% member.count$member_id,]
-
+    
     rm(rsvps, events, member.count)
-    
+
     # Reorganizing the data.frame
-    member.events <- member.events[,c("member_id", "event_id", "time")]
-    colnames(member.events) <- c("member_id", "event_id", "event_time")
+    member.events <- member.events[,c("member_id", "event_id", "created", "time")]
+    colnames(member.events) <- c("member_id", "event_id", "event_created", "event_time")
     
-    print(noquote("    Persisting the member.events..."))
+    cat("    Persisting the member.events...\n")
     members <- unique(member.events$member_id)
-    data.divisions <- ceil(length(members)/max.members)
+    data.divisions <- ceil(length(members)/max.members.per.file)
+    index.divisions <- as.integer(quantile(0:length(members), seq(0, 1, 1/data.divisions)))
     
+    cat("    Persisting the member_events data in csv files...\n")
     for (i in 1:data.divisions){
-      indexes <- as.integer(((length(members)/data.divisions) * (i -1)) : 
-                              ((length(members)/data.divisions) * i)) + 1
-      indexes <- indexes[indexes <= length(members)]
-      
-      print(noquote(paste("Data Division ", i, "/", data.divisions, " - ", length(indexes), 
-                          " members", sep = "")))
-      
-      print(noquote("    Persisting the member_events data in a csv file..."))
-      write.csv(member.events[member.events$member_id %in% members[indexes], ], 
+      cat("member_events part: ", i, "/", data.divisions, "\n", sep = "")
+      write.csv(subset(member.events, member_id %in% members[(index.divisions[i]+1) : index.divisions[i+1]]), 
                 file = paste("data_output/partitions/member_events_",i,".csv", sep = ""), 
                 row.names = F)
     }
@@ -101,51 +95,70 @@ CreateMemberEvents <- function(max.members){
   return (member.events)
 }
 
-PartitionEvents <- function(df, partitions.num){
-  partition <- 1:partitions.num
-  partition.size <- nrow(df)/(partitions.num + 1)
-  train_size <- ceil(partition * partition.size)
-  partition.time <- sort(df$event_time)[train_size] + 1  # Add a millisecond to guarantee...
+PartitionEvents <- function(df, partition.num){
+  df.melt <- melt(df, id.vars=c("member_id", "event_id"))
   
-  return(data.frame(partition = partition, partition_time = partition.time))
+  # Order the events creation and execution (do the magic!)
+  df.melt <- df.melt[order(df.melt$value),]
+
+  # Give weights to the actions (1 to event_created and -1 to event_time), 
+  # then run a cummulative sum over the weights and the result is the vector of 
+  # the max intersection between events!!!!!! (This was intelligent! =D)
+  action.weights <- rep(1, nrow(df.melt))
+  action.weights[df.melt$variable == "event_time"] <- -1
+  sizes <- cumsum(action.weights)
+  
+  # Select the PARTITION.TIME 
+  # The events intersection size is ordered (decreasing = T) 
+  # For each partition.time (there are at most 2 * min.events.per.member)
+  #     Select the action (always an event creation) with the max intersection between the remaining ones
+  #     Select randomly a partition.time between this action and the next one
+  
+  p.times <- NULL
+  for (j in order(sizes, decreasing=T)[1:partition.num]){
+    actions <- df.melt[j:(j+1),"value"]/1000
+    p.times <- c(p.times, sample((actions[1] + 1):(actions[2] - 1), 1))
+  }
+  
+  return(data.frame(partition = 1:partition.num, partition_time = p.times,
+                    max_intersect_events = max(sizes), events_num = nrow(df)))
 }
+
 
 # =============================================================================
 # Executable Script
 # =============================================================================
 
-# -----------------------------------------------------------------------------
-# DATA PARTITIONS CREATION                         
-# -----------------------------------------------------------------------------
+min.events.per.member <- 5
+max.members.per.file <- 15000 # "Empirically" selected
+partition.num <- 1
 
-partitions.num <- 4
-max.members <- 15000 # "Empirically" selected
+# Create output dirs
 dir.create("data_output/", showWarnings=F)
 dir.create("data_output/partitions/", showWarnings=F)
 
-member.events <- CreateMemberEvents(max.members)
+# Read/Create the MemberEvents
+member.events <- CreateMemberEvents(min.events.per.member, max.members.per.file)
 
+cat("Partitioning the member's events (", partition.num, " partition(s))...\n", sep = "")
 members <- unique(member.events$member_id)
-data.divisions <- ceil(length(members)/max.members)
+data.divisions <- ceil(length(members)/max.members.per.file)
+index.divisions <- as.integer(quantile(0:length(members), seq(0, 1, 1/data.divisions)))
 
 for (i in 1:data.divisions){
-  indexes <- as.integer(((length(members)/data.divisions) * (i -1)) : 
-                          ((length(members)/data.divisions) * i)) + 1
-  indexes <- indexes[indexes <= length(members)]
-
-  print(noquote(paste("Data Division ", i, "/", data.divisions, " - ", length(indexes), 
-                      " members", sep = "")))
   
-  print(noquote(paste("    Partitioning the member's events (", partitions.num, 
-                      " partitions)...", sep = "")))
-  partitioned.data <- ddply(member.events[member.events$member_id %in% members[indexes], ], 
-                            .(member_id), PartitionEvents, partitions.num, 
-                            .parallel=T, .progress="text")
+  cat("Data Division ", i, "/", data.divisions, "\n", sep = "")
   
-  print(noquote("    Persisting the partitions in a csv file..."))
+  some.member.events <- subset(member.events, 
+                               member_id %in% members[(index.divisions[i]+1) : index.divisions[i+1]])
+  partitioned.data <- ddply(some.member.events, 
+                            .(member_id), PartitionEvents, partition.num, 
+                            .parallel=F, .progress="text")
+  
+  cat("Persisting the partitions in a csv file...\n")
   write.csv(partitioned.data, 
-            file = paste("data_output/partitions/member_partitions_", i,".csv", sep = ""), 
+            file = paste("data_output/partitions/member_partitions_", i, ".csv", sep = ""), 
             row.names = F)
   
-  print(noquote(""))
+  cat("\n")
 }

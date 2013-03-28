@@ -39,7 +39,7 @@ source("src/rCode/common.R")
 # =============================================================================
 # Executable script
 # =============================================================================
-print(noquote("Reading the RSVPs..."))
+cat("Reading the RSVPs...")
 
 # rsvps <- read.csv("data_csv/rsvps_12.csv")[, c("member_id", "event_id", "response")]
 rsvps <- ReadAllCSVs(dir="data_csv/", obj_name="rsvps")[, c("member_id", "event_id", "response")]
@@ -58,7 +58,7 @@ rm(rsvps)
 # -----------------------------------------------------------------------------
 
 # Probabilistic Mass Function
-print(noquote("Generating the PMF with the event count per member"))
+cat("Generating the PMF with the event count per member")
 
 png("data_output/summary_stats/pmf-events_per_member.png", width = 800, height = 700)
 plot(prop.table(table(member.event.count$freq)), las = T,
@@ -68,7 +68,7 @@ dev.off()
 
 
 # Cumulative Distribution Function
-print(noquote("Generating the CDF with the event count per member"))
+cat("Generating the CDF with the event count per member"))
 
 png("data_output/summary_stats/cdf-events_per_member.png", width = 800, height = 700)
 plot(Ecdf(~ member.event.count$freq, scales=list(x=list(log=T)),
@@ -78,7 +78,7 @@ dev.off()
 
 
 # Bar chart
-print(noquote("Generating Bar chart with the event count per member (10.000 first members with more events)"))
+cat("Generating Bar chart with the event count per member (10.000 first members with more events)")
 
 png("data_output/summary_stats/barchart-events_per_member.png", width=1200, height=800)
 print(ggplot(member.event.count[1:10000,], aes(x = member_id, y = freq)) + 
