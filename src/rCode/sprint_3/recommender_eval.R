@@ -23,11 +23,10 @@
 #
 # Author: Augusto Queiroz
 #
-# File: partition_data.R
-#   * Description: This file partition the events of a member chronologically 
-#                  in 10 sequential data splits of train/test. 
-#   * Inputs: the data_csv directory containing the events and  rsvps csv files
-#   * Outputs: the data_output directory with the member_event_partitions.csv file 
+# File: 
+#   * Description: 
+#   * Inputs: 
+#   * Outputs:
 # =============================================================================
 rm(list = ls())
 
@@ -35,47 +34,59 @@ rm(list = ls())
 # source() and library()
 # =============================================================================
 source("src/rCode/common.R")
+source("src/rCode/sprint_3/recommender_functions.R")
 source("src/rCode/sprint_3/recommender_eval_metrics.R")
 
 # =============================================================================
 # Main
 # =============================================================================
 
-rec.files <- list.files("data_output/recommendations/", pattern="recommended_events*")
+dir.create("data_output/evaluations/", showWarnings=F)
 
-for(i in 1:length(rec.files)) {
+rec.environment <- CreateRecEnvironment()
+
+# The member_events is the unique the is always the same
+member.events <- ReadAllCSVs("data_output/partitions/", "member_events")
+algorithms <- c("distance") # c("distance", "popularity", "topic", "weighted")
+
+for (alg in algorithms){
+  cat("Evaluating the", alg, "algorithm...\n")
   
-  cat("Evaluating the recommended_events_", i, ".csv", sep = "")
-  member.events <- read.csv(paste("data_output/partitions/member_events_", i,
-                                  ".csv", sep = ""))
-  member.events <- ReadAllCSVs("data_output/partitions/", "member_events")
-  recommended.events <- read.csv(paste("data_output/recommendations/recommended_events_", 
-                                       i, ".csv", sep = ""))
+  alg.files <- list.files("data_output/recommendations/", pattern=paste("rec_events_", alg, "_", sep=""))
   
-  table.result <- foreach(rec.events.row = iter(recommended.events, by='row'), .combine = rbind) %do% {
-    # Select the recommendation and test sets
-    m <- rec.events.row$member_id
-    p <- rec.events.row$partition
+  for (i in 1:length(alg.files)){
+    cat("  Rec file ", i, "...\n", sep = "")
+    recommended.events <- read.csv(paste("data_output/recommendations/", alg.files[i], sep=""))
     
-    # Define the recommendation and test sets as arrays
-    rec.events <- as.character(t(rec.events.row[1, 4:length(rec.events.row)]))
-    test.events <- as.character(member.events[member.events$event_time > rec.events.row$p_time & 
-                                                member.events$member_id == m, "event_id"])
-    
-    
-    # Measure the PRECISION and RECALL for each recommendation size (from 1 to length(recommendations))
-    foreach(rec.size = 1:length(rec.events), .combine = rbind) %do% {
-      data.frame(member_id = m, partition = p, rec_size = rec.size,
-                 precision = Precision(test.events, rec.events[1:rec.size]), 
-                 recall = Recall(test.events, rec.events[1:rec.size]))
+    table.result <- foreach(rec.events.row = iter(recommended.events[1:10,], by='row'), .combine = rbind) %do% {
+      m <- rec.events.row$member_id
+      p <- rec.events.row$partition
+      p.time <- rec.events.row$p_time
+      
+      # Define the recommendation set
+      rec.events <- as.character(t(rec.events.row[1, 5:length(rec.events.row)]))
+      
+      # Define the test set
+      all.candidate.events <- subset(rec.environment$events.with.location, 
+                                     created <= p.time & time >= p.time)$id
+      all.member.events <- subset(member.events, member_id == m)$event_id
+      test.events <- all.member.events[all.member.events %in% all.candidate.events]
+      
+      # Measure the PRECISION and RECALL for each recommendation size (from 1 to length(recommendations))
+      foreach(rec.size = 1:length(rec.events), .combine = rbind) %do% {
+        data.frame(member_id = m, partition = p, rec_size = rec.size, algorithm = alg,
+                   candidate_events_num = length(all.candidate.events),
+                   member_events_num = length(all.member.events),
+                   test_events_num = length(test.events),
+                   precision = Precision(test.events, rec.events[1:rec.size]), 
+                   recall = Recall(test.events, rec.events[1:rec.size]))
+      }
     }
+    # The result of the inner loop is returned
+    
+    cat("    Persisting the recommendation evaluations...\n")
+    write.csv(table.result, 
+              file = paste("data_output/evaluations/rec_events_", alg, "_eval_", i, ".csv", sep = ""), 
+              row.names = F)
   }
-  # The result of the inner loop is returned
-  
-  dir.create("data_output/evaluations/", showWarnings=F)
-  
-  cat("Persisting the recommendation evaluations...")
-  write.csv(table.result, 
-            file = paste("data_output/evaluations/rec_events_eval_", i, ".csv", sep = ""), 
-            row.names = F)
 }
