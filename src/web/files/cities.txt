@@ -1,0 +1,9 @@
+"Addison", "Allen", "Arlington", "Bedford", "Berkeley", "Burlingame",
+"Campbell", "Carlsbad", "Carrollton", "Chula Vista", "Cupertino", "Dallas",
+"Dublin", "El Cajon", "Encinitas", "Escondido", "Euless", "Flower Mound",
+"Fort Worth", "Fremont", "Frisco", "Garland", "Grand Prairie", "Grapevine",
+"Irving", "La Jolla", "La Mesa", "Lewisville", "Los Altos", "Los Gatos",
+"Menlo Park", "Milpitas", "Mountain View", "Oakland", "Oceanside", "Palo Alto",
+"Plano", "Pleasanton", "Poway", "Redwood City", "Richardson", "San Carlos",
+"San Diego", "San Francisco", "San Jose", "San Mateo", "San Ramon",
+"Santa Clara", "Santa Cruz", "Sunnyvale", "cities.txt", "partitions"
