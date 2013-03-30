@@ -46,7 +46,7 @@
 				<div class="row span9">
 					<div class="span4">
 						<span class="label label-inverse">Current city:</span>
-						<button id="cities_button" class="btn btn-large btn-inverse btn-block" type="button"> </button>
+						<button id="cities_button" class="btn btn-large btn-inverse btn-block" type="button">Loading...</button>
 					</div>
 					<div class="span4">
 						<span class="label label-inverse">Current technique:</span>
@@ -190,7 +190,7 @@
 		}
 
 		current_city = city;
-		$("#cities_button").html(city);
+		$("#cities_button").html("Loading...");
 		if ( city_events[current_city] ){
 			removeAllMarkers();
 			pinUsersInMap();
@@ -202,6 +202,8 @@
 				user_list += "<li id=\"user-list-item_" + city_members[current_city][i].id + "\"><a  name=\"user-list-item_" + city_members[current_city][i].id + "\"  href='#user-list-item_" + city_members[current_city][i].id + "' onclick='chooseUserById("+ city_members[current_city][i].id +")'><i class='icon-user'></i>" +city_members[current_city][i].name+"</a></li>";
 			}
 			$("#user-list").html(user_list);
+			$("#cities_button").html(city);
+			current_user = null;
 		}
 		else{
 			$.get("load_city/"+city.replace(" ", "_"), function(data){
@@ -226,10 +228,10 @@
 					map.panTo(user_markers[Math.floor((Math.random()*user_markers.length))].marker.getPosition());
 				}
 				$("#user-list").html(user_list);
+				$("#cities_button").html(city);
+				current_user = null;
 			});
 		}
-
-		current_user = null;
 
 	}
 
