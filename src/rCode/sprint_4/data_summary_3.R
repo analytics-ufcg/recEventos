@@ -1,5 +1,6 @@
 rm(list = ls())
 source("src/rCode/common.R")
+source("src/rCode/sprint_3/recommender_functions.R")
 
 filename <- "data_output/evaluations/analysis/member_events_dists.csv"
 
@@ -9,46 +10,30 @@ if (!file.exists(filename)){
   member.events <- data.table(ReadAllCSVs(dir="data_output/partitions/", obj_name="member_events"))
   setkey(member.events, "member_id")
   
-  cat("Reading the members...")
-  members <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="members")[,c("id","lat","lon")])
-  setkey(members, "id")
-  
-  cat("Reading the events...")
-  events <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="events")[,c("id","time","venue_id")])
-  setkey(events, "venue_id")
-  
-  cat("Reading the venues...")
-  venues <- data.table(read.csv("data_csv/venues.csv",sep = ",")[,c("id", "lat", "lon")])
-  setkey(venues, "id")
-  
-  cat("Filtering the events with location...")
-  events.with.location = events[venues]
-  events.with.location$id <- as.character(events.with.location$id)
+  attach(CreateRecEnvironment())
   setkey(events.with.location, "id")
   
-  rm(events, venues)
-  
-  member.ids <- sort(unique(member.events$member_id))
-  
   cat("Calculating the member-event distances...")
-  dists <- foreach(m = member.ids, .combine = rbind) %do% {
-    member <- subset(members, id == m)
-    
-    my.events.ids <- as.character(subset(member.events, member_id == m)$event_id)
+  dists <- foreach(member = iter(members, by = "row"), .combine = rbind) %do% {
+    my.events.ids <- as.character(subset(member.events, member_id == member$id)$event_id)
     my.events <- events.with.location[my.events.ids]
     dists <- geodDist(my.events$lat, my.events$lon, member$lat, member$lon)
     
-    data.frame(member=rep(m, length(dists)), event_id = my.events.ids, dist_km = dists)
+    data.frame(member=rep(member$id, length(dists)), 
+               event_id = my.events.ids, 
+               dist_km = dists)
   }
   
-  write.csv(dists, file = filename)
+  write.csv(dists, file = filename, row.names = F)
 }else{
-  dists <- read.csv(file = filename)  
+  dists <- read.table(file = filename, header=T, sep = ",", 
+                      stringsAsFactors=F, comment.char="",
+                      colClasses = c("integer", "character", "numeric"))  
 }
 
 # PLOT a cdf
 png("data_output/evaluations/analysis/cdf-dist_member-events(1.148.224_pairs).png", width = 800, height = 700)
 plot(Ecdf(~ dists$dist_km, scales=list(x=list(log=T)),
-          q=c(.05, .1, .2, .5, .6, .7, .8, .9, .95, .99), main = "", 
+          q=c(.05, .1, .2, .5, .6, .7, .8, .9, .95, .99), 
           xlab = "Member-Event distance(in Km)", ylab = "Member-Events quantile"))
 dev.off()
