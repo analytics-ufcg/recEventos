@@ -60,23 +60,16 @@
 		</div>
 	</div>
 
-	<div id="venue_events" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="venue_events_label" aria-hidden="true">
+	<div id="event_details" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="event_details_label" aria-hidden="true">
 		<div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
-			<h3 id="venue_events_label">Venue Events</h3>
+			<h3 id="event_details_label">Event Details</h3>
 		</div>
-		<div id="venue_events_body" class="modal-body">
+		<div id="event_details_body" class="modal-body">
 			<img src="static/ajax-loader.gif"></img>
 		</div>
 		<div class="modal-footer">
 			<button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Close</button>
-		</div>
-	</div>
-
-	<div id="loading" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
-		<div id="loading_modal_body" class="modal-body">
-			<h2>Loading...</h2>
-			<img src="static/ajax-loader.gif"></img>
 		</div>
 	</div>
 
@@ -167,7 +160,7 @@
 
 		city_events[current_city] = [];
 		{% for event in events %}
-		city_events[current_city].push({ 'id' : "{{event.id}}", 'lat' : {{event.lat}}, 'lon' : {{event.lon}}, 'name' : "{{event.name}}", 'venue_name' : "{{event.venue_name}}", 'venue_city' : "{{event.venue_city}}" });
+		city_events[current_city].push({ 'id' : "{{event.id}}", 'lat' : {{event.lat}}, 'lon' : {{event.lon}}, 'name' : "{{event.name}}", 'venue_name' : "{{event.venue_name}}", 'venue_city' : "{{event.venue_city}}", 'time' : "{{event.time}}" });
 		{% endfor %}
 
 		var user_list = "";
@@ -375,14 +368,20 @@
 					c_long = parseFloat(events[i].lon);
 					c_lat = parseFloat(events[i].lat);
 
+
+					var event_status = getEventStatus(events[i], user_events);
+					var status_icon = determineIcon(event_status);
+					var event_details = showDetails(user, events[i], event_status);
+					
 					var event_marker = new google.maps.Marker({position : new google.maps.LatLng(events[i].lat, events[i].lon),
 								map : map,
 								title : events[i].name + " at " + events[i].venue_name + ", " + events[i].venue_city,
-								icon : determineIcon(events[i], getEventStatus(events[i], user_events)),
+								icon : status_icon,
 								shadow : 'static/shadow-event-pin.png',
 								draggable : true,
 								zIndex : 200	});
 					event_markers.push({ 'marker' : event_marker, 'event' : events[i] });
+					google.maps.event.addListener(event_marker, 'click', event_details);
 					close_events.push(events[i]);
 
 					break;
@@ -391,7 +390,7 @@
 		}
 	}
 
-	function determineIcon(event, status){
+	function determineIcon(status){
 		if ( status == "ok" ){
 			return 'static/event-pin.png';
 		}
@@ -399,6 +398,19 @@
 
 	function getEventStatus(event, user_events){
 		return "ok";
+	}
+
+	function showDetails(user, event, status){
+		function doShowDetails(){
+
+			$("#event_details_body").html("<img src='static/ajax-loader.gif'></img>");
+			$("#event_details").modal('show');
+
+			var content = "<p><span class='label label-info'>"+user.name+"</span> from <span class='label label-success'>"+user.city+"</span> went to </p><p>this event <span class='label label-inverse'>\""+event.name+"\"</span></p><p>at <span class='label label-inverse'>"+event.venue_name+"</span>, <span class='label label-success'>"+event.venue_city+"</span></p><p> on <span class='label label-warning'>"+event.time+"</span>.</p>";
+			$("#event_details_body").html(content);
+
+		}
+		return doShowDetails;
 	}
 
 	$(document).ready(function(){
