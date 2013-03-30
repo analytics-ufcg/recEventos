@@ -1,0 +1,392 @@
+<!doctype html style="height:90%;">
+
+<head>
+<title>RecEventos</title>
+<link rel="stylesheet" type="text/css" href="static/bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="static/style.css">
+<script src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
+</head>
+
+<body style="height:90%;">
+
+	<div class="row">
+		<div class="container" style="margin-left:auto; margin-right:auto;">
+			<div class="span8">
+				<blockquote class="pull-right" >
+					<h1> RecEventos</h1>
+					<small>Events recommendation &copy FRH-Analytics <cite title="Universidade Federal de Campina Grande">UFCG</cite>/<cite title="Hewlett-Packard">HP</cite></small>
+				</blockquote>
+			</div>
+			<div class="span2 dropdown" style="height:10%;">
+				<button id="cities_button" style="padding-top:50px; margin-top:2px;" class="btn btn-large btn-success btn-block dropdown-toggle" data-toggle="dropdown" type="button">Menlo Park</button>
+				<ul class="dropdown-menu span6" role="menu" aria-labelledby="dropdownMenu">
+					{% for city in cities %}
+					{% if loop.index0 == 0 %}
+					<li class="column-menu span3 firstcolumn"><ul><li><a tabindex="-1" href="#" onclick="changeCity('{{city}}')">{{city}}</a></li>
+					{% elif loop.index0 % 25 == 0 %}
+					</ul></li><li class="column-menu span3"><ul><li><a tabindex="-1" href="#" onclick="changeCity('{{city}}')">{{city}}</a></li>
+					{% else %}
+					<li><a tabindex="-1" href="#" onclick="changeCity('{{city}}')">{{city}}</a></li>
+					{% endif %}
+					{% endfor %}
+					{% if cities|length() != 0 %}
+					</ul></li>
+					{% endif %}
+				</ul>
+				<!-- <button id="venues_button" style="padding-top:10px; margin-top:2px;" class="btn btn-small btn-danger btn-block disabled" type="button">Venues</button>
+				<button id="users_button" style="padding-bottom:10px; margin-bottom:2px;" class="btn btn-small btn-success btn-block disabled" type="button" onclick="" >Users</button> -->
+			</div>
+		</div>
+	</div>
+	<div class="row" style="height:90%;">
+<!--		<div class="container"> -->
+			<div id="map_canvas" style="height:90%;"></div>
+<!--		</div> -->
+	</div>
+
+
+	<div id="venue_events" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="venue_events_label" aria-hidden="true">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+			<h3 id="venue_events_label">Venue Events</h3>
+		</div>
+		<div id="venue_events_body" class="modal-body">
+			<img src="static/ajax-loader.gif"></img>
+		</div>
+		<div class="modal-footer">
+			<button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Close</button>
+		</div>
+	</div>
+
+	<div id="loading" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
+		<div id="loading_modal_body" class="modal-body">
+			<h2>Loading...</h2>
+			<img src="static/ajax-loader.gif"></img>
+		</div>
+	</div>
+
+    </body>
+	<script src="static/jquery-1.9.1.min.js" language="javascript" type="text/javascript"></script>
+	<script src="static/bootstrap/js/bootstrap.js" language="javascript" type="text/javascript"></script>
+	<script language="javascript">
+
+
+    var directionDisplay;
+    var directionsService = new google.maps.DirectionsService();
+    var map;
+
+    var venue_markers = new Array();
+    var user_markers = new Array();
+    var user_venue_markers = new Array();
+
+    var current_city = null;
+    var city_venues = {};
+    var city_members = {};
+    var events = {};
+
+    function mapinitialize() {
+    	directionsDisplay = new google.maps.DirectionsRenderer();
+       	var cg = new google.maps.LatLng(-7.242598, -35.892334);
+        var myOptions = {
+            zoom:11,
+            mapTypeId:google.maps.MapTypeId.ROADMAP,
+            center:cg
+        }
+        map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+	directionsDisplay.setMap(map);
+    }
+
+    function calcRoute(r) {
+
+        var waypts = [];
+
+        start = new google.maps.LatLng(r.src[0], r.src[1]);
+        end = new google.maps.LatLng(r.dst[0], r.dst[1]);
+        var request = {
+            origin:start,
+            destination:end,
+            waypoints:waypts,
+            optimizeWaypoints:true,
+            travelMode:google.maps.DirectionsTravelMode.DRIVING
+        };
+        directionsService.route(request, function (response, status) {
+            if (status == google.maps.DirectionsStatus.OK) {
+                directionsDisplay.setDirections(response);
+                var route = response.routes[0];
+            }
+        });
+	}
+
+	function start(){
+		mapinitialize();
+
+		current_city = "Menlo Park";
+		$("#cities_button").html("Menlo Park");
+
+		city_venues[current_city] = [];
+		{% for venue in venues %}
+		city_venues[current_city].push({ 'id' : "{{venue.id}}", 'lat' : {{venue.lat}}, 'lon' : {{venue.lon}}, 'name' : "{{venue.name}}", 'events' : "{{venue.events}}".split("|"), 'city' : "{{venue.city}}" });
+		{% endfor %}
+
+		city_members[current_city] = [];
+		{% for user in users %}
+		city_members[current_city].push({ 'id' : "{{user.id}}", 'lat' : {{user.lat}}, 'lon' : {{user.lon}}, 'name' : "{{user.name}}", 'events' : "{{user.events}}".split(","), 'city' : "{{user.city}}" });
+		{% endfor %}
+
+		{% for event in events %}
+		events["{{event.id}}"] = { 'id' : "{{event.id}}", 'name' : "{{event.name}}", 'venue_id' : "{{event.venue_id}}", 'time' : "{{event.time}}", 'venue_name' : "{{event.venue_name}}", 'venue_city' : "{{event.venue_city}}", 'lat' : {{event.lat}}, 'lon' : {{event.lon}} };
+		{% endfor %}
+
+		pinVenuesInMap(null, null);
+		pinUsersInMap();
+		if ( venue_markers.length != 0 ){
+			map.panTo(venue_markers[Math.floor((Math.random()*venue_markers.length))].getPosition());
+		}
+//		$('#users_button').removeClass("disabled").attr("onclick", "showUsersView();");
+	}
+
+	function changeCity(city){
+
+		current_city = city;
+		$("#cities_button").html(city);
+		if ( city_venues[current_city] ){
+			removeAllMarkers();
+			pinVenuesInMap(null, null);
+			pinUsersInMap();
+			if ( venue_markers.length != 0 ){
+				map.panTo(venue_markers[Math.floor((Math.random()*venue_markers.length))].getPosition());
+			}
+		}
+		else{
+			$.get("load_city/"+city.replace(" ", "_"), function(data){
+
+				data = JSON.parse(data);
+
+				city_venues[current_city] = [];
+				for ( var i=0; i<data.venues.length; i++){
+					city_venues[current_city].push({ 'id' : data.venues[i].id, 'lat' : data.venues[i].lat, 'lon' : data.venues[i].lon, 'name' : data.venues[i].name, 'events' : data.venues[i].events.split("|"), 'city' : data.venues[i].city });
+				};
+
+				city_members[current_city] = [];
+				for ( var i=0; i<data.users.length; i++){
+					city_members[current_city].push({ 'id' : data.users[i].id, 'lat' : data.users[i].lat, 'lon' : data.users[i].lon, 'name' : data.users[i].name, 'events' : data.users[i].events.split(","), 'city' : data.users[i].city });
+				};
+
+				removeAllMarkers();
+				pinVenuesInMap(null, null);
+				pinUsersInMap();
+				if ( venue_markers.length != 0 ){
+					map.panTo(venue_markers[Math.floor((Math.random()*venue_markers.length))].getPosition());
+				}
+			});
+		}
+
+	}
+
+	function removeUserVenueMarkers(){
+		for (i in user_venue_markers){
+			user_venue_markers[i].setMap(null);
+		}
+		user_venue_markers.length = 0;
+	}
+
+	function removeVenueMarkers(){
+		for (i in venue_markers){
+			venue_markers[i].setMap(null);
+		}
+		venue_markers.length = 0;
+	}
+
+	function removeAllMarkers(){
+		removeVenueMarkers();
+		removeUserVenueMarkers();
+		for (i in user_markers ){
+			user_markers[i].setMap(null);
+		}
+		user_markers.length = 0;
+	}
+
+	function sortbyLatLng(a, b){
+		if (a.lat < b.lat){
+			return -1;
+		}
+		else if (a.lat == b.lat){
+			if (a.lon < b.lon){
+				return -1;
+			}
+			else if (a.lon == b.lon){
+				return 0;
+			}
+			else{
+				return -1;
+			}
+		}
+		else{
+			return 1;
+		}
+	}
+
+	function pinVenuesInMap(venues, in_respect_to_user){
+
+		if ( venues == null ){
+			venues = city_venues[current_city];
+		}
+
+		venues.sort(sortbyLatLng);
+
+		var c_lat = -1, c_long = -1;
+		var close_venues = new Array();
+
+		for (var i=0; i<venues.length; i++ ){
+
+			if ( c_lat != -1 && c_long != -1 ){
+				if (Math.abs(c_lat - venues[i].lat) > 0.000001 && Math.abs(c_long - venues[i].lon) > 0.000001){
+					close_venues = new Array();
+				}
+			}
+			c_long = parseFloat(venues[i].lon);
+			c_lat = parseFloat(venues[i].lat);
+
+			var venue_marker = new google.maps.Marker({position : new google.maps.LatLng(venues[i].lat, venues[i].lon),
+						map : map,
+						title : (in_respect_to_user == null ? venues[i].name : in_respect_to_user.name + " at " + venues[i].name),
+						icon : (in_respect_to_user == null ? 'static/venue-marker.png' : 'static/chosen-marker.png') });
+
+			if ( in_respect_to_user != null ){
+				user_venue_markers.push(venue_marker);
+			}
+			else{
+				venue_markers.push(venue_marker);
+			}
+			var showVenueEventClosure = showVenueEvents(close_venues, in_respect_to_user);
+			google.maps.event.addListener(venue_marker, 'click', showVenueEventClosure);
+
+			close_venues.push(venues[i]);
+		}
+	}
+
+	function pinUsersInMap(){
+
+		var users = city_members[current_city];
+		users.sort(sortbyLatLng);
+
+		var c_lat = -1, c_long = -1;
+		var close_users = new Array();
+
+		for (var i=0; i<users.length; i++ ){
+
+			if ( c_lat != -1 && c_long != -1 ){
+				if (Math.abs(c_lat - users[i].lat) > 0.000001 && Math.abs(c_long - users[i].lon) > 0.000001){
+					close_users = new Array();
+				}
+			}
+			c_long = parseFloat(users[i].lon);
+			c_lat = parseFloat(users[i].lat);
+
+			var user_marker = new google.maps.Marker({position : new google.maps.LatLng(users[i].lat, users[i].lon),
+						map : map,
+						title : users[i].name,
+						icon : 'static/user-marker.png' });
+			user_markers.push(user_marker);
+			var showUserEventClosure = showUserEvents(users[i]);
+			google.maps.event.addListener(user_marker, 'click', showUserEventClosure);
+			close_users.push(users[i]);
+		}
+	}
+
+	function showUserEvents(user){
+		function pinUserVenuesInMap(){
+			var venues = new Array();
+			var user_events = user.events;
+			var skipEvent = new Array();
+			skipEvent.length = user_events.length;
+			for (var o=0; o<skipEvent.length; o++){
+				skipEvent[o] = false;
+			}
+			for ( var i=0; i<city_venues[current_city].length; i++ ){
+
+				var ev = null;
+				for ( var j=0; j<user_events.length; j++ ){
+					if ( skipEvent[j] ){
+						continue;
+					}
+					if ( city_venues[current_city][i].id == events[user_events[j]].venue_id ){
+						ev = city_venues[current_city][i].events;
+						break;
+					}
+				}
+				if ( ev != null ){
+					venue_info = { 'id' : events[user_events[j]].id, 'name' : events[user_events[j]].venue_name, 'lat' : events[user_events[j]].lat, 'lon' : events[user_events[j]].lon, 'city' : events[user_events[j]].venue_city, 'events' : ev };
+					venues.push( venue_info );
+					skipEvent[j] = true;
+				}
+			}
+
+			removeUserVenueMarkers();
+			if ( venues.length != 0 ){
+				pinVenuesInMap(venues, user);
+			}
+		}
+		return pinUserVenuesInMap;
+	}
+
+	function showVenueEvents(close_venues, in_respect_to_user){
+		function showModal(){
+
+			$("#venue_events_body").html("<img src='static/ajax-loader.gif'></img>");
+
+			var content = "";
+			for (var i=0; i<close_venues.length; i++){
+				content += "<blockquote> <h4><strong>"+close_venues[i].name+"</strong></h4>";
+				var event_ids = close_venues[i].events;
+				if ( event_ids.length == 0 ){
+					content += "This venue has no events...";
+				}
+				else{
+
+					var ev = "";
+					for ( var j=0; j<event_ids.length; j++ ){
+						if ( in_respect_to_user != null ){
+							var is_user_event = false;
+							for ( var k=0; k<in_respect_to_user.events.length; k++ ){
+								if ( event_ids[j] == in_respect_to_user.events[k] ){
+									is_user_event = true;
+									break;
+								}
+							}
+							if ( is_user_event ){
+								ev += "<tr> <td> " + events[event_ids[j]].name + "</td> <td> " + events[event_ids[j]].time + "</td> </tr>";
+							}
+						}
+						else{
+							ev += "<tr> <td> " + events[event_ids[j]].name + "</td> <td> " + events[event_ids[j]].time + "</td> </tr>";
+						}
+					}
+					if ( ev != "" ){
+						if ( in_respect_to_user != null ){
+							content += "<span class='label label-info'>" + in_respect_to_user.name +"</span>" + " has the following events here:";
+						}
+						else{
+							content += "These events happened here:";
+						}
+						content += "<table class='table table-hover table-condensed'>";
+						content += ev;
+						content += "</table>";
+					}
+					else{
+						content += "<span class='label label-info'>" + in_respect_to_user.name +"</span>" + " has no events here...";
+					}
+				}
+				content += "</blockquote>";
+			}
+
+			$("#venue_events_body").html(content);
+			$("#venue_events").modal('show');
+		}
+		return showModal;
+	}
+
+	$(document).ready(start());
+
+	</script>
+</html>

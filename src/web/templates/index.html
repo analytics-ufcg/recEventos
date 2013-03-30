@@ -17,9 +17,9 @@
 				<ul id="cities-list" class="well nav nav-list" style="height: 87%; overflow-y:scroll;">
 					{% for city in cities %}
 					{% if city == "Arlington" %}
-					<li id="city_{{city|replace(' ','_')}}" class="active"><a href="#" onclick="changeCity('{{city}}')">{{city}}</a></li>
+					<li id="city_{{city|replace(' ','_')}}" class="active"><a href="#" onclick="changeCity('{{city}}')"><i class="icon-home"></i>{{city}}</a></li>
 					{% else %}
-					<li id="city_{{city|replace(' ','_')}}"><a href="#" onclick="changeCity('{{city}}')">{{city}}</a></li>
+					<li id="city_{{city|replace(' ','_')}}"><a href="#" onclick="changeCity('{{city}}')"><i class="icon-home"></i>{{city}}</a></li>
 					{% endif %}
 					{% endfor %}
 				</ul>
@@ -37,21 +37,21 @@
 	<div class="span12" style="width:80%;">
 		<div class="row">
 			<div style="padding-top:10px; margin-top:2px;">
-				<div class="row span9">
-					<div class="span4">
-						<span class="label label-success">Current city:</span>
-						<button id="cities_button" class="btn btn-large btn-inverse btn-block disabled" type="button"> </button>
-					</div>
-					<div class="span4">
-						<span class="label label-warning">Current technique:</span>
-						<button id="algs_button" class="btn btn-large btn-inverse btn-block" data-toggle="dropdown" type="button">None</button>
-					</div>
-				</div>
 				<div class="span4">
 					<blockquote class="pull-right">
 						<h1> RecEventos</h1>
 						<small>Events recommendation &copy FRH-Analytics <cite title="Universidade Federal de Campina Grande">UFCG</cite>/<cite title="Hewlett-Packard">HP</cite></small>
 					</blockquote>
+				</div>
+				<div class="row span9">
+					<div class="span4">
+						<span class="label label-inverse">Current city:</span>
+						<button id="cities_button" class="btn btn-large btn-inverse btn-block" type="button"> </button>
+					</div>
+					<div class="span4">
+						<span class="label label-inverse">Current technique:</span>
+						<button id="algs_button" class="btn btn-large btn-inverse btn-block" data-toggle="dropdown" type="button">None</button>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -103,11 +103,35 @@
 
     function mapinitialize() {
     	directionsDisplay = new google.maps.DirectionsRenderer();
-       	var cg = new google.maps.LatLng(-7.242598, -35.892334);
+	var cg = new google.maps.LatLng(-7.242598, -35.892334);
+	
+	var styles = [
+	  {
+	    stylers: [
+	      { hue: "#00ffe6" },
+	      { saturation: -20 }
+	    ]
+	  },{
+	    featureType: "road",
+	    elementType: "geometry",
+	    stylers: [
+	      { lightness: 100 },
+	      { visibility: "simplified" }
+	    ]
+	  },{
+	    featureType: "road",
+	    elementType: "labels",
+	    stylers: [
+	      { visibility: "off" }
+	    ]
+	  }
+	];
+
         var myOptions = {
             zoom:11,
             mapTypeId:google.maps.MapTypeId.ROADMAP,
-            center:cg
+	    center:cg,
+	    styles:styles
         }
         map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
 	directionsDisplay.setMap(map);
@@ -151,7 +175,7 @@
 		city_members[current_city] = [];
 		{% for user in users %}
 		city_members[current_city].push({ 'id' : "{{user.id}}", 'lat' : {{user.lat}}, 'lon' : {{user.lon}}, 'name' : "{{user.name}}", 'events' : "{{user.events}}".split(","), 'city' : "{{user.city}}" });
-		user_list += "<li id='user-list-item_{{user.id}}'><a  name='user-list-item_{{user.id}}' href='#'user-list-item_{{user.id}}' onclick='chooseUserById({{user.id}})'>{{user.name}}</a></li>";
+		user_list += "<li id='user-list-item_{{user.id}}'><a  name='user-list-item_{{user.id}}' href='#'user-list-item_{{user.id}}' onclick='chooseUserById({{user.id}})'><i class='icon-user'></i>{{user.name}}</a></li>";
 		{% endfor %}
 
 		pinUsersInMap();
@@ -182,7 +206,7 @@
 			}
 			var user_list = "";
 			for ( i in city_members[current_city] ){
-				user_list += "<li id=\"user-list-item_" + city_members[current_city][i].id + "\"><a  name=\"user-list-item_" + city_members[current_city][i].id + "\"  href='#user-list-item_" + city_members[current_city][i].id + "' onclick='chooseUserById("+ city_members[current_city][i].id +")'>"+city_members[current_city][i].name+"</a></li>";
+				user_list += "<li id=\"user-list-item_" + city_members[current_city][i].id + "\"><a  name=\"user-list-item_" + city_members[current_city][i].id + "\"  href='#user-list-item_" + city_members[current_city][i].id + "' onclick='chooseUserById("+ city_members[current_city][i].id +")'><i class='icon-user'></i>" +city_members[current_city][i].name+"</a></li>";
 			}
 			$("#user-list").html(user_list);
 		}
@@ -200,7 +224,7 @@
 				city_members[current_city] = [];
 				for ( var i=0; i<data.users.length; i++){
 					city_members[current_city].push({ 'id' : data.users[i].id, 'lat' : data.users[i].lat, 'lon' : data.users[i].lon, 'name' : data.users[i].name, 'events' : data.users[i].events.split(","), 'city' : data.users[i].city });
-					user_list += "<li id=\"user-list-item_" + city_members[current_city][i].id + "\" ><a  name=\"user-list-item_" + city_members[current_city][i].id + "\"  href='#user-list-item_" + city_members[current_city][i].id + "' onclick='chooseUserById("+ city_members[current_city][i].id +")'>"+city_members[current_city][i].name+"</a></li>";
+					user_list += "<li id=\"user-list-item_" + city_members[current_city][i].id + "\" ><a  name=\"user-list-item_" + city_members[current_city][i].id + "\"  href='#user-list-item_" + city_members[current_city][i].id + "' onclick='chooseUserById("+ city_members[current_city][i].id +")'><i class='icon-user'></i>"+city_members[current_city][i].name+"</a></li>";
 				};
 
 				removeAllMarkers();
