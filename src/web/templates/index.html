@@ -9,12 +9,12 @@
 
 <body style="height:90%;">
 
-	<div class="span3">
+	<div class="span3" style="margin-left:5px;">
 		<ul class="nav nav-list" style="height: 48%;">
 			<li class="nav-header label label-info">Cities</li>
 			<li class="divider"></li>
 			<li>
-				<ul id="cities-list" class="nav nav-list" style="height: 100%; overflow-y:scroll;">
+				<ul id="cities-list" class="well nav nav-list" style="height: 87%; overflow-y:scroll;">
 					{% for city in cities %}
 					{% if city == "Arlington" %}
 					<li id="city_{{city|replace(' ','_')}}" class="active"><a href="#" onclick="changeCity('{{city}}')">{{city}}</a></li>
@@ -29,7 +29,7 @@
 			<li id="user-list-header" class="nav-header label label-info">Users at Arlington</li>
 			<li class="divider"></li>
 			<li>
-				<ul id="user-list" class="nav nav-list" style="height: 100%; overflow-y:scroll;">
+				<ul id="user-list" class="well nav nav-list" style="height: 87%; overflow-y:scroll;">
 				</ul>
 			</li>
 		</ul>
@@ -40,11 +40,11 @@
 				<div class="row span9">
 					<div class="span4">
 						<span class="label label-success">Current city:</span>
-						<button id="cities_button" class="btn btn-large btn-success btn-block disabled" type="button"> </button>
+						<button id="cities_button" class="btn btn-large btn-inverse btn-block disabled" type="button"> </button>
 					</div>
 					<div class="span4">
 						<span class="label label-warning">Current technique:</span>
-						<button id="algs_button" class="btn btn-large btn-warning btn-block" data-toggle="dropdown" type="button"> </button>
+						<button id="algs_button" class="btn btn-large btn-inverse btn-block" data-toggle="dropdown" type="button">None</button>
 					</div>
 				</div>
 				<div class="span4">
@@ -276,12 +276,12 @@
 
 			if ( current_user != null && current_user.id != user.id ){
 				$("#user-list-item_"+current_user.id).removeClass("active");
-				user_markers[id_to_user_marker[current_user.id]].marker.setIcon('static/venue-marker.png');
+				user_markers[id_to_user_marker[current_user.id]].marker.setIcon('static/user-pin.png');
 				user_markers[id_to_user_marker[current_user.id]].marker.setZIndex(0);
 			}
 
 			$("#user-list-item_"+user.id).addClass("active");
-			user_markers[id_to_user_marker[user.id]].marker.setIcon('static/chosen-marker.png');
+			user_markers[id_to_user_marker[user.id]].marker.setIcon('static/chosen-user-pin.png');
 			user_markers[id_to_user_marker[user.id]].marker.setZIndex(100);
 			window.location = "#user-list-item_"+user.id;
 
@@ -314,7 +314,8 @@
 			var user_marker = new google.maps.Marker({position : new google.maps.LatLng(users[i].lat, users[i].lon),
 						map : map,
 						title : users[i].name,
-						icon : 'static/venue-marker.png',
+						icon : 'static/user-pin.png',
+						shadow: 'static/shadow-user-pin.png',
 						draggable : true,
 						zIndex : 0	});
 			user_markers.push({ 'marker' : user_marker, 'user' : users[i] });
@@ -354,6 +355,7 @@
 								map : map,
 								title : events[i].name + " at " + events[i].venue_name + ", " + events[i].venue_city,
 								icon : determineIcon(events[i], getEventStatus(events[i], user_events)),
+								shadow : 'static/shadow-event-pin.png',
 								draggable : true,
 								zIndex : 200	});
 					event_markers.push({ 'marker' : event_marker, 'event' : events[i] });
@@ -367,7 +369,7 @@
 
 	function determineIcon(event, status){
 		if ( status == "ok" ){
-			return 'static/user-marker.png';
+			return 'static/event-pin.png';
 		}
 	}
 
