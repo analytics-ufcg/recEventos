@@ -8,20 +8,24 @@ SECRET_KEY = 'dev_key'
 app = Flask(__name__)
 app.config.from_object(__name__)
 
-def read_venues_and_members(city):
+def read_events_and_members(city):
 
-	venues = []
-	with open(os.path.join("src", "web", "files", city, "venues.csv"), 'r') as source:
+	events = []
+	with open(os.path.join("src", "web", "files", city, "events.csv"), 'r') as source:
 		csv_reader = csv.reader(source)
 		csv_reader.next()
-		for venue in csv_reader:
-			#venue[0] - id; venue[1] - lat; venue[2] - lon; venue[3] - name; venue[4] - city
-			venue_info = { 'id' : venue[0].strip(), 'name' : filter(lambda x: x in string.printable, venue[3]).strip().encode('utf8').replace("\\", ""), 'lon' : venue[2].strip(), 'lat' : venue[1].strip(), 'city' : filter(lambda x: x in string.printable, venue[4]).strip().encode('utf8').replace("\\", "") }
-			
-			venue_info["events"] = venue[5]
-			venues.append( venue_info  )
+		for event in csv_reader:
+			#event[0] - event_id; event[1] - event_name; event[2] - event_time; event[3] - venue_lat, event[4] = venue_lon, event[5] - venue_name, event[6] - venue_city
+			events.append({ 'id' : event[0].strip(),
+				'name' : filter(lambda x: x in string.printable, event[1]).strip().encode('utf8').replace("\\", ""),
+				'time' : time.asctime(time.localtime(float(event[3].strip())/1000)).encode('utf8'),
+				'lat' : event[3].strip(),
+				'lon' : event[4].strip(),
+				'venue_name' : filter(lambda x: x in string.printable, event[5]).strip().encode('utf8').replace("\\", ""),
+				'venue_city' : filter(lambda x: x in string.printable, event[6]).strip().encode('utf8').replace("\\", ""),
+				})
 
-	print "Loaded "+str(len(venues))+" venues from ", city
+	print "Loaded "+str(len(events))+" events from ", city
 
 	users = []
 	with open(os.path.join("src", "web", "files", city, "members.csv"), 'r') as source:
@@ -36,79 +40,37 @@ def read_venues_and_members(city):
 			
 	print "Loaded "+str(len(users))+" users from ", city
 
-	return ( venues, users )
-
-def read_events():
-
-	events = []
-	with open(os.path.join("src", "web", "files", "events_with_venues.csv"), 'r') as source:
-		csv_reader = csv.reader(source)
-		csv_reader.next()
-		for event in csv_reader:
-			#event[0] - event_id; event[1] - event_name; event[2] - event_time; event[3] - venue_id, event[4] - venue_lat, event[5] = venue_lon, event[6] - venue_name, event[7] - venue_city
-			events.append({ 'id' : event[0].strip(),
-				'name' : filter(lambda x: x in string.printable, event[1]).strip().encode('utf8').replace("\\", ""),
-				'venue_id' : event[3].strip(),
-				'time' : time.asctime(time.localtime(float(event[3].strip())/1000)).encode('utf8'),
-				'lat' : event[4].strip(),
-				'lon' : event[5].strip(),
-				'venue_name' : filter(lambda x: x in string.printable, event[6]).strip().encode('utf8').replace("\\", ""),
-				'venue_city' : filter(lambda x: x in string.printable, event[7]).strip().encode('utf8').replace("\\", ""),
-				})
-	return events
+	return ( events, users )
 
 @app.route('/')
 def index():
 
-	r = read_venues_and_members("Menlo Park")
-	venues = r[0]
+	r = read_events_and_members("Arlington")
+	events = r[0]
 	users = r[1]
 
-	events = read_events()
-
-	cities = [ "Addison",
-		"Union City",
-		"Sunnyvale",
-		"Stanford",
-		"Saratoga",
-		"Santa Cruz",
-		"Santa Clara",
-		"San Ramon",
-		"San Mateo",
-		"San Jose",
-		"San Francisco",
-		"San Diego",
-		"San Bruno",
-		"Redwood City",
-		"Palo Alto",
-		"Mountain View",
-		"Morgan Hill",
-		"Milpitas",
-		"Menlo Park",
-		"Los Gatos",
-		"Los Angeles",
-		"Los Altos",
-		"Livermore",
-		"Fremont",
-		"Cupertino",
-		"Castro Valley",
-		"Campbell",
-		"Boulder Creek",
-		"Boston" ]
-
+	cities = [ "Addison", "Allen", "Arlington", "Bedford", "Berkeley", "Burlingame",
+"Campbell", "Carlsbad", "Carrollton", "Chula Vista", "Cupertino", "Dallas",
+"Dublin", "El Cajon", "Encinitas", "Escondido", "Euless", "Flower Mound",
+"Fort Worth", "Fremont", "Frisco", "Garland", "Grand Prairie", "Grapevine",
+"Irving", "La Jolla", "La Mesa", "Lewisville", "Los Altos", "Los Gatos",
+"Menlo Park", "Milpitas", "Mountain View", "Oakland", "Oceanside", "Palo Alto",
+"Plano", "Pleasanton", "Poway", "Redwood City", "Richardson", "San Carlos",
+"San Diego", "San Francisco", "San Jose", "San Mateo", "San Ramon",
+"Santa Clara", "Santa Cruz", "Sunnyvale" ]
 
 	print "index will send data now"
-	return render_template("index.html", venues=venues, users=users, events=events, cities=cities)
+	return render_template("index.html", users=users, events=events, cities=cities)
 
 @app.route('/load_city/<city>')
 def load_city(city=None):
 
-	r = read_venues_and_members(city.replace("_", " "))
-	venues = r[0]
+	r = read_events_and_members(city.replace("_", " "))
+	events = r[0]
 	users = r[1]
 
 	print "load city will send data now"
-	return json.dumps({ 'venues' : venues, 'users' : users })
+	return json.dumps({ 'events' : events, 'users' : users })
 
 if __name__ == "__main__":
 	port = int(os.environ.get('PORT', 5000))

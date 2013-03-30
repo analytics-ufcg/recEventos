@@ -9,32 +9,56 @@
 
 <body style="height:90%;">
 
-	<div class="row">
-		<div class="container" style="margin-left:auto; margin-right:auto;">
-			<div class="span8">
-				<blockquote class="pull-right" >
-					<h1> RecEventos</h1>
-					<small>Events recommendation &copy FRH-Analytics <cite title="Universidade Federal de Campina Grande">UFCG</cite>/<cite title="Hewlett-Packard">HP</cite></small>
-				</blockquote>
-			</div>
-			<div class="span2 dropdown" style="height:10%;">
-				<button id="cities_button" style="padding-top:50px; margin-top:2px;" class="btn btn-large btn-success btn-block dropdown-toggle" data-toggle="dropdown" type="button">Menlo Park</button>
-				<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu">
+	<div class="span3">
+		<ul class="nav nav-list" style="height: 48%;">
+			<li class="nav-header label label-info">Cities</li>
+			<li class="divider"></li>
+			<li>
+				<ul id="cities-list" class="nav nav-list" style="height: 100%; overflow-y:scroll;">
 					{% for city in cities %}
-						<li><a tabindex="-1" href="#" onclick="changeCity('{{city}}')">{{city}}</a></li>
+					{% if city == "Arlington" %}
+					<li id="city_{{city|replace(' ','_')}}" class="active"><a href="#" onclick="changeCity('{{city}}')">{{city}}</a></li>
+					{% else %}
+					<li id="city_{{city|replace(' ','_')}}"><a href="#" onclick="changeCity('{{city}}')">{{city}}</a></li>
+					{% endif %}
 					{% endfor %}
 				</ul>
-				<!-- <button id="venues_button" style="padding-top:10px; margin-top:2px;" class="btn btn-small btn-danger btn-block disabled" type="button">Venues</button>
-				<button id="users_button" style="padding-bottom:10px; margin-bottom:2px;" class="btn btn-small btn-success btn-block disabled" type="button" onclick="" >Users</button> -->
+			</li>
+		</ul>
+		<ul class="nav nav-list" style="height: 45%; margin-top:50px;">
+			<li id="user-list-header" class="nav-header label label-info">Users at Arlington</li>
+			<li class="divider"></li>
+			<li>
+				<ul id="user-list" class="nav nav-list" style="height: 100%; overflow-y:scroll;">
+				</ul>
+			</li>
+		</ul>
+	</div>
+	<div class="span12" style="width:80%;">
+		<div class="row">
+			<div style="padding-top:10px; margin-top:2px;">
+				<div class="row span9">
+					<div class="span4">
+						<span class="label label-success">Current city:</span>
+						<button id="cities_button" class="btn btn-large btn-success btn-block disabled" type="button"> </button>
+					</div>
+					<div class="span4">
+						<span class="label label-warning">Current technique:</span>
+						<button id="algs_button" class="btn btn-large btn-warning btn-block" data-toggle="dropdown" type="button"> </button>
+					</div>
+				</div>
+				<div class="span4">
+					<blockquote class="pull-right">
+						<h1> RecEventos</h1>
+						<small>Events recommendation &copy FRH-Analytics <cite title="Universidade Federal de Campina Grande">UFCG</cite>/<cite title="Hewlett-Packard">HP</cite></small>
+					</blockquote>
+				</div>
 			</div>
 		</div>
+		<div class="row">
+			<div id="map_canvas" style="height:86%; width:100%;"></div>
+		</div>
 	</div>
-	<div class="row" style="height:90%;">
-<!--		<div class="container"> -->
-			<div id="map_canvas" style="height:90%;"></div>
-<!--		</div> -->
-	</div>
-
 
 	<div id="venue_events" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="venue_events_label" aria-hidden="true">
 		<div class="modal-header">
@@ -59,24 +83,25 @@
     </body>
 	<script src="static/jquery-1.9.1.min.js" language="javascript" type="text/javascript"></script>
 	<script src="static/bootstrap/js/bootstrap.js" language="javascript" type="text/javascript"></script>
+	<script src="static/jquery.localscroll-1.2.7-min.js" language="javascript" type="text/javascript"></script>
+	<script src="static/jquery.scrollTo-1.4.3.1-min.js" language="javascript" type="text/javascript"></script>
 	<script language="javascript">
-
-
+	
     var directionDisplay;
     var directionsService = new google.maps.DirectionsService();
     var map;
 
-    var venue_markers = new Array();
+    var event_markers = new Array();
     var user_markers = new Array();
-    var user_venue_markers = new Array();
+    var id_to_user_marker = {};
+    var user_event_markers = new Array();
 
     var current_city = null;
-    var city_venues = {};
+    var current_user = null;
+    var city_events = {};
     var city_members = {};
-    var events = {};
 
     function mapinitialize() {
-	console.log("will initialize map");
     	directionsDisplay = new google.maps.DirectionsRenderer();
        	var cg = new google.maps.LatLng(-7.242598, -35.892334);
         var myOptions = {
@@ -86,7 +111,6 @@
         }
         map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
 	directionsDisplay.setMap(map);
-	console.log("map initialized. new map: " + map);
     }
 
     function calcRoute(r) {
@@ -113,90 +137,103 @@
 	function start(){
 		mapinitialize();
 
-		current_city = "Menlo Park";
-		$("#cities_button").html("Menlo Park");
+		$("#user-list-header").html("Users at Arlington");
+		current_city = "Arlington";
+		$("#cities_button").html("Arlington");
 
-		city_venues[current_city] = [];
-		{% for venue in venues %}
-		city_venues[current_city].push({ 'id' : "{{venue.id}}", 'lat' : {{venue.lat}}, 'lon' : {{venue.lon}}, 'name' : "{{venue.name}}", 'events' : "{{venue.events}}".split("|"), 'city' : "{{venue.city}}" });
+		city_events[current_city] = [];
+		{% for event in events %}
+		city_events[current_city].push({ 'id' : "{{event.id}}", 'lat' : {{event.lat}}, 'lon' : {{event.lon}}, 'name' : "{{event.name}}", 'venue_name' : "{{event.venue_name}}", 'venue_city' : "{{event.venue_city}}" });
 		{% endfor %}
+
+		var user_list = "";
 
 		city_members[current_city] = [];
 		{% for user in users %}
 		city_members[current_city].push({ 'id' : "{{user.id}}", 'lat' : {{user.lat}}, 'lon' : {{user.lon}}, 'name' : "{{user.name}}", 'events' : "{{user.events}}".split(","), 'city' : "{{user.city}}" });
+		user_list += "<li id='user-list-item_{{user.id}}'><a  name='user-list-item_{{user.id}}' href='#'user-list-item_{{user.id}}' onclick='chooseUserById({{user.id}})'>{{user.name}}</a></li>";
 		{% endfor %}
 
-		{% for event in events %}
-		events["{{event.id}}"] = { 'id' : "{{event.id}}", 'name' : "{{event.name}}", 'venue_id' : "{{event.venue_id}}", 'time' : "{{event.time}}", 'venue_name' : "{{event.venue_name}}", 'venue_city' : "{{event.venue_city}}", 'lat' : {{event.lat}}, 'lon' : {{event.lon}} };
-		{% endfor %}
-
-		pinVenuesInMap(null, null);
 		pinUsersInMap();
-		if ( venue_markers.length != 0 ){
-			map.panTo(venue_markers[Math.floor((Math.random()*venue_markers.length))].getPosition());
+		if ( user_markers.length != 0 ){
+			map.panTo(user_markers[Math.floor((Math.random()*user_markers.length))].marker.getPosition());
 		}
-//		$('#users_button').removeClass("disabled").attr("onclick", "showUsersView();");
+
+		$("#user-list").html(user_list);
 	}
 
 	function changeCity(city){
 
+		console.log("From city "+current_city+" to city "+city);
+		$("#user-list-header").html("Users at "+city);
+
+		$("#city_"+city.replace(" ", "_")).addClass("active");
+		if ( current_city != null && current_city != "" && current_city != city ){
+			$("#city_"+current_city.replace(" ", "_")).removeClass("active");
+		}
+
 		current_city = city;
 		$("#cities_button").html(city);
-		if ( city_venues[current_city] ){
+		if ( city_events[current_city] ){
 			removeAllMarkers();
-			pinVenuesInMap(null, null);
 			pinUsersInMap();
-			if ( venue_markers.length != 0 ){
-				map.panTo(venue_markers[Math.floor((Math.random()*venue_markers.length))].getPosition());
+			if ( user_markers.length != 0 ){
+				map.panTo(user_markers[Math.floor((Math.random()*user_markers.length))].marker.getPosition());
 			}
+			var user_list = "";
+			for ( i in city_members[current_city] ){
+				user_list += "<li id=\"user-list-item_" + city_members[current_city][i].id + "\"><a  name=\"user-list-item_" + city_members[current_city][i].id + "\"  href='#user-list-item_" + city_members[current_city][i].id + "' onclick='chooseUserById("+ city_members[current_city][i].id +")'>"+city_members[current_city][i].name+"</a></li>";
+			}
+			$("#user-list").html(user_list);
 		}
 		else{
 			$.get("load_city/"+city.replace(" ", "_"), function(data){
 
 				data = JSON.parse(data);
 
-				city_venues[current_city] = [];
-				for ( var i=0; i<data.venues.length; i++){
-					city_venues[current_city].push({ 'id' : data.venues[i].id, 'lat' : data.venues[i].lat, 'lon' : data.venues[i].lon, 'name' : data.venues[i].name, 'events' : data.venues[i].events.split("|"), 'city' : data.venues[i].city });
+				city_events[current_city] = [];
+				for ( var i=0; i<data.events.length; i++){
+					city_events[current_city].push({ 'id' : data.events[i].id, 'lat' : data.events[i].lat, 'lon' : data.events[i].lon, 'name' : data.events[i].name, 'venue_name' : data.events[i].venue_name, 'venue_city' : data.events[i].venue_city });
 				};
 
+				var user_list = "";
 				city_members[current_city] = [];
 				for ( var i=0; i<data.users.length; i++){
 					city_members[current_city].push({ 'id' : data.users[i].id, 'lat' : data.users[i].lat, 'lon' : data.users[i].lon, 'name' : data.users[i].name, 'events' : data.users[i].events.split(","), 'city' : data.users[i].city });
+					user_list += "<li id=\"user-list-item_" + city_members[current_city][i].id + "\" ><a  name=\"user-list-item_" + city_members[current_city][i].id + "\"  href='#user-list-item_" + city_members[current_city][i].id + "' onclick='chooseUserById("+ city_members[current_city][i].id +")'>"+city_members[current_city][i].name+"</a></li>";
 				};
 
 				removeAllMarkers();
-				pinVenuesInMap(null, null);
 				pinUsersInMap();
-				if ( venue_markers.length != 0 ){
-					map.panTo(venue_markers[Math.floor((Math.random()*venue_markers.length))].getPosition());
+				if ( user_markers.length != 0 ){
+					map.panTo(user_markers[Math.floor((Math.random()*user_markers.length))].marker.getPosition());
 				}
+				$("#user-list").html(user_list);
 			});
 		}
 
+		current_user = null;
+
 	}
 
-	function removeUserVenueMarkers(){
-		for (i in user_venue_markers){
-			user_venue_markers[i].setMap(null);
+	function removeEventMarkers(){
+		for (i in event_markers){
+			event_markers[i].marker.setMap(null);
 		}
-		user_venue_markers.length = 0;
+		event_markers.length = 0;
 	}
 
-	function removeVenueMarkers(){
-		for (i in venue_markers){
-			venue_markers[i].setMap(null);
+	function removeUserMarkers(){
+		for (i in user_markers ){
+			user_markers[i].marker.setMap(null);
 		}
-		venue_markers.length = 0;
+		user_markers.length = 0;
+		id_to_user_marker = {};
 	}
 
 	function removeAllMarkers(){
-		removeVenueMarkers();
-		removeUserVenueMarkers();
-		for (i in user_markers ){
-			user_markers[i].setMap(null);
-		}
-		user_markers.length = 0;
+		removeEventMarkers();
+		removeUserMarkers();
 	}
 
 	function sortbyLatLng(a, b){
@@ -219,54 +256,47 @@
 		}
 	}
 
-	function pinVenuesInMap(venues, in_respect_to_user){
-
-		if ( venues == null ){
-			venues = city_venues[current_city];
+	function chooseUserById(user_id){
+		for ( i in city_members[current_city] ){
+			if ( city_members[current_city][i].id == user_id ){
+				var doIt = chooseUser(city_members[current_city][i]);
+				doIt();
+				break;
+			}
 		}
+	}
 
-		venues.sort(sortbyLatLng);
-		console.log("About to pin "+venues.length+" venues in map!");
+	function chooseUser(user){
 
-		var c_lat = -1, c_long = -1;
-		var close_venues = new Array();
+		console.log("binding function of user "+user.name+" ("+user.id+")");
 
-		for (var i=0; i<venues.length; i++ ){
+		function doChooseAndPinEvents(){
 
-			if ( c_lat != -1 && c_long != -1 ){
-				if (Math.abs(c_lat - venues[i].lat) > 0.000001 && Math.abs(c_long - venues[i].lon) > 0.000001){
-					close_venues = new Array();
-				}
+			console.log("calling function of user "+user.name+" ("+user.id+")");
+
+			if ( current_user != null && current_user.id != user.id ){
+				$("#user-list-item_"+current_user.id).removeClass("active");
+				user_markers[id_to_user_marker[current_user.id]].marker.setIcon('static/venue-marker.png');
+				user_markers[id_to_user_marker[current_user.id]].marker.setZIndex(0);
 			}
-			c_long = parseFloat(venues[i].lon);
-			c_lat = parseFloat(venues[i].lat);
 
-			var venue_marker = new google.maps.Marker({position : new google.maps.LatLng(venues[i].lat, venues[i].lon),
-						map : map,
-						title : venues[i].name,
-						icon : (in_respect_to_user == null ? 'static/venue-marker.png' : 'static/chosen-marker.png') });
+			$("#user-list-item_"+user.id).addClass("active");
+			user_markers[id_to_user_marker[user.id]].marker.setIcon('static/chosen-marker.png');
+			user_markers[id_to_user_marker[user.id]].marker.setZIndex(100);
+			window.location = "#user-list-item_"+user.id;
 
-			if ( in_respect_to_user != null ){
-				console.log("lat: "+venues[i].lat+" lon: "+venues[i].lon);
-				user_venue_markers.push(venue_marker);
-			}
-			else{
-				venue_markers.push(venue_marker);
-			}
-			console.log("Just pinned!");
-			var showVenueEventClosure = showVenueEvents(close_venues, in_respect_to_user);
-			google.maps.event.addListener(venue_marker, 'click', showVenueEventClosure);
+			current_user = user;
 
-			close_venues.push(venues[i]);
+			pinUserEventsInMap(user);
+
 		}
-		console.log("Pinned.");
+		return doChooseAndPinEvents;
 	}
 
 	function pinUsersInMap(){
 
 		var users = city_members[current_city];
 		users.sort(sortbyLatLng);
-		console.log("About to pin "+users.length+" users in map!");
 
 		var c_lat = -1, c_long = -1;
 		var close_users = new Array();
@@ -284,102 +314,72 @@
 			var user_marker = new google.maps.Marker({position : new google.maps.LatLng(users[i].lat, users[i].lon),
 						map : map,
 						title : users[i].name,
-						icon : 'static/user-marker.png' });
-			user_markers.push(user_marker);
-			var showUserEventClosure = showUserEvents(users[i]);
-			google.maps.event.addListener(user_marker, 'click', showUserEventClosure);
+						icon : 'static/venue-marker.png',
+						draggable : true,
+						zIndex : 0	});
+			user_markers.push({ 'marker' : user_marker, 'user' : users[i] });
+			id_to_user_marker[users[i].id] = i;
+			var chooseUserClosure = chooseUser(users[i]);
+			google.maps.event.addListener(user_marker, 'click', chooseUserClosure);
 			close_users.push(users[i]);
 		}
 	}
 
-	function showUserEvents(user){
-		function pinUserVenuesInMap(){
-			var venues = new Array();
-			var user_events = user.events;
-			for ( var i=0; i<city_venues[current_city].length; i++ ){
+	function pinUserEventsInMap(user){
 
-//				console.log("Check if user "+user.name+" has event in this venue "+city_venues[current_city][i].id+"......");
+		removeEventMarkers();
 
-				var ev = null;
-				for ( var j=0; j<user_events.length; j++ ){
-					if ( user_events[j] == undefined ){
-						continue;
-					}
-//					console.log("    Considering event "+user_events[j]+" with venue_id = "+events[user_events[j]].venue_id+"...");
-					if ( city_venues[current_city][i].id == events[user_events[j]].venue_id ){
-						ev = city_venues[current_city][i].events;
-						console.log("Found.");
-						break;
-					}
-				}
-				if ( ev != null ){
-					venue_info = { 'id' : events[user_events[j]].id, 'name' : events[user_events[j]].venue_name, 'lat' : events[user_events[j]].lat, 'lon' : events[user_events[j]].lon, 'city' : events[user_events[j]].venue_city, 'events' : ev };
-					console.log(venue_info);
-					venues.push( venue_info );
-					delete user_events[j];
-				}
-			}
+		var events = city_events[current_city];
+		var user_events = user.events;
+		events.sort(sortbyLatLng);
 
-			if ( venues.length != 0 ){
-				removeUserVenueMarkers();
-				pinVenuesInMap(venues, user);
-			}
-		}
-		return pinUserVenuesInMap;
-	}
+		var c_lat = -1, c_long = -1;
+		var close_events = new Array();
 
-	function showVenueEvents(close_venues, in_respect_to_user){
-		function showModal(){
+		for (var i=0; i<events.length; i++ ){
 
-			$("#venue_events_body").html("<img src='static/ajax-loader.gif'></img>");
+			for (var j=0; j<user_events.length; j++ ){
+				if ( user_events[j] == events[i].id ){
 
-			var content = "";
-			for (var i=0; i<close_venues.length; i++){
-				console.log("close venues: "+JSON.stringify(close_venues));
-				content += "<blockquote> <h4><strong>"+close_venues[i].name+"</strong></h4>";
-				var event_ids = close_venues[i].events;
-				if ( event_ids.length == 0 ){
-					content += "This venue has no events...";
-				}
-				else{
 
-					var ev = "";
-					for ( var j=0; j<event_ids.length; j++ ){
-						if ( in_respect_to_user != null ){
-							var is_user_event = false;
-							for ( var k=0; k<in_respect_to_user.events; k++ ){
-								if ( event_ids[j] == in_respect_to_user[k] ){
-									is_user_event = true;
-									break;
-								}
-							}
-							if ( is_user_event ){
-								ev += "<tr> <td> " + events[event_ids[j]].name + "</td> <td> " + events[event_ids[j]].time + "</td> </tr>";
-							}
-						}
-						else{
-							ev += "<tr> <td> " + events[event_ids[j]].name + "</td> <td> " + events[event_ids[j]].time + "</td> </tr>";
+					if ( c_lat != -1 && c_long != -1 ){
+						if (Math.abs(c_lat - events[i].lat) > 0.000001 && Math.abs(c_long - events[i].lon) > 0.000001){
+							close_events = new Array();
 						}
 					}
-					if ( ev != "" ){
-						content += "<table class='table table-hover table-condensed'>";
-						content += ev;
-						content += "</table>";
-					}
-					else{
-						content += in_respect_to_user.name + " has no events here...";
-					}
-				}
-				content += "</blockquote>";
-			}
+					c_long = parseFloat(events[i].lon);
+					c_lat = parseFloat(events[i].lat);
 
-			$("#venue_events_body").html(content);
-			$("#venue_events").modal('show');
+					var event_marker = new google.maps.Marker({position : new google.maps.LatLng(events[i].lat, events[i].lon),
+								map : map,
+								title : events[i].name + " at " + events[i].venue_name + ", " + events[i].venue_city,
+								icon : determineIcon(events[i], getEventStatus(events[i], user_events)),
+								draggable : true,
+								zIndex : 200	});
+					event_markers.push({ 'marker' : event_marker, 'event' : events[i] });
+					close_events.push(events[i]);
+
+					break;
+				}
+			}
 		}
-		return showModal;
 	}
 
-	$(document).ready(start());
+	function determineIcon(event, status){
+		if ( status == "ok" ){
+			return 'static/user-marker.png';
+		}
+	}
 
+	function getEventStatus(event, user_events){
+		return "ok";
+	}
+
+	$(document).ready(function(){
+		$("#user-list").localScroll({duration:800});
+		start();	
+	});
+	
+	
 	</script>
 </html>
