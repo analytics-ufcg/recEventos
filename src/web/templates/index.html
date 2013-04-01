@@ -37,12 +37,6 @@
 	<div class="span12" style="width:80%;">
 		<div class="row">
 			<div style="padding-top:10px; margin-top:2px;">
-				<div class="span4">
-					<blockquote class="pull-right">
-						<h1> RecEventos</h1>
-						<small>Events recommendation &copy FRH-Analytics <cite title="Universidade Federal de Campina Grande">UFCG</cite>/<cite title="Hewlett-Packard">HP</cite></small>
-					</blockquote>
-				</div>
 				<div class="row span9">
 					<div class="span4">
 						<span class="label label-inverse">Current city:</span>
@@ -53,10 +47,16 @@
 						<button id="algs_button" class="btn btn-large btn-inverse btn-block" data-toggle="dropdown" type="button">None</button>
 					</div>
 				</div>
+				<div class="span4">
+					<blockquote class="pull-right">
+						<h1> RecEventos</h1>
+						<small><cite title="Events recommendation - enhanced">RecEventos</cite> &copy2013 FRH-Analytics <cite title="Universidade Federal de Campina Grande">UFCG</cite>/<cite title="Hewlett-Packard">HP</cite></small>
+					</blockquote>
+				</div>
 			</div>
 		</div>
 		<div class="row">
-			<div id="map_loading" class="alert alert-info"><strong>Welcome!</strong> Loading map...</div>
+			<div id="loading_message" class="alert alert-info"><strong>Welcome!</strong> Loading map...</div>
 			<div id="map_canvas" style="height:86%; width:100%;"></div>
 		</div>
 	</div>
@@ -160,7 +160,7 @@
 		$("#cities_button").html("Arlington");
 
 		google.maps.event.addListener(map, 'tilesloaded', function(){
-			$("#map_loading").css("display", "none");
+			$("#loading_message").css("display", "none");
 		});
 
 		city_events[current_city] = [];
@@ -195,6 +195,9 @@
 			$("#city_"+current_city.replace(" ", "_")).removeClass("active");
 		}
 
+		$("#loading_message").html("<strong>Be patient!</strong> Loading city data...");
+		$("#loading_message").css("display", "");
+
 		current_city = city;
 		$("#cities_button").html("Loading...");
 		if ( city_events[current_city] ){
@@ -211,7 +214,7 @@
 			$("#cities_button").html(city);
 			current_user = null;
 			$("#user-list-header").html("Users at "+city);
-
+			$("#loading_message").css("display", "none");
 		}
 		else{
 			$.get("load_city/"+city.replace(" ", "_"), function(data){
@@ -239,6 +242,7 @@
 				$("#cities_button").html(city);
 				current_user = null;
 				$("#user-list-header").html("Users at "+city);
+				$("#loading_message").css("display", "none");
 			});
 		}
 
