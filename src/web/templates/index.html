@@ -48,12 +48,13 @@
 						<div class="dropdown">
 							<a id="algs_button" class="dropdown-toggle btn btn-large btn-inverse btn-block" data-toggle="dropdown" type="button" href="#">None</a>
 							<ul class="dropdown-menu" role="menu">
+								<li><a tabindex="-1" href="#" onclick="setRecommender('none');">None</a></li>
 								<li><a tabindex="-1" href="#" onclick="setRecommender('distance');">Distance</a></li>
 							</ul>
 						</div>
 					</div>
 				</div>
-				<div class="span6" style="margin-bottom:35px;">
+				<div class="span4" style="margin-bottom:35px;">
 						<h1> RecEventos</h1>
 						<small class="muted"><cite title="Events recommendation - enhanced!">RecEventos</cite> &copy2013 FRH-Analytics <cite title="Universidade Federal de Campina Grande">UFCG</cite>/<cite title="Hewlett-Packard">HP</cite></small>
 				</div>
@@ -96,6 +97,7 @@
     var current_user = null;
     var city_events = {};
     var city_members = {};
+    var city_rec_events = {};
 
     var recommender = 'none';
 
@@ -174,14 +176,19 @@
 
 		city_events[current_city] = [];
 		{% for event in events %}
-		city_events[current_city].push({ 'id' : "{{event.id}}", 'lat' : {{event.lat}}, 'lon' : {{event.lon}}, 'name' : "{{event.name}}", 'venue_name' : "{{event.venue_name}}", 'venue_city' : "{{event.venue_city}}", 'time' : "{{event.time}}" });
+		city_events[current_city].push({ 'id' : "{{event.id}}", 'lat' : {{event.lat}}, 'lon' : {{event.lon}}, 'name' : "{{event.name}}", 'venue_name' : "{{event.venue_name}}", 'venue_city' : "{{event.venue_city}}", 'time' : "{{event.time}}", 'created' : "{{event.created}}" });
+		{% endfor %}
+
+		city_rec_events[current_city] = [];
+		{% for rec_event in rec_events %}
+		city_rec_events[current_city].push({ 'id' : "{{rec_event.id}}", 'lat' : {{rec_event.lat}}, 'lon' : {{rec_event.lon}}, 'name' : "{{rec_event.name}}", 'venue_name' : "{{rec_event.venue_name}}", 'venue_city' : "{{rec_event.venue_city}}" });
 		{% endfor %}
 
 		var user_list = "";
 
 		city_members[current_city] = [];
 		{% for user in users %}
-		city_members[current_city].push({ 'id' : "{{user.id}}", 'lat' : {{user.lat}}, 'lon' : {{user.lon}}, 'name' : "{{user.name}}", 'events' : "{{user.events}}".split(","), 'city' : "{{user.city}}" });
+		city_members[current_city].push({ 'id' : "{{user.id}}", 'lat' : {{user.lat}}, 'lon' : {{user.lon}}, 'name' : "{{user.name}}", 'events' : "{{user.events}}".split(","), 'city' : "{{user.city}}", 'p_time' : "{{user.p_time}}" });
 		user_list += "<li id='user-list-item_{{user.id}}'><a  name='user-list-item_{{user.id}}' href='#'user-list-item_{{user.id}}' onclick='chooseUserById({{user.id}})'><i class='icon-user'></i>{{user.name}}</a></li>";
 		{% endfor %}
 
@@ -232,13 +239,18 @@
 
 				city_events[current_city] = [];
 				for ( var i=0; i<data.events.length; i++){
-					city_events[current_city].push({ 'id' : data.events[i].id, 'lat' : data.events[i].lat, 'lon' : data.events[i].lon, 'name' : data.events[i].name, 'venue_name' : data.events[i].venue_name, 'venue_city' : data.events[i].venue_city });
+					city_events[current_city].push({ 'id' : data.events[i].id, 'lat' : data.events[i].lat, 'lon' : data.events[i].lon, 'name' : data.events[i].name, 'venue_name' : data.events[i].venue_name, 'venue_city' : data.events[i].venue_city, 'time' : data.events[i].time, 'created' : data.events[i].created });
+				};
+
+				city_rec_events[current_city] = [];
+				for ( var i=0; i<data.rec_events.length; i++){
+					city_rec_events[current_city].push({ 'id' : data.rec_events[i].id, 'lat' : data.rec_events[i].lat, 'lon' : data.rec_events[i].lon, 'name' : data.rec_events[i].name, 'venue_name' : data.rec_events[i].venue_name, 'venue_city' : data.rec_events[i].venue_city });
 				};
 
 				var user_list = "";
 				city_members[current_city] = [];
 				for ( var i=0; i<data.users.length; i++){
-					city_members[current_city].push({ 'id' : data.users[i].id, 'lat' : data.users[i].lat, 'lon' : data.users[i].lon, 'name' : data.users[i].name, 'events' : data.users[i].events.split(","), 'city' : data.users[i].city });
+					city_members[current_city].push({ 'id' : data.users[i].id, 'lat' : data.users[i].lat, 'lon' : data.users[i].lon, 'name' : data.users[i].name, 'events' : data.users[i].events.split(","), 'city' : data.users[i].city, 'p_time' : data.users[i].p_time });
 					user_list += "<li id=\"user-list-item_" + city_members[current_city][i].id + "\" ><a  name=\"user-list-item_" + city_members[current_city][i].id + "\"  href='#user-list-item_" + city_members[current_city][i].id + "' onclick='chooseUserById("+ city_members[current_city][i].id +")'><i class='icon-user'></i>"+city_members[current_city][i].name+"</a></li>";
 				};
 
@@ -399,7 +411,7 @@
 					c_lat = parseFloat(events[i].lat);
 
 
-					var event_status = getEventStatus(events[i], user_events);
+					var event_status ="ok";
 					var status_icon = determineIcon(event_status);
 					var event_details = showEventDetails(user, events[i], event_status);
 					
@@ -424,10 +436,6 @@
 		if ( status == "ok" ){
 			return 'static/event-pin.png';
 		}
-	}
-
-	function getEventStatus(event, user_events){
-		return "ok";
 	}
 
 	function getColor(status){
@@ -479,7 +487,7 @@
 
 				for (var j=0; j<user_events.length; j++ ){
 					if ( user_events[j] == events[i].id ){
-						var status = getEventStatus(events[i], user_events);
+						var status ="ok";
 						var status_color = getColor(status);
 						var status_msg = determineStatusMsg(status);
 						table_content += "<tr class='"+status_color+"'><td>" + events[i].name + "</td><td>@" + events[i].venue_name + "</td><td>" + events[i].time + "</td><td>"+status_msg+"</td></tr>";
@@ -505,7 +513,78 @@
 
 	function setRecommender(rec){
 		recommender = rec;
-		console.log("Recommender: "+rec);
+
+		if ( recommender == 'none' ){
+			changeCity(current_city);
+			return;
+		}
+
+		removeEventMarkers();
+
+		var events_source = city_events[current_city];
+		var user_events = user.events;
+		events_source.sort(sortbyLatLng);
+
+		var rec_events = city_rec_events[current_city];
+		var all_events = [];
+
+		var p_time = current_user.p_time;
+
+		for ( var i=0; i<events_source.length.lenght; i++ ){
+			for ( var j=0; j<user_events.length; j++ ){
+				if ( user_events[j] == events_source[i].id ){
+					if ( events_source[i].time < p_time ){
+						//already happened, Color 1
+						var entry = events_source[i];
+						events_source[i]['status'] = 'already_happened';
+						all_events.push(events_source[i]);
+					}
+					else if ( events_source[i].created > p_time ){
+						//will happen yet, Color 1
+						var entry = events_source[i];
+						events_source[i]['status'] = 'will_still_happen';
+						all_events.push(events_source[i]);
+					}
+					else{
+						// CHECK AGAINST 5 RECOMMENDED EVENTS TO CURRENT USER
+						// REMEMBER TO READ RECOMMENTED EVENTS FROM SERVER AND DO PROPER PARSING
+						// ACTIVATE TECHNIQUE BUTTON ONCE MEMBER IS CHOSEN
+					}
+				}
+			}
+		}
+
+		for ( var i=0; i<rec_events.length; i++ ){
+			var found = false;
+			for ( var j=0; j<user_events.length; j++ ){
+				if ( user_events[j] == rec_events[i].id ){
+					found = true;
+					break;
+				}
+			}
+			if ( !found ){
+				all_events.push(rec_events[i]);
+			}
+		}
+
+		for ( var i=0; i<all_events.length; i++ ){
+
+			var event_status = all_events.status;
+			var status_icon = determineIcon(event_status);
+			var event_details = showEventDetails(user, events_source[i], event_status);
+					
+			var event_marker = new google.maps.Marker({position : new google.maps.LatLng(events_source[i].lat, events_source[i].lon),
+						map : map,
+						title : events_source[i].name + " at " + events_source[i].venue_name + ", " + events_source[i].venue_city,
+						icon : status_icon,
+						shadow : 'static/shadow-event-pin.png',
+						draggable : true,
+						zIndex : 200	});
+			event_markers.push({ 'marker' : event_marker, 'event' : events_source[i] });
+			google.maps.event.addListener(event_marker, 'click', event_details);
+			break;
+		}
+
 	}
 
 	$(document).ready(function(){
