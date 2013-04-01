@@ -55,7 +55,7 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, conf.level=.95, na.
   }
   
   # This does the summary; it's not easy to understand...
-  datac <- ddply(idata.frame(data, groupvars, .drop=.drop,
+  datac <- ddply(idata.frame(data), groupvars, .drop=.drop,
                  .fun= function(xx, col, na.rm) {
                    c( N    = length2(xx[,col], na.rm=na.rm),
                       mean = mean   (xx[,col], na.rm=na.rm),
@@ -66,10 +66,8 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, conf.level=.95, na.
                  na.rm
   )
   
-  
   # Rename the "mean" column    
   datac <- rename(datac, c("mean"=measurevar))
-  
   datac$se <- datac$sd / sqrt(datac$N)  # Calculate standard error of the mean
   
   # Confidence interval multiplier for standard error
@@ -91,66 +89,84 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, conf.level=.95, na.
 # Main
 # =============================================================================
 
-cat("Reading Recommender Evaluations...")
-evaluations <- ReadAllCSVs("data_output/evaluations/", "rec_events_eval")
+cat("Reading Recommender Evaluations...\n")
+evaluations <- ReadAllCSVs("data_output/evaluations/", "rec_events_[[:alpha:]]+_eval")
 evaluations <- evaluations[!is.na(evaluations$recall),]
 
 # -----------------------------------------------------------------------------
 # Preparing the evaluation data to plot the COMPLETE RESULTS
 # -----------------------------------------------------------------------------
-cat("Calculating the summary metrics...")
-summaryPrec = summarySE(evaluations, "precision", c("partition", "rec_size"), conf.level = .95)
-summaryRecall = summarySE(evaluations, "recall", c("partition", "rec_size"), conf.level = .95)
+cat("Calculating the summary metrics...\n")
+summaryPrec = summarySE(evaluations, "precision", c("algorithm", "partition", "rec_size"), conf.level = .95)
+summaryRecall = summarySE(evaluations, "recall", c("algorithm", "partition", "rec_size"), conf.level = .95)
 
 summaryEvals = rbind(melt(summaryPrec, measure.vars = "precision", variable_name = "eval_metric"),
                      melt(summaryRecall, measure.vars = "recall", variable_name = "eval_metric"))
 
 dir.create("data_output/evaluations/analysis", showWarnings=F)
-cat("Plotting the Precision and Recall for: All Cities")
-png("data_output/evaluations/analysis/precision_recall-all.png", width=1200, height=350)
-print(ggplot(summaryEvals, aes(x=rec_size, y=value, colour = eval_metric)) + 
-  geom_errorbar(aes(ymin=value-ci, ymax=value+ci), width=.1) +
-  geom_line() + geom_point() + 
-  facet_wrap(~partition, ncol=4) +
-  ggtitle("Precision and Recall Evaluation (per Partition)\nALL cities") + 
-  theme(plot.title = element_text(lineheight=.8, face="bold")))
-dev.off()
+
+cat("Plotting the Precision and Recall for: All Cities\n")
+for (p in 1:max(summaryEvals$partition)){
+  cat("  Partition ", p, "...\n", sep = "")
+  output.dir <- paste("data_output/evaluations/analysis/partition_", p, "/", sep = "")
+  dir.create(output.dir, showWarnings=F)
+  
+  pdf(paste(output.dir, "precision_recall-all.pdf", sep = ""), width=10, height=5)
+  print(ggplot(summaryEvals, aes(x=rec_size, y=value, colour = algorithm)) + 
+          geom_errorbar(aes(ymin=value-ci, ymax=value+ci), width=.1) +
+          geom_line() + geom_point() + 
+          facet_wrap(~eval_metric, ncol=4) +
+          ggtitle("Precision and Recall Evaluation (per Partition)\nALL cities") + 
+          theme(plot.title = element_text(lineheight=.8, face="bold")))
+  dev.off()
+}
+cat("\n")
 
 # -----------------------------------------------------------------------------
 # Preparing the evaluation data to plot the RESULTS by CITY
 # -----------------------------------------------------------------------------
-cat("Reading the MEMBERs data...")
-members <- ReadAllCSVs("data_csv/", "members")[,c("id", "city")]
+cat("Reading the MEMBERs and selecting with MEMBER_EVENTs...\n")
+member.ids <- unique(ReadAllCSVs("data_output/partitions/", "member_events")[,"member_id"])
+members <- ReadAllCSVs("data_csv/", "members")
+members <- subset(members, id %in% member.ids, select=c("id", "city"))
 
 num.cities <- 10
-cat("Selecting the members from the", num.cities, "biggest cities...")
+cat("Selecting the members from the", num.cities, "biggest cities...\n")
 
 members.per.city <- count(members, "city")
 members.per.city <- members.per.city[order(members.per.city$freq, decreasing = T),]
 cities.count <- members.per.city[1:num.cities,]
 cities.count$city <- as.character(cities.count$city)
-members <- members[members$city %in% cities.count$city,]
+members <- subset(members, city %in% cities.count$city)
 
-cat("Selecting the evaluations of the selected members only...")
-evaluations2 <- merge(evaluations, members, by.x = "member_id", by.y = "id")
+cat("Selecting the evaluations of the selected members only...\n")
+evaluations <- merge(evaluations, members, by.x = "member_id", by.y = "id")
 
-cat("Re-Calculating the summary metrics...")
-summaryPrec2 = summarySE(evaluations2, "precision", c("city", "partition", "rec_size"), conf.level = .95)
-summaryRecall2 = summarySE(evaluations2, "recall", c("city", "partition", "rec_size"), conf.level = .95)
+cat("Re-Calculating the summary metrics...\n")
+summaryPrec = summarySE(evaluations, "precision", c("city", "algorithm", "partition", "rec_size"), conf.level = .95)
+summaryRecall = summarySE(evaluations, "recall", c("city",  "algorithm", "partition", "rec_size"), conf.level = .95)
 
-summaryEvals2 = rbind(melt(summaryPrec2, measure.vars = "precision", variable_name = "eval_metric"),
-                      melt(summaryRecall2, measure.vars = "recall", variable_name = "eval_metric"))
+summaryEvals = rbind(melt(summaryPrec, measure.vars = "precision", variable_name = "eval_metric"),
+                     melt(summaryRecall, measure.vars = "recall", variable_name = "eval_metric"))
 
-for (i in 1:nrow(cities.count)){
-  city <- cities.count$city[i]
-  count <- cities.count$freq[i]
-  cat("Re-Plotting the Precision and Recall for:", city)
-  png(paste("data_output/evaluations/analysis/precision_recall-", i, "-", city, ".png", sep=""), width=1200, height=350)
-  print(ggplot(summaryEvals2[summaryEvals2$city == city,], aes(x=rec_size, y=value, colour=eval_metric)) + 
-          geom_errorbar(aes(ymin=value-ci, ymax=value+ci), width=.1) +
-          geom_line() + geom_point() + 
-          facet_wrap(~partition, ncol=4) +
-          ggtitle(label=paste("Precision and Recall Evaluation (per Partition)\n", city, " (", count, " members)", sep="")) + 
-          theme(plot.title = element_text(lineheight=.8, face="bold")))
-  dev.off()
+cat("Re-Plotting the Precision and Recall for them...\n")
+for (p in 1:max(summaryEvals$partition)){
+  cat("  Partition ", p, "...\n", sep = "")
+  output.dir <- paste("data_output/evaluations/analysis/partition_", p, "/", sep = "")
+  dir.create(output.dir, showWarnings=F)
+  
+  for (i in 1:nrow(cities.count)){
+    city <- cities.count$city[i]
+    count <- cities.count$freq[i]
+    cat("    Re-Plotting the Precision and Recall for:", city, "\n")
+    pdf(paste(output.dir, "precision_recall-", i, "-", city, ".pdf", sep=""), width=10, height=5)
+    print(ggplot(summaryEvals[summaryEvals$city == city,], aes(x=rec_size, y=value, colour=algorithm)) + 
+            geom_errorbar(aes(ymin=value-ci, ymax=value+ci), width=.1) +
+            geom_line() + geom_point() + 
+            facet_wrap(~eval_metric, ncol=4) +
+            ggtitle(label=paste("Precision and Recall Evaluation (per Partition)\n", 
+                                city, " (", count, " members)", sep="")) + 
+            theme(plot.title = element_text(lineheight=.8, face="bold")))
+    dev.off()
+  }
 }

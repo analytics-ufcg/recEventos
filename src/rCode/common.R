@@ -22,17 +22,10 @@
 #
 # Author: Augusto Queiroz
 #
-# File: partition_data.R
-#   * Description: This file partition the events chronologically in 10 different
-#                  data splits of train/test. Then a figure is generated to 
-#                  support the partition quality analysis
-#   * Inputs: the data_csv directory containing the events, rsvps and group csv 
-#             files
-#   * Outputs: the data_output directory with the data_partitions.csv file 
-#              containing the events by city partitioned chronologically and; the 
-#              data_partition_analysis-member_count.png figure with histograms
-#              that support the analysis of the partitions by counting the  
-#              members per data split (train and test).
+# File:
+#   * Description: 
+#   * Inputs: 
+#   * Outputs: 
 # =============================================================================
 
 # =============================================================================
@@ -47,7 +40,7 @@ library(stringr, warn.conflicts=F, quietly=T, verbose=F)
 library(Hmisc, warn.conflicts=F, quietly=T, verbose=F)
 library(oce, warn.conflicts=F, quietly=T, verbose=F)
 library(data.table, warn.conflicts=F, quietly=T, verbose=F)
-library(reshape, warn.conflicts=F, quietly=T, verbose=F)
+library(reshape2, warn.conflicts=F, quietly=T, verbose=F)
 
 if (Sys.info()['sysname'] == "Linux"){
   library(doMC, warn.conflicts=F, quietly=T, verbose=F)
