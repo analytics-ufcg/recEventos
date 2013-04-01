@@ -47,6 +47,8 @@ if (Sys.info()['sysname'] == "Linux"){
   registerDoMC(2)
 }else{
   library(doSNOW, warn.conflicts=F, quietly=T, verbose=F)
+#   registerDoSNOW(makeCluster(1, type = "SOCK"))
+  
 }
 
 

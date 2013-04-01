@@ -68,7 +68,7 @@ CreateRecEnvironment <- function(){
   # Just to order and make the subset in the distance algorithm faster
   setkey(events.with.location, "created")
   
-  rm(member.events, venues, events)
+  rm(venues, events)
   
   environment()
 }
@@ -84,4 +84,32 @@ RecEvents.Distance <- function(member.id, k.events, p.time){
   setkey(candidate.events, "dist")  # Now it is ordered by dist
 
   return(candidate.events[1:min(k.events, nrow(candidate.events)), id])
+}
+
+RecEvents.Popularity <- function(member.id, k.events, p.time){
+  
+  member <- subset(members, id == member.id)
+  
+  candidate.events <- subset(events.with.location, created <= p.time & time >= p.time)
+  
+  candidate.events$dist <- geodDist(candidate.events$lat, candidate.events$lon, 
+                                    member$lat, member$lon)
+  
+  # Select the events < 15 km
+  candidate.events <- subset(candidate.events, dist <= 15)
+  
+  # Sort by popularity (before rsvp_time)
+  events.result <-  count(subset(member.events, rsvp_time < p.time & 
+                                event_id %in% candidate.events$id), "event_id")
+  
+  if(nrow(events.result) != 0){
+    # Just sort and DONE!
+    events.result <- events.result[order(events.result$freq, decreasing = T), ]
+  }else{
+    # RANDOOOMMM!!!
+    events.result <- candidate.events[sample(1:nrow(candidate.events),k.events),]
+  }
+  
+  return(events.result[1:min(k.events, nrow(events.result)), id])
+  
 }

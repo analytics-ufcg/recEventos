@@ -70,7 +70,7 @@ if (length(partition.files) <= 0){
 
 # Number of recommended events
 k <- 5
-algorithms <- c("Distance") # c("Distance", "Popularity", "Topic", "Weighted")
+algorithms <- c("Popularity") # c("Distance", "Popularity", "Topic", "Weighted")
 
 rec.environment <- CreateRecEnvironment()
 
@@ -89,8 +89,8 @@ for (rec.fun.name in algorithms){
 
     print(noquote(paste("   Started running at: ", Sys.time(), sep = "")))
     
-    rec.events.df <- ddply(idata.frame(partitions), .(member_id, partition),
-                           RecommendPerPartition, k, .parallel = T, .progress = "text",
+    rec.events.df <- ddply(idata.frame(partitions[1:10,]), .(member_id, partition),
+                           RecommendPerPartition, k, .parallel = F, .progress = "text",
                            rec.fun)
     rec.events.df$algorithm <- rep(rec.fun.name, nrow(rec.events.df))
     
