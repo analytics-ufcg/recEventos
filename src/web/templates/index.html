@@ -182,7 +182,8 @@
 	function changeCity(city){
 
 		console.log("From city "+current_city+" to city "+city);
-		$("#user-list-header").html("Users at "+city);
+		$("#user-list-header").html("Loading users...");
+		$("#user-list").html("<img src='static/ajax-loader.gif></img>");
 
 		$("#city_"+city.replace(" ", "_")).addClass("active");
 		if ( current_city != null && current_city != "" && current_city != city ){
@@ -204,6 +205,8 @@
 			$("#user-list").html(user_list);
 			$("#cities_button").html(city);
 			current_user = null;
+			$("#user-list-header").html("Users at "+city);
+
 		}
 		else{
 			$.get("load_city/"+city.replace(" ", "_"), function(data){
@@ -230,6 +233,7 @@
 				$("#user-list").html(user_list);
 				$("#cities_button").html(city);
 				current_user = null;
+				$("#user-list-header").html("Users at "+city);
 			});
 		}
 
@@ -341,6 +345,9 @@
 			id_to_user_marker[users[i].id] = i;
 			var chooseUserClosure = chooseUser(users[i]);
 			google.maps.event.addListener(user_marker, 'click', chooseUserClosure);
+
+			var user_details = showUserDetails(users[i]);
+			google.maps.event.addListener(user_marker, 'dblclick', user_details);
 			close_users.push(users[i]);
 		}
 	}
@@ -373,7 +380,7 @@
 
 					var event_status = getEventStatus(events[i], user_events);
 					var status_icon = determineIcon(event_status);
-					var event_details = showDetails(user, events[i], event_status);
+					var event_details = showEventDetails(user, events[i], event_status);
 					
 					var event_marker = new google.maps.Marker({position : new google.maps.LatLng(events[i].lat, events[i].lon),
 								map : map,
@@ -402,13 +409,63 @@
 		return "ok";
 	}
 
-	function showDetails(user, event, status){
+	function determineRowColor(status){
+		if ( status == 'ok' ){
+			return 'info';
+		}
+	}
+
+	function determineStatusMsg(status){
+		if ( status == 'ok' ){
+			return 'status';
+		}
+	}
+
+	function showEventDetails(user, event, status){
 		function doShowDetails(){
 
 			$("#event_details_body").html("<img src='static/ajax-loader.gif'></img>");
 			$("#event_details").modal('show');
 
 			var content = "<p><span class='label label-info'>"+user.name+"</span> from <span class='label label-success'>"+user.city+"</span> went to </p><p>this event <span class='label label-inverse'>\""+event.name+"\"</span></p><p>at <span class='label label-inverse'>"+event.venue_name+"</span>, <span class='label label-success'>"+event.venue_city+"</span></p><p> on <span class='label label-warning'>"+event.time+"</span>.</p>";
+			$("#event_details_body").html(content);
+
+		}
+		return doShowDetails;
+	}
+
+	function showUserDetails(user){
+		function doShowDetails(){
+
+			$("#event_details_body").html("<img src='static/ajax-loader.gif'></img>");
+			$("#event_details").modal('show');
+
+			var content = "<p><span class='label label-info'>"+user.name+"</span> from <span class='label label-success'>"+user.city+"</span> went to the following events:</p>";
+
+			content += "<table class='table table-striped table-bordered table-hover'>";
+			content += "<tr><td><strong>Name</strong></td><td><strong>Venue</strong></td><td><strong>Time</strong></td><td><strong>Status</strong></td></tr>";
+	
+			var events = city_events[current_city];
+			var user_events = user.events;
+			events.sort(sortbyLatLng);
+
+			for (var i=0; i<events.length; i++ ){
+
+				for (var j=0; j<user_events.length; j++ ){
+					if ( user_events[j] == events[i].id ){
+						var status = getEventStatus(events[i], user_events);
+						var status_color = determineRowColor(status);
+						var status_msg = determineStatusMsg(status);
+						content += "<tr class='"+status_color+"'><td>" + events[i].name + "</td><td>@" + events[i].venue_name + "</td><td>" + events[i].time + "</td><td>"+status_msg+"</td></tr>";
+						break;
+					}
+				}
+
+			};
+
+
+			content += "</table>";
+
 			$("#event_details_body").html(content);
 
 		}
