@@ -293,14 +293,14 @@
 	function chooseUserById(user_id){
 		for ( i in city_members[current_city] ){
 			if ( city_members[current_city][i].id == user_id ){
-				var doIt = chooseUser(city_members[current_city][i]);
+				var doIt = chooseUser(city_members[current_city][i], false);
 				doIt();
 				break;
 			}
 		}
 	}
 
-	function chooseUser(user){
+	function chooseUser(user, scroll){
 
 		console.log("binding function of user "+user.name+" ("+user.id+")");
 
@@ -317,7 +317,10 @@
 			$("#user-list-item_"+user.id).addClass("active");
 			user_markers[id_to_user_marker[user.id]].marker.setIcon('static/chosen-user-pin.png');
 			user_markers[id_to_user_marker[user.id]].marker.setZIndex(100);
-			window.location = "#user-list-item_"+user.id;
+
+			if ( scroll ){
+				window.location = "#user-list-item_"+user.id;
+			}
 
 			current_user = user;
 
@@ -354,7 +357,7 @@
 						zIndex : 0	});
 			user_markers.push({ 'marker' : user_marker, 'user' : users[i] });
 			id_to_user_marker[users[i].id] = i;
-			var chooseUserClosure = chooseUser(users[i]);
+			var chooseUserClosure = chooseUser(users[i], true);
 			google.maps.event.addListener(user_marker, 'click', chooseUserClosure);
 
 			var user_details = showUserDetails(users[i]);
