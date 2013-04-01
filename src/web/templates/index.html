@@ -41,12 +41,12 @@
 				<div class="row span9">
 					<div class="span4">
 						<span class="label label-inverse">Current city:</span>
-						<button id="cities_button" class="btn btn-large btn-inverse btn-block" type="button">Loading...</button>
+						<button id="cities_button" class="btn btn-large btn-inverse btn-block disabled" type="button">Loading...</button>
 					</div>
 					<div class="span4">
 						<span class="label label-inverse">Current technique:</span>
 						<div class="dropdown">
-							<a id="algs_button" class="dropdown-toggle btn btn-large btn-inverse btn-block" data-toggle="dropdown" type="button" href="#">None</a>
+							<a id="algs_button" class="dropdown-toggle btn btn-large btn-inverse btn-block disabled" data-toggle="dropdown" type="button" href="#">None</a>
 							<ul class="dropdown-menu" role="menu">
 								<li><a tabindex="-1" href="#" onclick="setRecommender('none');">None</a></li>
 								<li><a tabindex="-1" href="#" onclick="setRecommender('distance');">Distance</a></li>
@@ -203,6 +203,10 @@
 	function changeCity(city){
 
 		console.log("From city "+current_city+" to city "+city);
+
+		$("#algs_button").addClass("disabled");
+		$("#algs_button").html("None");
+
 		$("#user-list-header").html("Loading users...");
 		$("#user-list").html("<img src='static/ajax-loader-enhanced.gif'></img>");
 
@@ -326,6 +330,9 @@
 		function doChooseAndPinEvents(){
 
 			console.log("calling function of user "+user.name+" ("+user.id+")");
+
+			$("#algs_button").html("None");
+			$("#algs_button").removeClass("disabled");
 
 			if ( current_user != null && current_user.id != user.id ){
 				$("#user-list-item_"+current_user.id).removeClass("active");
@@ -516,17 +523,22 @@
 
 		if ( recommender == 'none' ){
 			$("#algs_button").html("None");
-			changeCity(current_city);
+			var c = chooseUser(current_user, true);
+			c();
 			return;
 		}
 		if ( recommender == 'distance' ){
 			$("#algs_button").html("Distance");
 		}
 
+		if ( current_user == null ){
+			return;
+		}
+
 		removeEventMarkers();
 
 		var events_source = city_events[current_city];
-		var user_events = user.events;
+		var user_events = current_user.events;
 		events_source.sort(sortbyLatLng);
 
 		var rec_events = city_rec_events[current_city];
@@ -575,7 +587,7 @@
 
 			var event_status = all_events.status;
 			var status_icon = determineIcon(event_status);
-			var event_details = showEventDetails(user, events_source[i], event_status);
+			var event_details = showEventDetails(current_user, events_source[i], event_status);
 					
 			var event_marker = new google.maps.Marker({position : new google.maps.LatLng(events_source[i].lat, events_source[i].lon),
 						map : map,
