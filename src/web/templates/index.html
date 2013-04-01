@@ -409,7 +409,7 @@
 		return "ok";
 	}
 
-	function determineRowColor(status){
+	function getColor(status){
 		if ( status == 'ok' ){
 			return 'info';
 		}
@@ -449,20 +449,30 @@
 			var user_events = user.events;
 			events.sort(sortbyLatLng);
 
+			var table_content = "";
+
+			var status_counts = { 'ok' : 0 };
+			var num_events = 0;
+			
 			for (var i=0; i<events.length; i++ ){
 
 				for (var j=0; j<user_events.length; j++ ){
 					if ( user_events[j] == events[i].id ){
 						var status = getEventStatus(events[i], user_events);
-						var status_color = determineRowColor(status);
+						var status_color = getColor(status);
 						var status_msg = determineStatusMsg(status);
-						content += "<tr class='"+status_color+"'><td>" + events[i].name + "</td><td>@" + events[i].venue_name + "</td><td>" + events[i].time + "</td><td>"+status_msg+"</td></tr>";
+						table_content += "<tr class='"+status_color+"'><td>" + events[i].name + "</td><td>@" + events[i].venue_name + "</td><td>" + events[i].time + "</td><td>"+status_msg+"</td></tr>";
+						status_counts[status] = status_counts[status] + 1;
+						num_events += 1;
 						break;
 					}
 				}
 
 			};
 
+			content += "<span class='label label-"+getColor(status)+"'>ok: </span>"+((status_counts['ok']/num_events)*100)+"%";
+
+			content += table_content;
 
 			content += "</table>";
 
