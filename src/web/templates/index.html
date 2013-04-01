@@ -45,12 +45,17 @@
 					</div>
 					<div class="span4">
 						<span class="label label-inverse">Current technique:</span>
-						<button id="algs_button" class="btn btn-large btn-inverse btn-block" data-toggle="dropdown" type="button">None</button>
+						<div class="dropdown">
+							<a id="algs_button" class="dropdown-toggle btn btn-large btn-inverse btn-block" data-toggle="dropdown" type="button" href="#">None</a>
+							<ul class="dropdown-menu" role="menu">
+								<li><a tabindex="-1" href="#" onclick="setRecommender('distance');">Distance</a></li>
+							</ul>
+						</div>
 					</div>
 				</div>
-				<div class="span4" style="margin-bottom:35px;">
+				<div class="span6" style="margin-bottom:35px;">
 						<h1> RecEventos</h1>
-						<small class="muted"><cite title="Events recommendation - enhanced">RecEventos</cite> &copy2013 FRH-Analytics <cite title="Universidade Federal de Campina Grande">UFCG</cite>/<cite title="Hewlett-Packard">HP</cite></small>
+						<small class="muted"><cite title="Events recommendation - enhanced!">RecEventos</cite> &copy2013 FRH-Analytics <cite title="Universidade Federal de Campina Grande">UFCG</cite>/<cite title="Hewlett-Packard">HP</cite></small>
 				</div>
 			</div>
 		</div>
@@ -91,6 +96,8 @@
     var current_user = null;
     var city_events = {};
     var city_members = {};
+
+    var recommender = 'none';
 
     function mapinitialize() {
     	directionsDisplay = new google.maps.DirectionsRenderer();
@@ -494,6 +501,11 @@
 
 		}
 		return doShowDetails;
+	}
+
+	function setRecommender(rec){
+		recommender = rec;
+		console.log("Recommender: "+rec);
 	}
 
 	$(document).ready(function(){
