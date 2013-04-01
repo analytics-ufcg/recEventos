@@ -40,7 +40,7 @@ library(stringr, warn.conflicts=F, quietly=T, verbose=F)
 library(Hmisc, warn.conflicts=F, quietly=T, verbose=F)
 library(oce, warn.conflicts=F, quietly=T, verbose=F)
 library(data.table, warn.conflicts=F, quietly=T, verbose=F)
-library(reshape, warn.conflicts=F, quietly=T, verbose=F)
+library(reshape2, warn.conflicts=F, quietly=T, verbose=F)
 
 if (Sys.info()['sysname'] == "Linux"){
   library(doMC, warn.conflicts=F, quietly=T, verbose=F)
