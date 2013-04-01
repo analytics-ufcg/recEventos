@@ -30,6 +30,7 @@
 			<li class="divider"></li>
 			<li>
 				<ul id="user-list" class="well nav nav-list" style="height: 87%; overflow-y:scroll;">
+					<img src='static/ajax-loader-enhanced.gif'></img>
 				</ul>
 			</li>
 		</ul>
@@ -77,8 +78,6 @@
     </body>
 	<script src="static/jquery-1.9.1.min.js" language="javascript" type="text/javascript"></script>
 	<script src="static/bootstrap/js/bootstrap.js" language="javascript" type="text/javascript"></script>
-	<script src="static/jquery.localscroll-1.2.7-min.js" language="javascript" type="text/javascript"></script>
-	<script src="static/jquery.scrollTo-1.4.3.1-min.js" language="javascript" type="text/javascript"></script>
 	<script language="javascript">
 	
     var directionDisplay;
@@ -163,6 +162,8 @@
 			$("#loading_message").css("display", "none");
 		});
 
+		$("#user-list").html("<img src='static/ajax-loader-enhanced.gif'></img>");
+
 		city_events[current_city] = [];
 		{% for event in events %}
 		city_events[current_city].push({ 'id' : "{{event.id}}", 'lat' : {{event.lat}}, 'lon' : {{event.lon}}, 'name' : "{{event.name}}", 'venue_name' : "{{event.venue_name}}", 'venue_city' : "{{event.venue_city}}", 'time' : "{{event.time}}" });
@@ -188,7 +189,7 @@
 
 		console.log("From city "+current_city+" to city "+city);
 		$("#user-list-header").html("Loading users...");
-		$("#user-list").html("<img src='static/ajax-loader.gif></img>");
+		$("#user-list").html("<img src='static/ajax-loader-enhanced.gif'></img>");
 
 		$("#city_"+city.replace(" ", "_")).addClass("active");
 		if ( current_city != null && current_city != "" && current_city != city ){
@@ -492,7 +493,6 @@
 	}
 
 	$(document).ready(function(){
-		$("#user-list").localScroll({duration:800});
 		start();	
 	});
 	
