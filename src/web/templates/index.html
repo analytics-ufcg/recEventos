@@ -48,11 +48,9 @@
 						<button id="algs_button" class="btn btn-large btn-inverse btn-block" data-toggle="dropdown" type="button">None</button>
 					</div>
 				</div>
-				<div class="span4">
-					<blockquote class="pull-right">
+				<div class="span4" style="margin-bottom:35px;">
 						<h1> RecEventos</h1>
-						<small><cite title="Events recommendation - enhanced">RecEventos</cite> &copy2013 FRH-Analytics <cite title="Universidade Federal de Campina Grande">UFCG</cite>/<cite title="Hewlett-Packard">HP</cite></small>
-					</blockquote>
+						<small class="muted"><cite title="Events recommendation - enhanced">RecEventos</cite> &copy2013 FRH-Analytics <cite title="Universidade Federal de Campina Grande">UFCG</cite>/<cite title="Hewlett-Packard">HP</cite></small>
 				</div>
 			</div>
 		</div>
@@ -124,7 +122,10 @@
             zoom:11,
             mapTypeId:google.maps.MapTypeId.ROADMAP,
 	    center:cg,
-	    styles:styles
+	    styles:styles,
+	    disableDefaultUI:true,
+	    scaleControl:true,
+	    zoomControl:true
         }
         map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
 	directionsDisplay.setMap(map);

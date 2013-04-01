@@ -15,14 +15,14 @@ def read_events_and_members(city):
 		csv_reader = csv.reader(source)
 		csv_reader.next()
 		for event in csv_reader:
-			#event[0] - event_id; event[1] - event_name; event[2] - event_time; event[3] - venue_lat, event[4] = venue_lon, event[5] - venue_name, event[6] - venue_city
 			events.append({ 'id' : event[0].strip(),
 				'name' : filter(lambda x: x in string.printable, event[1]).strip().encode('utf8').replace("\\", ""),
-				'time' : time.asctime(time.localtime(float(event[3].strip())/1000)).encode('utf8'),
-				'lat' : event[3].strip(),
-				'lon' : event[4].strip(),
-				'venue_name' : filter(lambda x: x in string.printable, event[5]).strip().encode('utf8').replace("\\", ""),
-				'venue_city' : filter(lambda x: x in string.printable, event[6]).strip().encode('utf8').replace("\\", ""),
+				'created' : time.asctime(time.localtime(float(event[3].strip())/1000)).encode('utf8'),
+				'time' : time.asctime(time.localtime(float(event[4].strip())/1000)).encode('utf8'),
+				'lat' : event[4].strip(),
+				'lon' : event[5].strip(),
+				'venue_name' : filter(lambda x: x in string.printable, event[6]).strip().encode('utf8').replace("\\", ""),
+				'venue_city' : filter(lambda x: x in string.printable, event[7]).strip().encode('utf8').replace("\\", ""),
 				})
 
 	print "Loaded "+str(len(events))+" events from ", city
@@ -33,7 +33,13 @@ def read_events_and_members(city):
 		csv_reader.next()
 		for user in csv_reader:
 			#user[0] - id; user[3] - name; user[2] - longitude; user[1] - latitude
-			user_info = { 'id' : user[0].strip(), 'name' : filter(lambda x: x in string.printable, user[3]).strip().encode('utf8').replace("\\", ""), 'lon' : user[2].strip(), 'lat' : user[1].strip(), 'city' : filter(lambda x: x in string.printable, user[4]).strip().encode('utf8').replace("\\", "")  }
+			user_info = { 'id' : user[0].strip(),
+					'name' : filter(lambda x: x in string.printable, user[3]).strip().encode('utf8').replace("\\", ""),
+					'lon' : user[2].strip(),
+					'lat' : user[1].strip(),
+					'city' : filter(lambda x: x in string.printable, user[4]).strip().encode('utf8').replace("\\", ""),
+					'p_time' : user[6],
+					'rec_distance' : user[7]}
 
 			user_info["events"] = user[5]
 			users.append( user_info )
