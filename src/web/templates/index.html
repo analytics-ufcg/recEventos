@@ -56,6 +56,7 @@
 			</div>
 		</div>
 		<div class="row">
+			<div id="map_loading" class="alert alert-info"><strong>Welcome!</strong> Loading map...</div>
 			<div id="map_canvas" style="height:86%; width:100%;"></div>
 		</div>
 	</div>
@@ -157,6 +158,10 @@
 		$("#user-list-header").html("Users at Arlington");
 		current_city = "Arlington";
 		$("#cities_button").html("Arlington");
+
+		google.maps.event.addListener(map, 'tilesloaded', function(){
+			$("#map_loading").css("display", "none");
+		});
 
 		city_events[current_city] = [];
 		{% for event in events %}
