@@ -27,6 +27,21 @@ def read_events_and_members(city):
 
 	print "Loaded "+str(len(events))+" events from ", city
 
+	rec_events = []
+	with open(os.path.join("src", "web", "files", city, "rec_events.csv"), 'r') as source:
+		csv_reader = csv.reader(source)
+		csv_reader.next()
+		for rec_event in csv_reader:
+			rec_events.append({'id' : rec_event[0].strip(),
+				'name' : filter(lambda x: x in string.printable, rec_event[1]).strip().encode('utf8').replace("\\", ""),
+				'lat' : rec_event[2].strip(),
+				'lon' : rec_event[3].strip(),
+				'venue_name' : filter(lambda x: x in string.printable, rec_event[4]).strip().encode('utf8').replace("\\", ""),
+				'venue_city' : filter(lambda x: x in string.printable, rec_event[5]).strip().encode('utf8').replace("\\", ""),
+				})
+
+	print "Loaded "+str(len(rec_events))+" recommended events from ", city
+
 	users = []
 	with open(os.path.join("src", "web", "files", city, "members.csv"), 'r') as source:
 		csv_reader = csv.reader(source)
@@ -46,19 +61,20 @@ def read_events_and_members(city):
 			
 	print "Loaded "+str(len(users))+" users from ", city
 
-	return ( events, users )
+	return ( events, rec_events, users )
 
 @app.route('/')
 def index():
 
 	r = read_events_and_members("Arlington")
 	events = r[0]
-	users = r[1]
+	rec_events = r[1]
+	users = r[2]
 
 	cities = [ "Addison", "Allen", "Arlington", "Bedford", "Berkeley", "Burlingame",
 "Campbell", "Carlsbad", "Carrollton", "Chula Vista", "Cupertino", "Dallas",
 "Dublin", "El Cajon", "Encinitas", "Escondido", "Euless", "Flower Mound",
-"Fort Worth", "Fremont", "Frisco", "Garland", "Grand Prairie", "Grapevine",
+"Fort Worth", "Fremont", "Frisco", "Garland", "Grapevine",
 "Irving", "La Jolla", "La Mesa", "Lewisville", "Los Altos", "Los Gatos",
 "Menlo Park", "Milpitas", "Mountain View", "Oakland", "Oceanside", "Palo Alto",
 "Plano", "Pleasanton", "Poway", "Redwood City", "Richardson", "San Carlos",
@@ -66,17 +82,18 @@ def index():
 "Santa Clara", "Santa Cruz", "Sunnyvale" ]
 
 	print "index will send data now"
-	return render_template("index.html", users=users, events=events, cities=cities)
+	return render_template("index.html", users=users, events=events, cities=cities, rec_events=rec_events)
 
 @app.route('/load_city/<city>')
 def load_city(city=None):
 
 	r = read_events_and_members(city.replace("_", " "))
 	events = r[0]
-	users = r[1]
+	rec_events = r[1]
+	users = r[2]
 
 	print "load city will send data now"
-	return json.dumps({ 'events' : events, 'users' : users })
+	return json.dumps({ 'events' : events, 'users' : users, 'rec_events' : rec_events })
 
 if __name__ == "__main__":
 	port = int(os.environ.get('PORT', 5000))

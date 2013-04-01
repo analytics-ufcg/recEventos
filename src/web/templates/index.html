@@ -515,8 +515,12 @@
 		recommender = rec;
 
 		if ( recommender == 'none' ){
+			$("#algs_button").html("None");
 			changeCity(current_city);
 			return;
+		}
+		if ( recommender == 'distance' ){
+			$("#algs_button").html("Distance");
 		}
 
 		removeEventMarkers();
