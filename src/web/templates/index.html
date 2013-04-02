@@ -589,13 +589,31 @@
 		}
 	}
 
+	function determineZIndex(status){
+		if ( status == "no_algorithm" ){
+			return 200;
+		}
+		else if ( status == "already_happened" || status == "will_still_happen"	){
+			return 200;
+		}
+		else if ( status == "recommendation_hit" ){
+			return 500;
+		}
+		else if ( status == "recommendation_miss" ){
+			return 400;
+		}
+		else if ( status == "recommendation_dismissed" ){
+			return 300;
+		}
+	}
+
 	function showEventDetails(user, event, status){
 		function doShowDetails(){
 
 			$("#event_details_body").html("<img src='static/ajax-loader.gif'></img>");
 			$("#event_details").modal('show');
 
-			var content = "<p><h3>"+user.name+"</h3> <span class='muted'>from "+user.city+": </p>";
+			var content = "<p class='text-center'><span class='lead'>"+user.name+"</span> <span class='muted'>from "+user.city+": </span></p>";
 
 			if ( status != "recommendation_dismissed" ){
 				content += "<p class='lead'>went to this event <strong>"+event.name+"</strong>,</p>";
@@ -603,8 +621,8 @@
 			else{
 				content += "<p class='lead'>didn't go to this event <strong>"+event.name+"</strong>,</p>";
 			}
-			content += "<small>which happened at <em>"+event.venue_name+"</em>, <em>"+event.venue_city+"</em> on "+event.time+".</small>";
-			content += "<small>By the way, this event was created on "+event.created+".</small>";
+			content += "<p><small>which happened at <em>"+event.venue_name+"</em>, <em>"+event.venue_city+"</em> on <em>"+event.time+"</em>.</small></p>";
+			content += "<p><small>By the way, this event was created on <em>"+event.created+"</em>.</small></p>";
 
 			if ( status == "recommendation_hit" ){
 				content += "<small>This event was recommended by our "+$("#algs_button").html()+" recommender and</small>";
@@ -613,16 +631,26 @@
 			}
 			else if ( status == "recommendation_miss" ){
 				content += "<small>This event was NOT recommended by our "+$("#algs_button").html()+" recommender so,</small>";
-				content += "<p class='lead'>it was a <span class='label label-danger'>miss!!</span></p>";
-				content += "<small>This means that the user went to this event, yet our recommender failed to recommend this.</small>";i
+				content += "<p class='lead'>it was a <span class='label label-important'>miss!!</span></p>";
+				content += "<small>This means that the user went to this event, yet our recommender failed to recommend this.</small>";
 			}
 			else if ( status == "recommendation_dismissed" ){
 				content += "<small>This event was recommended by our "+$("#algs_button").html()+" recommender and</small>";
 				content += "<p class='lead'>it was <span class='label label-warning'>dismissed!!</span></p>";
-				content += "<small>This means that the user simply didn't accepted the recommendation and didn't go to the event.</small>";i
+				content += "<small>This means that the user simply didn't accepted the recommendation and didn't go to the event.</small>";
+			}
+			else if ( status == "already_happened" ){
+				content += "<small>This event was NOT recommended by our "+$("#algs_button").html()+" recommender.</small>";
+				content += "<p class='lead'>In fact, it <span class='label'>already happened</span>, so it can't be recommended (obviously!).</p>";
+				content += "<small>On the other hand, this event was used by our recommender to figure out which events to recommend to the user.</small>";
+			}
+			else if ( status == "will_still_happen" ){
+				content += "<small>This event was NOT recommended by our "+$("#algs_button").html()+" recommender.</small>";
+				content += "<p class='lead'>In fact, it <span class='label label-inverse'>didn't happen yet</span>; It wasn't even created yet(!?)...</p>";
+				content += "<small>What this means is that, by the time the recommender algorithm was run, these events weren't yet created, so naturally, they couldn't be recommended yet...</small>";
 			}
 			else{
-				content += "<small>Hey, to see how our recommenders behaved regarding this user and event, please pick one algorithm/technique first among the ones available...</small>";
+				content += "<small>Hey, to see how our recommenders behaved in which concerns this particular user and event, please pick one algorithm/technique first, among the ones available...</small>";
 			}
 
 			$("#event_details_body").html(content);
@@ -773,7 +801,6 @@
 			}
 		}
 
-		console.log("ael: "+all_events.length);
 
 		for ( var i=0; i<all_events.length; i++ ){
 
@@ -781,10 +808,7 @@
 			var status_icon = determineIcon(event_status);
 			var status_icon_shadow = determineIconShadow(event_status);
 			var event_details = showEventDetails(current_user, all_events[i], event_status);
-			
-			console.log(all_events[i]);
-			console.log(status_icon);
-			console.log(status_icon_shadow);
+			var status_zIndex = determineZIndex(event_status);
 
 			var event_marker = new google.maps.Marker({position : new google.maps.LatLng(all_events[i].lat, all_events[i].lon),
 						map : map,
@@ -792,7 +816,7 @@
 						icon : status_icon,
 						shadow : status_icon_shadow,
 						draggable : true,
-						zIndex : 200	});
+						zIndex : status_zIndex	});
 			event_markers.push({ 'marker' : event_marker, 'event' : all_events[i] });
 			google.maps.event.addListener(event_marker, 'click', event_details);
 		}
