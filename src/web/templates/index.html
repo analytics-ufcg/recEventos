@@ -238,12 +238,6 @@
 
 	function changeCity(city){
 
-		console.log("From city "+current_city+" to city "+city);
-
-//		$("#algs_button").addClass("disabled");
-//		$("#algs_button").html("None");
-//		recommender = 'none'
-
 		$("#user-list-header").html("Loading users...");
 		$("#user-list").html("<img src='static/ajax-loader-enhanced.gif'></img>");
 
@@ -399,15 +393,7 @@
 
 	function chooseUser(user, scroll){
 
-		console.log("binding function of user "+user.name+" ("+user.id+") - scroll: "+scroll);
-
 		function doChooseAndPinEvents(){
-
-			console.log("calling function of user "+user.name+" ("+user.id+")");
-
-//			$("#algs_button").html("None");
-//			$("#algs_button").removeClass("disabled");
-//			recommender = 'none';
 
 			if ( current_user != null && current_user.id != user.id ){
 				$("#user-list-item_"+current_user.id).removeClass("active");
@@ -418,8 +404,6 @@
 			$("#user-list-item_"+user.id).addClass("active");
 			user_markers[id_to_user_marker[user.id]].marker.setIcon('static/chosen-user-pin.png');
 			user_markers[id_to_user_marker[user.id]].marker.setZIndex(100);
-
-			console.log("About to scroll? "+scroll);
 
 			current_user = user;
 
@@ -631,27 +615,27 @@
 			content += "<p><small>By the way, this event was created on <em>"+event.created+"</em>.</small></p>";
 
 			if ( status == "recommendation_hit" ){
-				content += "<small>This event was recommended by our "+$("#algs_button").html()+" recommender and</small>";
+				content += "<small>This event was recommended by our "+$.trim($("#algs_button").html())+" recommender and</small>";
 				content += "<p class='lead'>it was a <span class='label label-success'>hit!!</span></p>";
 				content += "<small>This means that the user accepted the recommendation and went to this event.</small>";
 			}
 			else if ( status == "recommendation_miss" ){
-				content += "<small>This event was NOT recommended by our "+$("#algs_button").html()+" recommender so,</small>";
+				content += "<small>This event was NOT recommended by our "+$.trim($("#algs_button").html())+" recommender so,</small>";
 				content += "<p class='lead'>it was a <span class='label label-important'>miss!!</span></p>";
 				content += "<small>This means that the user went to this event, yet our recommender failed to recommend this.</small>";
 			}
 			else if ( status == "recommendation_dismissed" ){
-				content += "<small>This event was recommended by our "+$("#algs_button").html()+" recommender and</small>";
+				content += "<small>This event was recommended by our "+$.trim($("#algs_button").html())+" recommender and</small>";
 				content += "<p class='lead'>it was <span class='label label-warning'>dismissed!!</span></p>";
 				content += "<small>This means that the user simply didn't accepted the recommendation and didn't go to the event.</small>";
 			}
 			else if ( status == "already_happened" ){
-				content += "<small>This event was NOT recommended by our "+$("#algs_button").html()+" recommender.</small>";
+				content += "<small>This event was NOT recommended by our "+$.trim($("#algs_button").html())+" recommender.</small>";
 				content += "<p class='lead'>In fact, it <span class='label'>already happened</span>, so it can't be recommended (obviously!).</p>";
 				content += "<small>On the other hand, this event was used by our recommender to figure out which events to recommend to the user.</small>";
 			}
 			else if ( status == "will_still_happen" ){
-				content += "<small>This event was NOT recommended by our "+$("#algs_button").html()+" recommender.</small>";
+				content += "<small>This event was NOT recommended by our "+$.trim($("#algs_button").html())+" recommender.</small>";
 				content += "<p class='lead'>In fact, it <span class='label label-inverse'>didn't happen yet</span>; It wasn't even created yet(!?)...</p>";
 				content += "<small>What this means is that, by the time the recommender algorithm was run, these events weren't yet created, so naturally, they couldn't be recommended yet... But at a later point in time, the user DID go to this event.</small>";
 			}
@@ -714,14 +698,6 @@
 
 	function setRecommender(rec, user){
 
-		console.log("showing recommended rec: "+rec+" for user:");
-		console.log(user);
-
-/*		if ( recommender == rec ) ){
-			console.log("This is true!");
-			return;
-		}*/
-
 		if ( rec == 'none' ){
 			$("#algs_button").html("<i class='icon-remove icon-white'></i> None");
 		}
@@ -744,13 +720,17 @@
 			return;
 		}
 
+		pinUserRecommendationsInMap(rec);
+	}
+
+	function pinUserRecommendationsInMap(rec){
+
 		removeEventMarkers();
 
 		var events_source = city_events[current_city];
 		var user_events = current_user.events;
 		events_source.sort(sortbyLatLng);
 
-//		var rec_events = city_rec_events[current_city];
 		var all_events = [];
 
 		var p_time = current_user.p_time;	
