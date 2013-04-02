@@ -46,6 +46,20 @@ cat("Read and select the partitions (just the first one)\n")
 member.partitions <- ReadAllCSVs(dir="data_output/partitions/", obj_name="member_partitions")
 member.partitions <- subset(member.partitions, partition == 1, c("member_id", "max_intersect_events"))
 
+# Read the recommendation files
+cat("Read the recommendation files: Distance Algorithm...\n")
+rec.events.distance <- ReadAllCSVs("data_output/recommendations/", "rec_events_distance")
+rec.events.distance$partition <- NULL
+rec.events.distance$algorithm <- NULL
+rec.events.distance <- rec.events.distance[order(rec.events.distance$member_id),]
+
+# TODO (Augusto): Replicate the code above, changing the algorithm
+# cat("Read the recommendation files: Distance Algorithm...\n")
+# rec.events.distance <- ReadAllCSVs("data_output/recommendations/", "rec_events_distance")
+# rec.events.distance$partition <- NULL
+# rec.events.distance$algorithm <- NULL
+# rec.events.distance <- rec.events.distance[order(rec.events.distance$member_id),]
+
 # ------------------------------------------------------------------------------
 # Visualization Constraint: The member_city should always be in venues_city, but
 # the opposite is not right because there are 1956 venues with other venue_city
@@ -82,10 +96,10 @@ member.partitions <- subset(member.partitions, member_id %in% members$member_id)
 # Merging the events with venues and excluding the venue
 cat("Merging the EVENTs with VENUEs...\n")
 events.with.venue <- merge(events, venues, by = "venue_id")[,c("event_id", "event_name", 
-                                                               "event_time",
+                                                               "event_created", "event_time",
                                                                "venue_lat", "venue_lon",
                                                                "venue_name", "venue_city")]
-colnames(events.with.venue) <- c("event_id", "event_name", "event_time",
+colnames(events.with.venue) <- c("event_id", "event_name", "event_created", "event_time",
                                  "event_venue_lat", "event_venue_lon", "venue_name", 
                                  "venue_city")
 rm(venues)
@@ -105,6 +119,26 @@ cat("Merging the max.intersect.events of the MEMBERs with the MEMBERs data...\n"
 members <- merge(members, member.partitions, by = "member_id")
 
 rm(events, member.all.events, member.partitions)
+
+# Selecting the Recommended Events per Member
+member.rec.events <- rec.events.distance[,c("member_id", "p_time")]
+
+rec.events.distance$p_time <- NULL
+member.rec.events$rec_events_distance <- ddply(rec.events.distance, .(member_id), function(m.rec.events){
+  data.frame(events = paste(m.rec.events[,2:(ncol(m.rec.events))], collapse = ","))
+}, .progress = "text")$events
+
+# TODO (Augusto): Replicate the code above, changing the algorithm
+# rec.events.distance$p_time <- NULL
+# member.rec.events$rec_events_distance <- ddply(rec.events.distance, .(member_id), function(m.rec.events){
+#   data.frame(events = paste(m.rec.events[,2:(ncol(m.rec.events))], collapse = ","))
+# }, .progress = "text")$events
+
+# Merging the Rec_Event with the MEMBERs
+cat("Merging the REC_EVENTs of the MEMBERs with its data...\n")
+members <- merge(members, member.rec.events, by = "member_id")
+
+rm(member.rec.events)
 
 # -----------------------------------------------------------------------------
 # PERSISTING ORGANIZEDLY
@@ -135,8 +169,18 @@ d_ply(members, .(member_city), function(memb.df){
   event.ids <- subset(member.events, member_id %in% memb.df$member_id)$event_id
   event.df <- subset(events.with.venue, event_id %in% event.ids)
   
+  # Select rec events
+  # TODO (Augusto): change the indices below, after the algorithms vvv
+  rec.event.ids <- unique(strsplit(paste(sapply(memb.df[,ncol(memb.df)], 
+                                                function(recs){paste(recs, collapse = ",")}), 
+                                         collapse = ","), ",")[[1]])
+  rec.event.df <- subset(events.with.venue, event_id %in% rec.event.ids)
+  rec.event.df$event_created <- NULL
+  rec.event.df$event_time <- NULL
+  
   # Persist the result
   write.csv(memb.df, paste(view.dir, city, "/members.csv", sep = ""), row.names = F)
   write.csv(event.df, paste(view.dir, city, "/events.csv", sep = ""), row.names = F)
+  write.csv(rec.event.df, paste(view.dir, city, "/rec_events.csv", sep = ""), row.names = F)
   
 }, .progress = "text")
