@@ -60,7 +60,7 @@
 				</div>
 				<div class="span4" style="margin-bottom:35px;">
 						<h1> RecEventos</h1>
-						<small class="muted"><cite title="Events recommendation - enhanced!">RecEventos</cite> &copy2013 FRH-Analytics <cite title="Universidade Federal de Campina Grande">UFCG</cite>/<cite title="Hewlett-Packard">HP</cite></small>
+						<small class="muted"><cite title="Events recommendation, only enhanced!">RecEventos</cite> &copy2013 FRH-Analytics <cite title="Universidade Federal de Campina Grande">UFCG</cite>/<cite title="Hewlett-Packard">HP</cite></small>
 				</div>
 			</div>
 		</div>
@@ -242,6 +242,7 @@
 
 		$("#algs_button").addClass("disabled");
 		$("#algs_button").html("None");
+		recommender = 'none'
 
 		$("#user-list-header").html("Loading users...");
 		$("#user-list").html("<img src='static/ajax-loader-enhanced.gif'></img>");
@@ -406,6 +407,7 @@
 
 			$("#algs_button").html("None");
 			$("#algs_button").removeClass("disabled");
+			recommender = 'none';
 
 			if ( current_user != null && current_user.id != user.id ){
 				$("#user-list-item_"+current_user.id).removeClass("active");
@@ -493,15 +495,16 @@
 					c_lat = parseFloat(events[i].lat);
 
 
-					var event_status ="ok";
+					var event_status ="no_algorithm";
 					var status_icon = determineIcon(event_status);
+					var status_icon_shadow = determineIconShadow(event_status);
 					var event_details = showEventDetails(user, events[i], event_status);
 					
 					var event_marker = new google.maps.Marker({position : new google.maps.LatLng(events[i].lat, events[i].lon),
 								map : map,
 								title : events[i].name + " at " + events[i].venue_name + ", " + events[i].venue_city,
 								icon : status_icon,
-								shadow : 'static/shadow-event-pin.png',
+								shadow : status_icon_shadow,
 								draggable : true,
 								zIndex : 200	});
 					event_markers.push({ 'marker' : event_marker, 'event' : events[i] });
@@ -515,20 +518,74 @@
 	}
 
 	function determineIcon(status){
-		if ( status == "ok" ){
-			return 'static/event-pin.png';
+		if ( status == "no_algorithm" ){
+			return 'static/unclassified-event-pin.png';
+		}
+		else if ( status == "already_happened" || status == "will_still_happen"	){
+			return 'static/disconsidered-event-pin.png';
+		}
+		else if ( status == "recommendation_hit" ){
+			return 'static/recommendation_hit-event-pin.png';
+		}
+		else if ( status == "recommendation_miss" ){
+			return 'static/recommendation_miss-event-pin.png';
+		}
+		else if ( status == "recommendation_dismissed" ){
+			return 'static/recommendation_dismissed-event-pin.png';
+		}
+	}
+
+	function determineIconShadow(status){
+		if ( status == "no_algorithm" ){
+			return 'static/shadow-unclassified-event-pin.png';
+		}
+		else if ( status == "already_happened" || status == "will_still_happen"	){
+			return 'static/shadow-disconsidered-event-pin.png';
+		}
+		else if ( status == "recommendation_hit" ){
+			return 'static/shadow-recommendation_hit-event-pin.png';
+		}
+		else if ( status == "recommendation_miss" ){
+			return 'static/shadow-recommendation_miss-event-pin.png';
+		}
+		else if ( status == "recommendation_dismissed" ){
+			return 'static/shadow-recommendation_dismissed-event-pin.png';
 		}
 	}
 
 	function getColor(status){
-		if ( status == 'ok' ){
+		if ( status == "no_algorithm" ){
 			return 'info';
+		}
+		else if ( status == "already_happened" || status == "will_still_happen"	){
+			return '';
+		}
+		else if ( status == "recommendation_hit" ){
+			return "";
+		}
+		else if ( status == "recommendation_miss" ){
+			return '';
+		}
+		else if ( status == "recommendation_dismissed" ){
+			return '';
 		}
 	}
 
 	function determineStatusMsg(status){
-		if ( status == 'ok' ){
-			return 'status';
+		if ( status == "no_algorithm" ){
+			return 'not classified';
+		}
+		else if ( status == "already_happened" || status == "will_still_happen"	){
+			return '';
+		}
+		else if ( status == "recommendation_hit" ){
+			return "";
+		}
+		else if ( status == "recommendation_miss" ){
+			return '';
+		}
+		else if ( status == "recommendation_dismissed" ){
+			return '';
 		}
 	}
 
@@ -538,9 +595,37 @@
 			$("#event_details_body").html("<img src='static/ajax-loader.gif'></img>");
 			$("#event_details").modal('show');
 
-			var content = "<p><span class='label label-info'>"+user.name+"</span> from <span class='label label-success'>"+user.city+"</span> went to </p><p>this event <span class='label label-inverse'>\""+event.name+"\"</span></p><p>at <span class='label label-inverse'>"+event.venue_name+"</span>, <span class='label label-success'>"+event.venue_city+"</span></p><p> on <span class='label label-warning'>"+event.time+"</span>.</p>";
-			$("#event_details_body").html(content);
+			var content = "<p><h3>"+user.name+"</h3> <span class='muted'>from "+user.city+": </p>";
 
+			if ( status != "recommendation_dismissed" ){
+				content += "<p class='lead'>went to this event <strong>"+event.name+"</strong>,</p>";
+			}
+			else{
+				content += "<p class='lead'>didn't go to this event <strong>"+event.name+"</strong>,</p>";
+			}
+			content += "<small>which happened at <em>"+event.venue_name+"</em>, <em>"+event.venue_city+"</em> on "+event.time+".</small>";
+			content += "<small>By the way, this event was created on "+event.created+".</small>";
+
+			if ( status == "recommendation_hit" ){
+				content += "<small>This event was recommended by our "+$("#algs_button").html()+" recommender and</small>";
+				content += "<p class='lead'>it was a <span class='label label-success'>hit!!</span></p>";
+				content += "<small>This means that the user accepted the recommendation and went to this event.</small>";
+			}
+			else if ( status == "recommendation_miss" ){
+				content += "<small>This event was NOT recommended by our "+$("#algs_button").html()+" recommender so,</small>";
+				content += "<p class='lead'>it was a <span class='label label-danger'>miss!!</span></p>";
+				content += "<small>This means that the user went to this event, yet our recommender failed to recommend this.</small>";i
+			}
+			else if ( status == "recommendation_dismissed" ){
+				content += "<small>This event was recommended by our "+$("#algs_button").html()+" recommender and</small>";
+				content += "<p class='lead'>it was <span class='label label-warning'>dismissed!!</span></p>";
+				content += "<small>This means that the user simply didn't accepted the recommendation and didn't go to the event.</small>";i
+			}
+			else{
+				content += "<small>Hey, to see how our recommenders behaved regarding this user and event, please pick one algorithm/technique first among the ones available...</small>";
+			}
+
+			$("#event_details_body").html(content);
 		}
 		return doShowDetails;
 	}
@@ -569,7 +654,7 @@
 
 				for (var j=0; j<user_events.length; j++ ){
 					if ( user_events[j] == events[i].id ){
-						var status ="ok";
+						var status = "no_algorithm";
 						var status_color = getColor(status);
 						var status_msg = determineStatusMsg(status);
 						table_content += "<tr class='"+status_color+"'><td>" + events[i].name + "</td><td>@" + events[i].venue_name + "</td><td>" + events[i].time + "</td><td>"+status_msg+"</td></tr>";
@@ -594,16 +679,21 @@
 	}
 
 	function setRecommender(rec){
+
+		if ( recommender == rec ){
+			return;
+		}
+
 		recommender = rec;
 
-		if ( recommender == 'none' ){
+		if ( rec == 'none' ){
 			$("#algs_button").html("None");
 			var c = chooseUser(current_user, true);
 			c();
 			return;
 		}
-		if ( recommender == 'distance' ){
-			$("#algs_button").html("Distance");
+		else if ( rec == 'distance' ){
+			$("#algs_button").html("Location Based");
 		}
 
 		if ( current_user == null ){
@@ -616,12 +706,14 @@
 		var user_events = current_user.events;
 		events_source.sort(sortbyLatLng);
 
-		var rec_events = city_rec_events[current_city];
+//		var rec_events = city_rec_events[current_city];
 		var all_events = [];
 
-		var p_time = current_user.p_time;
+		var p_time = current_user.p_time;	
 
-		for ( var i=0; i<events_source.length.lenght; i++ ){
+		var recommended_to_user = current_user['rec_'+rec];
+
+		for ( var i=0; i<events_source.length; i++ ){
 			for ( var j=0; j<user_events.length; j++ ){
 				if ( user_events[j] == events_source[i].id ){
 					if ( events_source[i].time_long < p_time ){
@@ -637,43 +729,72 @@
 						all_events.push(events_source[i]);
 					}
 					else{
-						// CHECK AGAINST 5 RECOMMENDED EVENTS TO CURRENT USER
-						// REMEMBER TO READ RECOMMENTED EVENTS FROM SERVER AND DO PROPER PARSING
-
+						var hit = false;
+						for ( var k=0; k<recommended_to_user.length; k++ ){
+							if ( recommended_to_user[k] == user_events[j] ){
+								//was recommended and accepted, Color 2
+								hit = true;
+								var entry = events_source[i];
+								events_source[i]['status'] = 'recommendation_hit';
+								all_events.push(events_source[i]);
+								break;
+							}
+						}
+						if ( hit == false ){
+							//was not recommended, but user went to this event, Color 3
+							var entry = events_source[i];
+							events_source[i]['status'] = 'recommendation_miss';
+							all_events.push(events_source[i]);
+						}
 					}
+					break;
 				}
 			}
 		}
 
-		for ( var i=0; i<rec_events.length; i++ ){
+		for ( var i=0; i<recommended_to_user.length; i++ ){
 			var found = false;
 			for ( var j=0; j<user_events.length; j++ ){
-				if ( user_events[j] == rec_events[i].id ){
+				if ( user_events[j] == recommended_to_user[i] ){
 					found = true;
 					break;
 				}
 			}
 			if ( !found ){
-				all_events.push(rec_events[i]);
+				for ( var j=0; j<events_source.length; j++ ){
+					if ( recommended_to_user[i] == events_source[j].id ){
+						//was recommended, but user didn't go to this event, Color 4
+						var entry = events_source[i];
+						events_source[i]['status'] = 'recommendation_dismissed';
+						all_events.push(events_source[i]);
+						break;
+					}
+				}
 			}
 		}
 
+		console.log("ael: "+all_events.length);
+
 		for ( var i=0; i<all_events.length; i++ ){
 
-			var event_status = all_events.status;
+			var event_status = all_events[i].status;
 			var status_icon = determineIcon(event_status);
-			var event_details = showEventDetails(current_user, events_source[i], event_status);
-					
-			var event_marker = new google.maps.Marker({position : new google.maps.LatLng(events_source[i].lat, events_source[i].lon),
+			var status_icon_shadow = determineIconShadow(event_status);
+			var event_details = showEventDetails(current_user, all_events[i], event_status);
+			
+			console.log(all_events[i]);
+			console.log(status_icon);
+			console.log(status_icon_shadow);
+
+			var event_marker = new google.maps.Marker({position : new google.maps.LatLng(all_events[i].lat, all_events[i].lon),
 						map : map,
-						title : events_source[i].name + " at " + events_source[i].venue_name + ", " + events_source[i].venue_city,
+						title : all_events[i].name + " at " + all_events[i].venue_name + ", " + all_events[i].venue_city,
 						icon : status_icon,
-						shadow : 'static/shadow-event-pin.png',
+						shadow : status_icon_shadow,
 						draggable : true,
 						zIndex : 200	});
-			event_markers.push({ 'marker' : event_marker, 'event' : events_source[i] });
+			event_markers.push({ 'marker' : event_marker, 'event' : all_events[i] });
 			google.maps.event.addListener(event_marker, 'click', event_details);
-			break;
 		}
 
 	}
