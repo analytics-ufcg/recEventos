@@ -67,7 +67,7 @@
 									<div class="btn-group btn-group-vertical" data-toggle="buttons-checkbox" style="visibility:visible;">
 										<button type="button" class="btn btn-inverse btn-large active" onclick="toggle(0); setRecommender(recommender, current_user);"><i class="icon-heart icon-white"></i> Hits</button>
 										<button type="button" class="btn btn-inverse btn-large active" onclick="toggle(1); setRecommender(recommender, current_user);"><i class="icon-remove icon-white"></i> Misses</button>
-										<button type="button" class="btn btn-inverse btn-large active" onclick="toggle(2); setRecommender(recommender, current_user);"><i class="icon-warning-sign icon-white"></i> Dismisses</button>
+										<button type="button" class="btn btn-inverse btn-large active" onclick="toggle(2); setRecommender(recommender, current_user);"><i class="icon-warning-sign icon-white"></i> Wrongs</button>
 										<button type="button" class="btn btn-inverse btn-large active" onclick="toggle(3); setRecommender(recommender, current_user);"><i class="icon-circle-arrow-left icon-white"></i> Past Events</button>
 										<button type="button" class="btn btn-inverse btn-large active" onclick="toggle(4); setRecommender(recommender, current_user);"><i class="icon-circle-arrow-right icon-white"></i> Future Events</button>
 									</div>
@@ -123,7 +123,7 @@
 
     var recommender = 'none';
 
-    var recommended_stats = { 'already_happened' : 0, 'will_still_happen' : 0, 'recommendation_hit' : 0, 'recommendation_miss' : 0, 'recommendation_dismissed' : 0, 'total_relevant' : 0 };
+    var recommended_stats = { 'already_happened' : 0, 'will_still_happen' : 0, 'recommendation_hit' : 0, 'recommendation_miss' : 0, 'recommendation_wrong' : 0, 'total_relevant' : 0 };
     var all_user_events_and_recommendations = null;
 
     var hits_enabled = true;
@@ -565,8 +565,8 @@
 		else if ( status == "recommendation_miss" ){
 			return 'static/recommendation_miss-event-pin.png';
 		}
-		else if ( status == "recommendation_dismissed" ){
-			return 'static/recommendation_dismissed-event-pin.png';
+		else if ( status == "recommendation_wrong" ){
+			return 'static/recommendation_wrong-event-pin.png';
 		}
 	}
 
@@ -583,8 +583,8 @@
 		else if ( status == "recommendation_miss" ){
 			return 'static/shadow-recommendation_miss-event-pin.png';
 		}
-		else if ( status == "recommendation_dismissed" ){
-			return 'static/shadow-recommendation_dismissed-event-pin.png';
+		else if ( status == "recommendation_wrong" ){
+			return 'static/shadow-recommendation_wrong-event-pin.png';
 		}
 	}
 
@@ -599,10 +599,10 @@
 			return "success";
 		}
 		else if ( status == "recommendation_miss" ){
-			return 'error';
-		}
-		else if ( status == "recommendation_dismissed" ){
 			return 'warning';
+		}
+		else if ( status == "recommendation_wrong" ){
+			return 'error';
 		}
 	}
 
@@ -619,7 +619,7 @@
 		else if ( status == "recommendation_miss" ){
 			return 'miss';
 		}
-		else if ( status == "recommendation_dismissed" ){
+		else if ( status == "recommendation_wrong" ){
 			return 'dismiss';
 		}
 	}
@@ -635,10 +635,10 @@
 			return 500;
 		}
 		else if ( status == "recommendation_miss" ){
-			return 400;
-		}
-		else if ( status == "recommendation_dismissed" ){
 			return 300;
+		}
+		else if ( status == "recommendation_wrong" ){
+			return 400;
 		}
 	}
 
@@ -650,7 +650,7 @@
 
 			var content = "<p class='text-center'><span class='lead'>"+user.name+"</span> <span class='muted'>from "+user.city+": </span></p>";
 
-			if ( status != "recommendation_dismissed" ){
+			if ( status != "recommendation_wrong" ){
 				content += "<p class='lead'>went to this event <strong>"+event.name+"</strong>,</p>";
 			}
 			else{
@@ -666,13 +666,13 @@
 			}
 			else if ( status == "recommendation_miss" ){
 				content += "<small>This event was NOT recommended by our "+$.trim($("#algs_button").text())+" recommender so,</small>";
-				content += "<p class='lead'>it was a <span class='label label-important'>miss!!</span></p>";
+				content += "<p class='lead'>it was a <span class='label label-warning'>miss!!</span></p>";
 				content += "<small>This means that the user went to this event, yet our recommender failed to recommend this.</small>";
 			}
-			else if ( status == "recommendation_dismissed" ){
+			else if ( status == "recommendation_wrong" ){
 				content += "<small>This event was recommended by our "+$.trim($("#algs_button").text())+" recommender and</small>";
-				content += "<p class='lead'>it was <span class='label label-warning'>dismissed!!</span></p>";
-				content += "<small>This means that the user simply didn't accepted the recommendation and didn't go to the event.</small>";
+				content += "<p class='lead'>it was <span class='label label-important'>dismissed!!</span></p>";
+				content += "<small>This means that the recommendation was a bad one, thus the user didn't accept it!!</small>";
 			}
 			else if ( status == "already_happened" ){
 				content += "<small>This event was NOT recommended by our "+$.trim($("#algs_button").text())+" recommender.</small>";
@@ -706,13 +706,13 @@
 			}
 			else{
 
-				content += "<p>have the following stats with recommender "+$.trim($('#algs_button').text())+": </p>";
+				content += "<p>have the following stats from our "+$.trim($('#algs_button').text())+" recommender: </p>";
 
 				content += "<p><span class='label label-success'>Hits:</span> " + recommended_stats['recommendation_hit'] + " (" + ((recommended_stats['recommendation_hit'] / recommended_stats['total_relevant'])*100).toFixed(1) + "%) ";
 
-				content += "<span class='label label-important'>Misses:</span> " + recommended_stats['recommendation_miss'] + " (" + ((recommended_stats['recommendation_miss'] / recommended_stats['total_relevant'])*100).toFixed(1) + "%) ";
+				content += "<span class='label label-warning'>Misses:</span> " + recommended_stats['recommendation_miss'] + " (" + ((recommended_stats['recommendation_miss'] / recommended_stats['total_relevant'])*100).toFixed(1) + "%) ";
 
-				content += "<span class='label label-warning'>Dismisses:</span> " + recommended_stats['recommendation_dismissed'] + " (" + ((recommended_stats['recommendation_dismissed'] / recommended_stats['total_relevant'])*100).toFixed(1) + "%) </p>";
+				content += "<span class='label label-important'>Wrongs:</span> " + recommended_stats['recommendation_wrong'] + " (" + ((recommended_stats['recommendation_wrong'] / recommended_stats['total_relevant'])*100).toFixed(1) + "%) </p>";
 
 				content += "<small>Following are these events:</small>";
 
@@ -799,7 +799,7 @@
 
 		removeEventMarkers();
 
-		var events_source = city_events[current_city];
+		var events_source = city_rec_events[current_city];
 		var user_events = current_user.events;
 		events_source.sort(sortbyLatLng);
 
@@ -809,7 +809,7 @@
 
 		var recommended_to_user = current_user['rec_'+rec];
 
-		recommended_stats = { 'already_happened' : 0, 'will_still_happen' : 0, 'recommendation_hit' : 0, 'recommendation_miss' : 0, 'recommendation_dismissed' : 0, 'total_relevant' : 0 };
+		recommended_stats = { 'already_happened' : 0, 'will_still_happen' : 0, 'recommendation_hit' : 0, 'recommendation_miss' : 0, 'recommendation_wrong' : 0, 'total_relevant' : 0 };
 
 		for ( var i=0; i<events_source.length; i++ ){
 			for ( var j=0; j<user_events.length; j++ ){
@@ -869,9 +869,9 @@
 					if ( recommended_to_user[i] == events_source[j].id ){
 						//was recommended, but user didn't go to this event, Color 4
 						var entry = events_source[i];
-						events_source[i]['status'] = 'recommendation_dismissed';
+						events_source[i]['status'] = 'recommendation_wrong';
 						all_user_events_and_recommendations.push(events_source[i]);
-						recommended_stats['recommendation_dismissed'] += 1;
+						recommended_stats['recommendation_wrong'] += 1;
 						recommended_stats['total_relevant'] += 1;
 						break;
 					}
@@ -896,7 +896,7 @@
 			else if ( event_status == 'recommendation_miss' && !misses_enabled ){
 				continue;
 			}
-			else if ( event_status == 'recommendation_dismissed' && !dismisses_enabled ){
+			else if ( event_status == 'recommendation_wrong' && !dismisses_enabled ){
 				continue;
 			}
 
