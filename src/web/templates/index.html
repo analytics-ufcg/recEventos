@@ -176,20 +176,52 @@
 
 		city_events[current_city] = [];
 		{% for event in events %}
-		city_events[current_city].push({ 'id' : "{{event.id}}", 'lat' : {{event.lat}}, 'lon' : {{event.lon}}, 'name' : "{{event.name}}", 'venue_name' : "{{event.venue_name}}", 'venue_city' : "{{event.venue_city}}", 'time' : "{{event.time}}", 'created' : "{{event.created}}" });
+		city_events[current_city].push({ 
+			'id' : "{{event.id}}", 
+			'lat' : {{event.lat}}, 
+			'lon' : {{event.lon}}, 
+			'name' : "{{event.name}}", 
+			'venue_name' : "{{event.venue_name}}", 
+			'venue_city' : "{{event.venue_city}}", 
+			'time' : "{{event.time}}", 
+			'created' : "{{event.created}}",
+			'time_long' : {{event.time_long}},
+			'created_long' : {{event.created_long}}
+		});
 		{% endfor %}
 
 		city_rec_events[current_city] = [];
 		{% for rec_event in rec_events %}
-		city_rec_events[current_city].push({ 'id' : "{{rec_event.id}}", 'lat' : {{rec_event.lat}}, 'lon' : {{rec_event.lon}}, 'name' : "{{rec_event.name}}", 'venue_name' : "{{rec_event.venue_name}}", 'venue_city' : "{{rec_event.venue_city}}" });
+		city_rec_events[current_city].push({ 
+			'id' : "{{rec_event.id}}", 
+			'lat' : {{rec_event.lat}}, 
+			'lon' : {{rec_event.lon}}, 
+			'name' : "{{rec_event.name}}", 
+			'venue_name' : "{{rec_event.venue_name}}", 
+			'venue_city' : "{{rec_event.venue_city}}",			
+	       	});
 		{% endfor %}
 
 		var user_list = "";
 
 		city_members[current_city] = [];
 		{% for user in users %}
-		city_members[current_city].push({ 'id' : "{{user.id}}", 'lat' : {{user.lat}}, 'lon' : {{user.lon}}, 'name' : "{{user.name}}", 'events' : "{{user.events}}".split(","), 'city' : "{{user.city}}", 'p_time' : "{{user.p_time}}" });
-		user_list += "<li id='user-list-item_{{user.id}}'><a  name='user-list-item_{{user.id}}' href='#'user-list-item_{{user.id}}' onclick='chooseUserById({{user.id}})'><i class='icon-user'></i>{{user.name}}</a></li>";
+		city_members[current_city].push({ 
+			'id' : "{{user.id}}", 
+			'lat' : {{user.lat}}, 
+			'lon' : {{user.lon}}, 
+			'name' : "{{user.name}}", 
+			'events' : "{{user.events}}".split(","), 
+			'city' : "{{user.city}}", 
+			'p_time' : "{{user.p_time}}", 
+			'rec_distance' : "{{user.rec_distance}}".split(",")
+		});
+		user_list += "<li id='user-list-item_{{user.id}}'>"+
+				"<a  name='user-list-item_{{user.id}}' href='#' onclick='chooseUserById({{user.id}})'>"+
+					"<i class='icon-user'></i>"+
+					"{{user.name}}"+
+				"</a>"+
+			     "</li>";
 		{% endfor %}
 
 		pinUsersInMap();
@@ -228,7 +260,12 @@
 			}
 			var user_list = "";
 			for ( i in city_members[current_city] ){
-				user_list += "<li id=\"user-list-item_" + city_members[current_city][i].id + "\"><a  name=\"user-list-item_" + city_members[current_city][i].id + "\"  href='#user-list-item_" + city_members[current_city][i].id + "' onclick='chooseUserById("+ city_members[current_city][i].id +")'><i class='icon-user'></i>" +city_members[current_city][i].name+"</a></li>";
+				user_list += "<li id='user-list-item_" + city_members[current_city][i].id + "'>"+
+						"<a  name='user-list-item_" + city_members[current_city][i].id + "' href='#' onclick='chooseUserById("+ city_members[current_city][i].id +")'>"+
+							"<i class='icon-user'></i>"+
+							city_members[current_city][i].name+
+						"</a>"+
+					     "</li>";
 			}
 			$("#user-list").html(user_list);
 			$("#cities_button").html(city);
@@ -243,19 +280,51 @@
 
 				city_events[current_city] = [];
 				for ( var i=0; i<data.events.length; i++){
-					city_events[current_city].push({ 'id' : data.events[i].id, 'lat' : data.events[i].lat, 'lon' : data.events[i].lon, 'name' : data.events[i].name, 'venue_name' : data.events[i].venue_name, 'venue_city' : data.events[i].venue_city, 'time' : data.events[i].time, 'created' : data.events[i].created });
+					city_events[current_city].push({ 
+						'id' : data.events[i].id, 
+						'lat' : data.events[i].lat, 
+						'lon' : data.events[i].lon, 
+						'name' : data.events[i].name, 
+						'venue_name' : data.events[i].venue_name, 
+						'venue_city' : data.events[i].venue_city, 
+						'time' : data.events[i].time, 
+						'created' : data.events[i].created,
+						'time_long' : data.events[i].time_long,
+						'created_long' : data.events[i].created_long
+				       	});
 				};
 
 				city_rec_events[current_city] = [];
 				for ( var i=0; i<data.rec_events.length; i++){
-					city_rec_events[current_city].push({ 'id' : data.rec_events[i].id, 'lat' : data.rec_events[i].lat, 'lon' : data.rec_events[i].lon, 'name' : data.rec_events[i].name, 'venue_name' : data.rec_events[i].venue_name, 'venue_city' : data.rec_events[i].venue_city });
+					city_rec_events[current_city].push({ 
+						'id' : data.rec_events[i].id, 
+						'lat' : data.rec_events[i].lat, 
+						'lon' : data.rec_events[i].lon, 
+						'name' : data.rec_events[i].name, 
+						'venue_name' : data.rec_events[i].venue_name, 
+						'venue_city' : data.rec_events[i].venue_city
+				       	});
 				};
 
 				var user_list = "";
 				city_members[current_city] = [];
 				for ( var i=0; i<data.users.length; i++){
-					city_members[current_city].push({ 'id' : data.users[i].id, 'lat' : data.users[i].lat, 'lon' : data.users[i].lon, 'name' : data.users[i].name, 'events' : data.users[i].events.split(","), 'city' : data.users[i].city, 'p_time' : data.users[i].p_time });
-					user_list += "<li id=\"user-list-item_" + city_members[current_city][i].id + "\" ><a  name=\"user-list-item_" + city_members[current_city][i].id + "\"  href='#user-list-item_" + city_members[current_city][i].id + "' onclick='chooseUserById("+ city_members[current_city][i].id +")'><i class='icon-user'></i>"+city_members[current_city][i].name+"</a></li>";
+					city_members[current_city].push({ 
+						'id' : data.users[i].id, 
+						'lat' : data.users[i].lat, 
+						'lon' : data.users[i].lon, 
+						'name' : data.users[i].name, 
+						'events' : data.users[i].events.split(","), 
+						'city' : data.users[i].city, 
+						'p_time' : data.users[i].p_time, 
+						'rec_distance' : data.users[i].rec_distance.split(",")
+				       	});
+					user_list += "<li id=\"user-list-item_" + city_members[current_city][i].id + "\" >"+
+							"<a  name=\"user-list-item_" + city_members[current_city][i].id + "\" "+
+							"href='#'  onclick='chooseUserById("+ city_members[current_city][i].id +")'>"+
+								"<i class='icon-user'></i>"+city_members[current_city][i].name+
+							"</a>"+
+						     "</li>";
 				};
 
 				removeAllMarkers();
@@ -325,7 +394,7 @@
 
 	function chooseUser(user, scroll){
 
-		console.log("binding function of user "+user.name+" ("+user.id+")");
+		console.log("binding function of user "+user.name+" ("+user.id+") - scroll: "+scroll);
 
 		function doChooseAndPinEvents(){
 
@@ -344,7 +413,9 @@
 			user_markers[id_to_user_marker[user.id]].marker.setIcon('static/chosen-user-pin.png');
 			user_markers[id_to_user_marker[user.id]].marker.setZIndex(100);
 
-			if ( scroll ){
+			console.log("About to scroll? "+scroll);
+
+			if ( scroll == true ){
 				window.location = "#user-list-item_"+user.id;
 			}
 
@@ -549,13 +620,13 @@
 		for ( var i=0; i<events_source.length.lenght; i++ ){
 			for ( var j=0; j<user_events.length; j++ ){
 				if ( user_events[j] == events_source[i].id ){
-					if ( events_source[i].time < p_time ){
+					if ( events_source[i].time_long < p_time ){
 						//already happened, Color 1
 						var entry = events_source[i];
 						events_source[i]['status'] = 'already_happened';
 						all_events.push(events_source[i]);
 					}
-					else if ( events_source[i].created > p_time ){
+					else if ( events_source[i].created_long > p_time ){
 						//will happen yet, Color 1
 						var entry = events_source[i];
 						events_source[i]['status'] = 'will_still_happen';
@@ -564,7 +635,7 @@
 					else{
 						// CHECK AGAINST 5 RECOMMENDED EVENTS TO CURRENT USER
 						// REMEMBER TO READ RECOMMENTED EVENTS FROM SERVER AND DO PROPER PARSING
-						// ACTIVATE TECHNIQUE BUTTON ONCE MEMBER IS CHOSEN
+
 					}
 				}
 			}

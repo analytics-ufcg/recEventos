@@ -17,12 +17,14 @@ def read_events_and_members(city):
 		for event in csv_reader:
 			events.append({ 'id' : event[0].strip(),
 				'name' : filter(lambda x: x in string.printable, event[1]).strip().encode('utf8').replace("\\", ""),
-				'created' : time.asctime(time.localtime(float(event[3].strip())/1000)).encode('utf8'),
-				'time' : time.asctime(time.localtime(float(event[4].strip())/1000)).encode('utf8'),
+				'created' : time.asctime(time.localtime(float(event[2].strip())/1000)).encode('utf8'),
+				'time' : time.asctime(time.localtime(float(event[3].strip())/1000)).encode('utf8'),
 				'lat' : event[4].strip(),
 				'lon' : event[5].strip(),
 				'venue_name' : filter(lambda x: x in string.printable, event[6]).strip().encode('utf8').replace("\\", ""),
 				'venue_city' : filter(lambda x: x in string.printable, event[7]).strip().encode('utf8').replace("\\", ""),
+				'time_long' : event[3].strip(),
+				'created_long' : event[2].strip()
 				})
 
 	print "Loaded "+str(len(events))+" events from ", city
