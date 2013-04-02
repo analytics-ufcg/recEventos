@@ -11,7 +11,7 @@
 
 	<div class="span3" style="margin-left:5px;">
 		<ul class="nav nav-list" style="height: 48%;">
-			<li class="nav-header label label-info">Cities</li>
+			<li class="nav-header label label-info" style="margin-top:5px;">Cities</li>
 			<li class="divider"></li>
 			<li>
 				<ul id="cities-list" class="well nav nav-list" style="height: 87%; overflow-y:scroll;">
@@ -39,11 +39,11 @@
 		<div class="row">
 			<div style="padding-top:10px; margin-top:2px;">
 				<div class="row span9">
-					<div class="span4">
+					<div class="span3">
 						<span class="label label-inverse">Current city:</span>
 						<button id="cities_button" class="btn btn-large btn-inverse btn-block disabled" type="button">Loading...</button>
 					</div>
-					<div class="span4">
+					<div class="span3">
 						<span class="label label-inverse">Current technique:</span>
 						<div class="dropdown">
 							<a id="algs_button" class="dropdown-toggle btn btn-large btn-inverse btn-block" data-toggle="dropdown" type="button" href="#"><i class="icon-remove icon-white"></i> None</a>
@@ -53,7 +53,24 @@
 								<li><a tabindex="-1" href="#" onclick="setRecommender('distance', current_user);"><i class="icon-map-marker"></i> Algorithm: Location Based</a></li>
 								<li><a tabindex="-1" href="#" onclick=""><i class="icon-comment"></i> Algorithm: Popularity Based</a></li>
 								<li><a tabindex="-1" href="#" onclick=""><i class="icon-list-alt"></i> Algorithm: Category Based</a></li>
-								<li><a tabindex="-1" href="#" onclick=""><i class="icon-filter"></i> Algorithm: Linear Combination of all Three above</a></li>
+								<li><a tabindex="-1" href="#" onclick=""><i class="icon-asterisk"></i> Algorithm: Linear Combination of all Three above</a></li>
+							</ul>
+						</div>
+					</div>
+					<div class="span2">
+						<span class="label label-inverse">Filters:</span>
+						<div class="dropdown">
+							<a id="filters_button" class="dropdown-toggle btn btn-large btn-inverse btn-block disabled" data-toggle="dropdown" type="button" href="#"><i class="icon-filter icon-white"></i> Toggle</a>
+							<ul class="dropdown-menu text-right" role="menu" style="visibility:hidden;">
+								<li>
+									<div class="btn-group btn-group-vertical" data-toggle="buttons-checkbox" style="visibility:visible;">
+										<button type="button" class="btn btn-inverse btn-large active" onclick="toggle(0); setRecommender(recommender, current_user);"><i class="icon-heart icon-white"></i> Hits</button>
+										<button type="button" class="btn btn-inverse btn-large active" onclick="toggle(1); setRecommender(recommender, current_user);"><i class="icon-remove icon-white"></i> Misses</button>
+										<button type="button" class="btn btn-inverse btn-large active" onclick="toggle(2); setRecommender(recommender, current_user);"><i class="icon-warning-sign icon-white"></i> Dismisses</button>
+										<button type="button" class="btn btn-inverse btn-large active" onclick="toggle(3); setRecommender(recommender, current_user);"><i class="icon-circle-arrow-left icon-white"></i> Past Events</button>
+										<button type="button" class="btn btn-inverse btn-large active" onclick="toggle(4); setRecommender(recommender, current_user);"><i class="icon-circle-arrow-right icon-white"></i> Future Events</button>
+									</div>
+								</li>
 							</ul>
 						</div>
 					</div>
@@ -107,6 +124,30 @@
 
     var recommended_stats = { 'already_happened' : 0, 'will_still_happen' : 0, 'recommendation_hit' : 0, 'recommendation_miss' : 0, 'recommendation_dismissed' : 0, 'total_relevant' : 0 };
     var all_user_events_and_recommendations = null;
+
+    var hits_enabled = true;
+    var misses_enabled = true;
+    var dismisses_enabled = true;
+    var past_enabled = true;
+    var future_enabled = true;
+
+    function toggle(type){
+	if ( type == 0 ){
+		hits_enabled = !hits_enabled;
+	}
+	else if ( type == 1 ){
+		misses_enabled = !misses_enabled;
+	}
+	else if ( type == 2 ){
+		dismisses_enabled = !dismisses_enabled;
+	}
+	else if ( type == 3 ){
+		past_enabled = !past_enabled;
+	}
+	else if ( type == 4 ){
+		future_enabled = !future_enabled;
+	}
+    }
 
     function mapinitialize() {
     	directionsDisplay = new google.maps.DirectionsRenderer();
@@ -640,7 +681,7 @@
 			else if ( status == "will_still_happen" ){
 				content += "<small>This event was NOT recommended by our "+$.trim($("#algs_button").text())+" recommender.</small>";
 				content += "<p class='lead'>In fact, it <span class='label label-inverse'>didn't happen yet</span>; It wasn't even created yet(!?)...</p>";
-				content += "<small>What this means is that, by the time the recommender algorithm was run, these events weren't yet created, so naturally, they couldn't be recommended yet... But at a later point in time, the user DID go to this event.</small>";
+				content += "<small>What this means is that, by the time the recommender algorithm run, these events weren't yet created, so naturally, they couldn't be recommended yet... But at a later point in time, the user DID go to this event.</small>";
 			}
 			else{
 			content += "<small>Hey, to see how our recommenders behaved in which concerns this particular user and event, <span class='label label-info'>please pick one algorithm/technique first</span>, among the ones available...</small>";
@@ -727,6 +768,7 @@
 
 		if ( rec == 'none' ){
 			$("#algs_button").html("<i class='icon-remove icon-white'></i> None");
+			$("#filters_button").addClass("disabled");
 		}
 		else if ( rec == 'distance' ){
 			$("#algs_button").html("<i class='icon-map-marker icon-white'></i> Location Based");
@@ -746,6 +788,8 @@
 			c();
 			return;
 		}
+
+		$("#filters_button").removeClass("disabled");
 
 		pinUserRecommendationsInMap(rec);
 	}
@@ -838,6 +882,23 @@
 		for ( var i=0; i<all_user_events_and_recommendations.length; i++ ){
 
 			var event_status = all_user_events_and_recommendations[i].status;
+
+			if ( event_status == 'already_happened' && !past_enabled ){
+				continue;
+			}
+			else if ( event_status == 'will_still_happen' && !future_enabled ){
+				continue;
+			}
+			else if ( event_status == 'recommendation_hit' && !hits_enabled ){
+				continue;
+			}
+			else if ( event_status == 'recommendation_miss' && !misses_enabled ){
+				continue;
+			}
+			else if ( event_status == 'recommendation_dismissed' && !dismisses_enabled ){
+				continue;
+			}
+
 			var status_icon = determineIcon(event_status);
 			var status_icon_shadow = determineIconShadow(event_status);
 			var event_details = showEventDetails(current_user, all_user_events_and_recommendations[i], event_status);
