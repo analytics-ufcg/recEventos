@@ -46,7 +46,7 @@
 					<div class="span4">
 						<span class="label label-inverse">Current technique:</span>
 						<div class="dropdown">
-							<a id="algs_button" class="dropdown-toggle btn btn-large btn-inverse btn-block" data-toggle="dropdown" type="button" href="#">None</a>
+							<a id="algs_button" class="dropdown-toggle btn btn-large btn-inverse btn-block" data-toggle="dropdown" type="button" href="#"><i class="icon-remove icon-white"></i> None</a>
 							<ul class="dropdown-menu text-right" role="menu">
 								<li><a tabindex="-1" href="#" onclick="setRecommender('none', current_user);"><i class="icon-remove"></i>Algorithm: None</a></li>
 								<li class="divider"></li>
@@ -170,7 +170,7 @@
 
 		$("#user-list-header").html("Users at Arlington");
 		current_city = "Arlington";
-		$("#cities_button").html("Arlington");
+		$("#cities_button").html("<i class='icon-home icon-white'></i> Arlington");
 
 		google.maps.event.addListener(map, 'tilesloaded', function(){
 			$("#loading_message").css("display", "none");
@@ -273,7 +273,7 @@
 					     "</li>";
 			}
 			$("#user-list").html(user_list);
-			$("#cities_button").html(city);
+			$("#cities_button").html("<i class='icon-home icon-white'></i> "+city);
 			current_user = null;
 			$("#user-list-header").html("Users at "+city);
 			$("#loading_message").css("display", "none");
@@ -338,7 +338,7 @@
 					map.panTo(user_markers[Math.floor((Math.random()*user_markers.length))].marker.getPosition());
 				}
 				$("#user-list").html(user_list);
-				$("#cities_button").html(city);
+				$("#cities_button").html("<i class='icon-home icon-white'></i> "+city);
 				current_user = null;
 				$("#user-list-header").html("Users at "+city);
 				$("#loading_message").css("display", "none");
@@ -723,10 +723,10 @@
 		}*/
 
 		if ( rec == 'none' ){
-			$("#algs_button").html("None");
+			$("#algs_button").html("<i class='icon-remove icon-white'></i> None");
 		}
 		else if ( rec == 'distance' ){
-			$("#algs_button").html("Location Based");
+			$("#algs_button").html("<i class='icon-map-marker icon-white'></i> Location Based");
 		}
 		else{
 			return;
