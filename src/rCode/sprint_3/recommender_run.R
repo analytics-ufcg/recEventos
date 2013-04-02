@@ -89,7 +89,7 @@ for (rec.fun.name in algorithms){
 
     print(noquote(paste("   Started running at: ", Sys.time(), sep = "")))
     
-    rec.events.df <- ddply(idata.frame(partitions[101:200,]), .(member_id, partition),
+    rec.events.df <- ddply(idata.frame(partitions), .(member_id, partition),
                            RecommendPerPartition, k, .parallel = F, .progress = "text",
                            rec.fun)
     rec.events.df$algorithm <- rep(rec.fun.name, nrow(rec.events.df))
