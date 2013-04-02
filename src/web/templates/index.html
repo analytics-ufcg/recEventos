@@ -47,9 +47,13 @@
 						<span class="label label-inverse">Current technique:</span>
 						<div class="dropdown">
 							<a id="algs_button" class="dropdown-toggle btn btn-large btn-inverse btn-block disabled" data-toggle="dropdown" type="button" href="#">None</a>
-							<ul class="dropdown-menu" role="menu">
-								<li><a tabindex="-1" href="#" onclick="setRecommender('none');">None</a></li>
-								<li><a tabindex="-1" href="#" onclick="setRecommender('distance');">Distance</a></li>
+							<ul class="dropdown-menu text-right" role="menu">
+								<li><a tabindex="-1" href="#" onclick="setRecommender('none');"><i class="icon-remove"></i>Algorithm: None</a></li>
+								<li class="divider"></li>
+								<li><a tabindex="-1" href="#" onclick="setRecommender('distance');"><i class="icon-map-marker"></i> Algorithm: Location Based</a></li>
+								<li><a tabindex="-1" href="#" onclick=""><i class="icon-comment"></i> Algorithm: Popularity Based</a></li>
+								<li><a tabindex="-1" href="#" onclick=""><i class="icon-list-alt"></i> Algorithm: Category Based</a></li>
+								<li><a tabindex="-1" href="#" onclick=""><i class="icon-filter"></i> Algorithm: Linear Combination of all Three above</a></li>
 							</ul>
 						</div>
 					</div>
