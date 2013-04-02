@@ -37,8 +37,7 @@ rm(list=ls())
 # source() and library()
 # =============================================================================
 source("src/rCode/common.R")
-#source("src/rCode/sprint_3/recommender_functions.R")
-source("src/rCode/sprint_4/algoritmo_categoria_eventos_freq.R")
+source("src/rCode/sprint_3/recommender_functions.R")
 
 # =============================================================================
 # Function definitions
@@ -71,11 +70,7 @@ if (length(partition.files) <= 0){
 
 # Number of recommended events
 k <- 5
-<<<<<<< HEAD
 algorithms <- c("Topic") # c("Distance", "Popularity", "Topic", "Weighted")
-=======
-algorithms <- c("Popularity") # c("Distance", "Popularity", "Topic", "Weighted")
->>>>>>> 7b267650412de5d9b81e71e593f88bf6361e8381
 
 rec.environment <- CreateRecEnvironment()
 
@@ -94,11 +89,7 @@ for (rec.fun.name in algorithms){
 
     print(noquote(paste("   Started running at: ", Sys.time(), sep = "")))
     
-<<<<<<< HEAD
-    rec.events.df <- ddply(idata.frame(partitions[1:200,]), .(member_id, partition),
-=======
-    rec.events.df <- ddply(idata.frame(partitions[1:100,]), .(member_id, partition),
->>>>>>> 7b267650412de5d9b81e71e593f88bf6361e8381
+    rec.events.df <- ddply(idata.frame(partitions[101:200,]), .(member_id, partition),
                            RecommendPerPartition, k, .parallel = F, .progress = "text",
                            rec.fun)
     rec.events.df$algorithm <- rep(rec.fun.name, nrow(rec.events.df))

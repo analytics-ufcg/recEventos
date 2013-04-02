@@ -115,7 +115,7 @@ for (p in 1:max(summaryEvals$partition)){
   print(ggplot(summaryEvals, aes(x=rec_size, y=value, colour = algorithm)) + 
           geom_errorbar(aes(ymin=value-ci, ymax=value+ci), width=.1) +
           geom_line() + geom_point() + 
-          facet_wrap(~eval_metric, ncol=4) +
+          facet_wrap(~variable, ncol=4) +
           ggtitle("Precision and Recall Evaluation (per Partition)\nALL cities") + 
           theme(plot.title = element_text(lineheight=.8, face="bold")))
   dev.off()
@@ -163,7 +163,7 @@ for (p in 1:max(summaryEvals$partition)){
     print(ggplot(summaryEvals[summaryEvals$city == city,], aes(x=rec_size, y=value, colour=algorithm)) + 
             geom_errorbar(aes(ymin=value-ci, ymax=value+ci), width=.1) +
             geom_line() + geom_point() + 
-            facet_wrap(~eval_metric, ncol=4) +
+            facet_wrap(~variable, ncol=4) +
             ggtitle(label=paste("Precision and Recall Evaluation (per Partition)\n", 
                                 city, " (", count, " members)", sep="")) + 
             theme(plot.title = element_text(lineheight=.8, face="bold")))
