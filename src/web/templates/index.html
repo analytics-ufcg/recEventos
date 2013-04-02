@@ -46,11 +46,11 @@
 					<div class="span4">
 						<span class="label label-inverse">Current technique:</span>
 						<div class="dropdown">
-							<a id="algs_button" class="dropdown-toggle btn btn-large btn-inverse btn-block disabled" data-toggle="dropdown" type="button" href="#">None</a>
+							<a id="algs_button" class="dropdown-toggle btn btn-large btn-inverse btn-block" data-toggle="dropdown" type="button" href="#">None</a>
 							<ul class="dropdown-menu text-right" role="menu">
-								<li><a tabindex="-1" href="#" onclick="setRecommender('none');"><i class="icon-remove"></i>Algorithm: None</a></li>
+								<li><a tabindex="-1" href="#" onclick="setRecommender('none', current_user);"><i class="icon-remove"></i>Algorithm: None</a></li>
 								<li class="divider"></li>
-								<li><a tabindex="-1" href="#" onclick="setRecommender('distance');"><i class="icon-map-marker"></i> Algorithm: Location Based</a></li>
+								<li><a tabindex="-1" href="#" onclick="setRecommender('distance', current_user);"><i class="icon-map-marker"></i> Algorithm: Location Based</a></li>
 								<li><a tabindex="-1" href="#" onclick=""><i class="icon-comment"></i> Algorithm: Popularity Based</a></li>
 								<li><a tabindex="-1" href="#" onclick=""><i class="icon-list-alt"></i> Algorithm: Category Based</a></li>
 								<li><a tabindex="-1" href="#" onclick=""><i class="icon-filter"></i> Algorithm: Linear Combination of all Three above</a></li>
@@ -240,9 +240,9 @@
 
 		console.log("From city "+current_city+" to city "+city);
 
-		$("#algs_button").addClass("disabled");
-		$("#algs_button").html("None");
-		recommender = 'none'
+//		$("#algs_button").addClass("disabled");
+//		$("#algs_button").html("None");
+//		recommender = 'none'
 
 		$("#user-list-header").html("Loading users...");
 		$("#user-list").html("<img src='static/ajax-loader-enhanced.gif'></img>");
@@ -405,9 +405,9 @@
 
 			console.log("calling function of user "+user.name+" ("+user.id+")");
 
-			$("#algs_button").html("None");
-			$("#algs_button").removeClass("disabled");
-			recommender = 'none';
+//			$("#algs_button").html("None");
+//			$("#algs_button").removeClass("disabled");
+//			recommender = 'none';
 
 			if ( current_user != null && current_user.id != user.id ){
 				$("#user-list-item_"+current_user.id).removeClass("active");
@@ -421,13 +421,19 @@
 
 			console.log("About to scroll? "+scroll);
 
+			current_user = user;
+
 			if ( scroll == true ){
 				window.location = "#user-list-item_"+user.id;
 			}
 
-			current_user = user;
-
-			pinUserEventsInMap(user);
+			if ( recommender != 'none' ){
+				setRecommender(recommender, current_user);
+				return;
+			}
+			else{
+				pinUserEventsInMap(user);
+			}
 
 		}
 		return doChooseAndPinEvents;
@@ -619,7 +625,7 @@
 				content += "<p class='lead'>went to this event <strong>"+event.name+"</strong>,</p>";
 			}
 			else{
-				content += "<p class='lead'>didn't go to this event <strong>"+event.name+"</strong>,</p>";
+				content += "<p class='lead'>DID NOT go to this event <strong>"+event.name+"</strong>,</p>";
 			}
 			content += "<p><small>which happened at <em>"+event.venue_name+"</em>, <em>"+event.venue_city+"</em> on <em>"+event.time+"</em>.</small></p>";
 			content += "<p><small>By the way, this event was created on <em>"+event.created+"</em>.</small></p>";
@@ -647,10 +653,10 @@
 			else if ( status == "will_still_happen" ){
 				content += "<small>This event was NOT recommended by our "+$("#algs_button").html()+" recommender.</small>";
 				content += "<p class='lead'>In fact, it <span class='label label-inverse'>didn't happen yet</span>; It wasn't even created yet(!?)...</p>";
-				content += "<small>What this means is that, by the time the recommender algorithm was run, these events weren't yet created, so naturally, they couldn't be recommended yet...</small>";
+				content += "<small>What this means is that, by the time the recommender algorithm was run, these events weren't yet created, so naturally, they couldn't be recommended yet... But at a later point in time, the user DID go to this event.</small>";
 			}
 			else{
-				content += "<small>Hey, to see how our recommenders behaved in which concerns this particular user and event, please pick one algorithm/technique first, among the ones available...</small>";
+			content += "<small>Hey, to see how our recommenders behaved in which concerns this particular user and event, <span class='label label-info'>please pick one algorithm/technique first</span>, among the ones available...</small>";
 			}
 
 			$("#event_details_body").html(content);
@@ -706,25 +712,35 @@
 		return doShowDetails;
 	}
 
-	function setRecommender(rec){
+	function setRecommender(rec, user){
 
-		if ( recommender == rec ){
+		console.log("showing recommended rec: "+rec+" for user:");
+		console.log(user);
+
+/*		if ( recommender == rec ) ){
+			console.log("This is true!");
+			return;
+		}*/
+
+		if ( rec == 'none' ){
+			$("#algs_button").html("None");
+		}
+		else if ( rec == 'distance' ){
+			$("#algs_button").html("Location Based");
+		}
+		else{
 			return;
 		}
 
 		recommender = rec;
 
-		if ( rec == 'none' ){
-			$("#algs_button").html("None");
-			var c = chooseUser(current_user, true);
-			c();
+		if ( current_user == null ){
 			return;
 		}
-		else if ( rec == 'distance' ){
-			$("#algs_button").html("Location Based");
-		}
 
-		if ( current_user == null ){
+		if ( rec == 'none' ){
+			var c = chooseUser(current_user, true);
+			c();
 			return;
 		}
 
