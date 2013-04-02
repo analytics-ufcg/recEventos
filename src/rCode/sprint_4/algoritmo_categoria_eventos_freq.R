@@ -43,61 +43,63 @@ source("src/rCode/common.R")
 # Executable script
 # =============================================================================
 
-# -----------------------------------------------------------------------------
-# Read members data csv
-# -----------------------------------------------------------------------------
-cat("Reading Members...")
-members <- ReadAllCSVs(dir="data_csv/", obj_name="members")[,c("id","city")]
-
-# -----------------------------------------------------------------------------
-# Read member_topics data csv
-# -----------------------------------------------------------------------------
-cat("Reading Members_Topics...")
-member.topics <- read.csv("data_csv/member_topics.csv",sep = ",")
-
-# -----------------------------------------------------------------------------
-# Read group_topics data csv
-# -----------------------------------------------------------------------------
-cat("Reading Group_Topics...")
-group.topics <- read.csv("data_csv/group_topics.csv",sep = ",")
-
-# -----------------------------------------------------------------------------
-# Read member_events(data_output/partitions/) data csv.
-# -----------------------------------------------------------------------------
-cat("Reading Members_Events...")
-member.events <- (ReadAllCSVs(dir="data_output/partitions/", 
-                              obj_name="member_events")
-                  [,c("event_id","event_time")])
-
-# -----------------------------------------------------------------------------
-# Read venues data csv
-# -----------------------------------------------------------------------------
-cat("Reading Venues...")
-venues <- read.csv("data_csv/venues.csv",sep = ",")[,c("id","city")]
-
-# -----------------------------------------------------------------------------
-# Read events data csv and filt events that hasn't venue
-# -----------------------------------------------------------------------------
-cat("Reading Events...")
-all.events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[,c("id","venue_id","group_id", "created", "time")]
-cat("Filting Events...")
-all.events <- subset(all.events, all.events$id %in% member.events$event_id)
-
-# -----------------------------------------------------------------------------
-# merge member.events and all.events.This is necessery for insert venue id at
-# table
-# -----------------------------------------------------------------------------
-cat("Merging member.events and all.events...")
-event.venue <- merge(member.events,all.events,by.x = "event_id",by.y = "id")
-
-# -----------------------------------------------------------------------------
-# merge event.venue and venues.This is necessery for insert venue name at table
-# -----------------------------------------------------------------------------
-cat("Merging event.venues and venues...")
-merge.final <- merge(event.venue,venues,by.x = "venue_id" , by.y = "id")
 
 
-recomedation <- function(member.id,k.events,p.time){
+CreateRecEnvironment <- function(){
+  cat("Creating the Recommendation Environment...\n")
+  
+    
+  cat("  Reading the members...\n")
+  members <- ReadAllCSVs(dir="data_csv/", obj_name="members")[,c("id","city")]
+  
+  cat("Reading Members_Topics...")
+  member.topics <- read.csv("data_csv/member_topics.csv",sep = ",")
+  
+  # -----------------------------------------------------------------------------
+  # Read group_topics data csv
+  # -----------------------------------------------------------------------------
+  cat("Reading Group_Topics...")
+  group.topics <- read.csv("data_csv/group_topics.csv",sep = ",")
+  
+  # -----------------------------------------------------------------------------
+  # Read member_events(data_output/partitions/) data csv.
+  # -----------------------------------------------------------------------------
+  cat("Reading Members_Events...")
+  member.events <- ReadAllCSVs(dir="data_output/partitions/", obj_name="member_events")
+                    [,c("event_id","event_time")]
+  
+  # -----------------------------------------------------------------------------
+  # Read venues data csv
+  # -----------------------------------------------------------------------------
+  cat("Reading Venues...")
+  venues <- read.csv("data_csv/venues.csv",sep = ",")[,c("id","city")]
+  
+  # -----------------------------------------------------------------------------
+  # Read events data csv and filt events that hasn't venue
+  # -----------------------------------------------------------------------------
+  cat("Reading Events...")
+  all.events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[,c("id","venue_id","group_id", "created", "time")]
+  cat("Filting Events...")
+  all.events <- subset(all.events, all.events$id %in% member.events$event_id)
+  
+  # -----------------------------------------------------------------------------
+  # merge member.events and all.events.This is necessery for insert venue id at
+  # table
+  # -----------------------------------------------------------------------------
+  cat("Merging member.events and all.events...")
+  event.venue <- merge(member.events,all.events,by.x = "event_id",by.y = "id")
+  
+  # -----------------------------------------------------------------------------
+  # merge event.venue and venues.This is necessery for insert venue name at table
+  # -----------------------------------------------------------------------------
+  cat("Merging event.venues and venues...")
+  merge.final <- merge(event.venue,venues,by.x = "venue_id" , by.y = "id")  
+  
+  environment()
+}
+
+
+RecEvents.Topic <- function(member.id,k.events,p.time){
   
   # -----------------------------------------------------------------------------
   # filt members by city of given user
