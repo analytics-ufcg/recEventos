@@ -66,8 +66,8 @@
 								<li>
 									<div class="btn-group btn-group-vertical" data-toggle="buttons-checkbox" style="visibility:visible;">
 										<button type="button" class="btn btn-inverse btn-large active" onclick="toggle(0); setRecommender(recommender, current_user);"><i class="icon-heart icon-white"></i> Hits</button>
-										<button type="button" class="btn btn-inverse btn-large active" onclick="toggle(1); setRecommender(recommender, current_user);"><i class="icon-remove icon-white"></i> Misses</button>
-										<button type="button" class="btn btn-inverse btn-large active" onclick="toggle(2); setRecommender(recommender, current_user);"><i class="icon-warning-sign icon-white"></i> Wrongs</button>
+										<button type="button" class="btn btn-inverse btn-large active" onclick="toggle(1); setRecommender(recommender, current_user);"><i class="icon-warning-sign icon-white"></i> Misses</button>
+										<button type="button" class="btn btn-inverse btn-large active" onclick="toggle(2); setRecommender(recommender, current_user);"><i class="icon-remove icon-white"></i> Wrongs</button>
 										<button type="button" class="btn btn-inverse btn-large active" onclick="toggle(3); setRecommender(recommender, current_user);"><i class="icon-circle-arrow-left icon-white"></i> Past Events</button>
 										<button type="button" class="btn btn-inverse btn-large active" onclick="toggle(4); setRecommender(recommender, current_user);"><i class="icon-circle-arrow-right icon-white"></i> Future Events</button>
 									</div>
@@ -814,6 +814,19 @@
 		for ( var i=0; i<events_source.length; i++ ){
 			for ( var j=0; j<user_events.length; j++ ){
 				if ( user_events[j] == events_source[i].id ){
+
+					/* This for below is being done only because rec_events.csv doesn't have event time nor created time*/
+					for ( var k=0; k<city_events[current_city].length; k++ ){
+						if ( city_events[current_city][k].id == events_source[i].id ){
+							events_source[i].time = city_events[current_city][k].time;
+							events_source[i].time_long = city_events[current_city][k].time_long;
+							events_source[i].created = city_events[current_city][k].created;
+							events_source[i].created_long = city_events[current_city][k].created_long;
+							break;
+						}
+					}
+
+
 					if ( events_source[i].time_long < p_time ){
 						//already happened, Color 1
 						var entry = events_source[i];
@@ -867,10 +880,23 @@
 			if ( !found ){
 				for ( var j=0; j<events_source.length; j++ ){
 					if ( recommended_to_user[i] == events_source[j].id ){
+
+
+						/* Again, this for below is being done only because rec_events.csv doesn't have event time nor created time*/
+						for ( var k=0; k<city_events[current_city].length; k++ ){
+							if ( city_events[current_city][k].id == events_source[j].id ){
+								events_source[j].time = city_events[current_city][k].time;
+								events_source[j].time_long = city_events[current_city][k].time_long;
+								events_source[j].created = city_events[current_city][k].created;
+								events_source[j].created_long = city_events[current_city][k].created_long;
+								break;
+							}
+						}
+
 						//was recommended, but user didn't go to this event, Color 4
-						var entry = events_source[i];
-						events_source[i]['status'] = 'recommendation_wrong';
-						all_user_events_and_recommendations.push(events_source[i]);
+						var entry = events_source[j];
+						events_source[j]['status'] = 'recommendation_wrong';
+						all_user_events_and_recommendations.push(events_source[j]);
 						recommended_stats['recommendation_wrong'] += 1;
 						recommended_stats['total_relevant'] += 1;
 						break;
