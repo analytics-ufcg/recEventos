@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 # SOFTWARE.
 #
-# Author: Elias Paulino and Augusto Queiroz
+# Author: Elias Paulino, Augusto Queiroz and Rodolfo Moraes
 #
 # File: 
 #   * Description: 
@@ -83,33 +83,52 @@ RecEvents.Distance <- function(member.id, k.events, p.time){
                                     member$lat, member$lon)
   setkey(candidate.events, "dist")  # Now it is ordered by dist
 
-  return(candidate.events[1:min(k.events, nrow(candidate.events)), id])
+  # We assume that the k.events will never be larger than all events.with.location
+  return(candidate.events[1:k.events, id])
 }
 
 RecEvents.Popularity <- function(member.id, k.events, p.time){
   
+  # ---------------------------------------------------------------------------
+  # Distance Algorithm
+  # ---------------------------------------------------------------------------
   member <- subset(members, id == member.id)
   
-  candidate.events <- subset(events.with.location, created <= p.time & time >= p.time)
+  candidate.events.dist <- subset(events.with.location, created <= p.time & time >= p.time)
   
-  candidate.events$dist <- geodDist(candidate.events$lat, candidate.events$lon, 
+  candidate.events.dist$dist <- geodDist(candidate.events.dist$lat, candidate.events.dist$lon, 
                                     member$lat, member$lon)
+  setkey(candidate.events.dist, "dist")  # Now it is ordered by dist
   
-  # Select the events < 15 km
-  candidate.events <- subset(candidate.events, dist <= 15)
+  # ---------------------------------------------------------------------------
+  # Popularity Algorithm (using only the events with distance <= 15 km )
+  # ---------------------------------------------------------------------------
+  candidate.events.pop <- subset(candidate.events.dist, dist <= 15)
+  candidate.events.pop <- rename(candidate.events.pop, replace=c("id" = "event_id"))
   
-  # Sort by popularity (before rsvp_time)
-  events.result <-  count(subset(member.events, rsvp_time < p.time & 
-                                event_id %in% candidate.events$id), "event_id")
+  # Measure the candidate event's popularity until this moment (p.time < rsvp_time)
+  count.events.pop <-  count(subset(member.events, 
+                                 event_id %in% candidate.events.pop$id & rsvp_time < p.time), 
+                          "event_id")
   
-  if(nrow(events.result) != 0){
-    # Just sort and DONE!
-    events.result <- events.result[order(events.result$freq, decreasing = T), ]
+  candidate.events.pop <- merge(candidate.events.pop, count.events.pop, by = "event_id", all.x = T)
+  
+  if(nrow(candidate.events.pop) >= k.events){
+    # Replace the NAs frequencies with 0
+    set(candidate.events.pop, which(is.na(candidate.events.pop[["freq"]])),"freq", as.integer(0))
+    
+    # Sort the events by frequency!
+    setkey(candidate.events.pop, "freq")
+    
+    # Select the k most popular events
+    events.result <- candidate.events.pop[1:k.events,]$event_id
+    
   }else{
-    # RANDOOOMMM!!!
-    events.result <- candidate.events[sample(1:nrow(candidate.events),k.events),]
+    # RANDOM choice from the candidate.events.dist (to recommend all k events)
+    events.result <- c(candidate.events.pop$event_id, 
+                       candidate.events.dist$id[sample(1:nrow(candidate.events.dist), 
+                                                       k.events - nrow(candidate.events.pop))])
   }
-  
-  return(events.result[1:min(k.events, nrow(events.result)), id])
-  
+
+  return(events.result)
 }
