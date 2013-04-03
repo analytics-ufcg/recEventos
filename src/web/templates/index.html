@@ -251,7 +251,11 @@
 			'name' : "{{rec_event.name}}", 
 			'venue_name' : "{{rec_event.venue_name}}", 
 			'venue_city' : "{{rec_event.venue_city}}",			
-	       	});
+			'time' : "{{rec_event.time}}", 
+			'created' : "{{rec_event.created}}",
+			'time_long' : {{rec_event.time_long}},
+			'created_long' : {{rec_event.created_long}}
+		});
 		{% endfor %}
 
 		var user_list = "";

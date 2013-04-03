@@ -36,10 +36,14 @@ def read_events_and_members(city):
 		for rec_event in csv_reader:
 			rec_events.append({'id' : rec_event[0].strip(),
 				'name' : filter(lambda x: x in string.printable, rec_event[1]).strip().encode('utf8').replace("\\", ""),
-				'lat' : rec_event[2].strip(),
-				'lon' : rec_event[3].strip(),
-				'venue_name' : filter(lambda x: x in string.printable, rec_event[4]).strip().encode('utf8').replace("\\", ""),
-				'venue_city' : filter(lambda x: x in string.printable, rec_event[5]).strip().encode('utf8').replace("\\", ""),
+				'created' : time.asctime(time.localtime(float(rec_event[2].strip())/1000)).encode('utf8'),
+				'time' : time.asctime(time.localtime(float(rec_event[3].strip())/1000)).encode('utf8'),
+				'lat' : rec_event[4].strip(),
+				'lon' : rec_event[5].strip(),
+				'venue_name' : filter(lambda x: x in string.printable, rec_event[6]).strip().encode('utf8').replace("\\", ""),
+				'venue_city' : filter(lambda x: x in string.printable, rec_event[7]).strip().encode('utf8').replace("\\", ""),
+				'time_long' : rec_event[3].strip(),
+				'created_long' : rec_event[2].strip()
 				})
 
 	print "Loaded "+str(len(rec_events))+" recommended events from ", city
