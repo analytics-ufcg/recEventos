@@ -315,9 +315,6 @@
 		function returnContext(){
 
 			outside = false;
-			console.log("about to show tooltip");
-			console.log("tooltip will be positioned at: "+mouseX+", "+mouseY);
-
 			$("#tooltip_enabler").css('top', mouseY);
 			$("#tooltip_enabler").css('left', mouseX);
 			$("#tooltip_enabler").tooltip({title : text, trigger : 'manual', placement : placement});
@@ -332,7 +329,6 @@
 
 	function hideTooltip(id){
 		function r(){
-			console.log("about to hide tooltip!");
 			$(id).tooltip('destroy');
 			outside = true;
 		}
