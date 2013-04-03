@@ -55,6 +55,7 @@ def read_events_and_members(city):
 		csv_reader.next()
 		for user in csv_reader:
 			#user[0] - id; user[3] - name; user[2] - longitude; user[1] - latitude
+			user[3] = user[3].split(" ")[0].capitalize()
 			if not user[3] in user_names:
 				user_names[user[3]] = 0
 			user_names[user[3]] += 1
