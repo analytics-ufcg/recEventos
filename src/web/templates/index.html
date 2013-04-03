@@ -55,9 +55,9 @@
 									<div class='btn-group btn-group-vertical' data-toggle='buttons-radio' style='visibility:visible;'>
 										<button type='button' class='btn btn-large active' onclick="setRecommender('none', current_user);"><i class="icon-remove"></i> <strong class='muted'>None</strong></button>
 										<button type='button' class='btn btn-large' onclick="setRecommender('distance', current_user);"><i class="icon-map-marker"></i> <strong class='muted'>Location Based</strong></button>
-										<button type='button' class='btn btn-large' onclick=""><i class="icon-comment"></i> <strong class='muted'>Popularity Based</strong></button>
-										<button type='button' class='btn btn-large' onclick=""><i class="icon-list-alt"></i> <strong class='muted'>Category Based</strong></button>
-										<button type='button' class='btn btn-large' onclick=""><i class="icon-asterisk"></i> <strong class='muted'>Weighted Combination</strong></button>
+										<button type='button' class='btn btn-large' onclick="setRecommender('popularity', current_user);"><i class="icon-comment"></i> <strong class='muted'>Popularity Based</strong></button>
+										<button type='button' class='btn btn-large' onclick="setRecommender('topics', current_user);"><i class="icon-list-alt"></i> <strong class='muted'>Category Based</strong></button>
+										<button type='button' class='btn btn-large' onclick="setRecommender('weighted', current_user);"><i class="icon-asterisk"></i> <strong class='muted'>Weighted Combination</strong></button>
 									</div>
 								</li>
 							</ul>
@@ -286,7 +286,10 @@
 			'events' : "{{user.events}}".split(","), 
 			'city' : decodeString("{{user.city}}"), 
 			'p_time' : "{{user.p_time}}", 
-			'rec_distance' : "{{user.rec_distance}}".split(",")
+			'rec_distance' : "{{user.rec_distance}}".split(","),
+			'rec_popularity' : "{{user.rec_popularity}}".split(","),
+			'rec_topics' : "{{user.rec_topics}}".split(","),
+			'rec_weighted' : "{{user.rec_weighted}}".split(",")
 		});
 		user_list += "<li id='user-list-item_{{user.id}}'>"+
 				"<a  name='user-list-item_{{user.id}}' href='javascript:void(0)' onclick='chooseUserById({{user.id}})'>"+
@@ -417,8 +420,11 @@
 						'events' : data.users[i].events.split(","), 
 						'city' : decodeString(data.users[i].city), 
 						'p_time' : data.users[i].p_time, 
-						'rec_distance' : data.users[i].rec_distance.split(",")
-				       	});
+						'rec_distance' : data.users[i].rec_distance.split(","),
+						'rec_popularity' : data.users[i].rec_popularity.split(","),
+						'rec_topics' : data.users[i].rec_topics.split(","),
+						'rec_weighted' : data.users[i].rec_weighted.split(",")
+					});
 					user_list += "<li id=\"user-list-item_" + city_members[current_city][i].id + "\" >"+
 							"<a  name=\"user-list-item_" + city_members[current_city][i].id + "\" "+
 							"href='javascript:void(0)'  onclick='chooseUserById("+ city_members[current_city][i].id +")'>"+
@@ -861,6 +867,15 @@
 		}
 		else if ( rec == 'distance' ){
 			$("#algs_button").html("<i class='icon-map-marker icon-white'></i> Location Based");
+		}
+		else if ( rec == 'popularity' ){
+			$("#algs_button").html("<i class='icon-comment icon-white'></i> Popularity Based");
+		}
+		else if ( rec == 'topics' ){
+			$("#algs_button").html("<i class='icon-list-alt icon-white'></i> Category Based");
+		}
+		else if ( rec == 'weighted' ){
+			$("#algs_button").html("<i class='icon-asterisk icon-white'></i> Weighted Combination");
 		}
 		else{
 			return;

@@ -68,7 +68,10 @@ def read_events_and_members(city):
 					'lat' : user[1].strip(),
 					'city' : filter(lambda x: x in string.printable, user[4]).strip().encode('utf8').replace("\\", ""),
 					'p_time' : user[6],
-					'rec_distance' : user[7]}
+					'rec_distance' : user[7],
+					'rec_popularity' : user[8],
+					'rec_topics' : user[9],
+					'rec_weighted' : user[10]}
 
 			user_info["events"] = user[5]
 			users.append( user_info )
