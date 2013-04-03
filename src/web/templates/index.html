@@ -20,9 +20,9 @@
 				<ul id="cities-list" class="well nav nav-list" style="height: 87%; overflow-y:scroll;">
 					{% for city in cities %}
 					{% if city == "Arlington" %}
-					<li id="city_{{city|replace(' ','_')}}" class="active"><a href="#" onclick="changeCity('{{city}}')"><i class="icon-home"></i>{{city}}</a></li>
+					<li id="city_{{city|replace(' ','_')}}" class="active"><a href="javascript:void(0)" onclick="changeCity('{{city}}')"><i class="icon-home"></i>{{city}}</a></li>
 					{% else %}
-					<li id="city_{{city|replace(' ','_')}}"><a href="#" onclick="changeCity('{{city}}')"><i class="icon-home"></i>{{city}}</a></li>
+					<li id="city_{{city|replace(' ','_')}}"><a href="javascript:void(0)" onclick="changeCity('{{city}}')"><i class="icon-home"></i>{{city}}</a></li>
 					{% endif %}
 					{% endfor %}
 				</ul>
@@ -49,7 +49,7 @@
 					<div class="span3">
 						<span class="label label-inverse">Recommendation technique</span>
 						<div class="dropdown">
-							<a id="algs_button" class="dropdown-toggle btn btn-large btn-inverse btn-block" data-toggle="dropdown" type="button" href="#"><i class="icon-remove icon-white"></i>None</a>
+							<a id="algs_button" class="dropdown-toggle btn btn-large btn-inverse btn-block" data-toggle="dropdown" type="button" href="javascript:void(0)"><i class="icon-remove icon-white"></i>None</a>
 							<ul class="dropdown-menu text-right" role="menu" style='visibility:hidden;'>
 								<li>
 									<div class='btn-group btn-group-vertical' data-toggle='buttons-radio' style='visibility:visible;'>
@@ -66,7 +66,7 @@
 					<div class="span2">
 						<span class="label label-inverse">Filter</span>
 						<div class="dropdown">
-							<a id="filters_button" class="dropdown-toggle btn btn-large btn-inverse btn-block disabled" ondblclick='toggleAll(); setRecommender(recommender, current_user);' data-toggle="dropdown" type="button" href="#"><i class="icon-filter icon-white"></i><span id='filter_tooltip' data-toggle='tooltip' data-placement='bottom' title='Double click to toggle all filters at the same time' style='display:none;' > Toogles</span><span id='disable_tooltip'> Toogles</span></a>
+							<a id="filters_button" class="dropdown-toggle btn btn-large btn-inverse btn-block disabled" ondblclick='toggleAll(); setRecommender(recommender, current_user);' data-toggle="dropdown" type="button" href="javascript:void(0)"><i class="icon-filter icon-white"></i><span id='filter_tooltip' data-toggle='tooltip' data-placement='bottom' title='Double click to toggle all filters at the same time' style='display:none;' > Toogles</span><span id='disable_tooltip'> Toogles</span></a>
 							<ul class="dropdown-menu text-right" role="menu" style="visibility:hidden;">
 								<li>
 									<div class="btn-group btn-group-vertical" data-toggle="buttons-checkbox" style="visibility:visible;">
@@ -289,7 +289,7 @@
 			'rec_distance' : "{{user.rec_distance}}".split(",")
 		});
 		user_list += "<li id='user-list-item_{{user.id}}'>"+
-				"<a  name='user-list-item_{{user.id}}' href='#' onclick='chooseUserById({{user.id}})'>"+
+				"<a  name='user-list-item_{{user.id}}' href='javascript:void(0)' onclick='chooseUserById({{user.id}})'>"+
 					"<i class='icon-user'></i>"+
 					"{{user.name}}"+
 				"</a>"+
@@ -361,7 +361,7 @@
 			var user_list = "";
 			for ( i in city_members[current_city] ){
 				user_list += "<li id='user-list-item_" + city_members[current_city][i].id + "'>"+
-						"<a  name='user-list-item_" + city_members[current_city][i].id + "' href='#' onclick='chooseUserById("+ city_members[current_city][i].id +")'>"+
+						"<a  name='user-list-item_" + city_members[current_city][i].id + "' href='javascript:void(0)' onclick='chooseUserById("+ city_members[current_city][i].id +")'>"+
 							"<i class='icon-user'></i>"+
 							city_members[current_city][i].name+
 						"</a>"+
@@ -421,7 +421,7 @@
 				       	});
 					user_list += "<li id=\"user-list-item_" + city_members[current_city][i].id + "\" >"+
 							"<a  name=\"user-list-item_" + city_members[current_city][i].id + "\" "+
-							"href='#'  onclick='chooseUserById("+ city_members[current_city][i].id +")'>"+
+							"href='javascript:void(0)'  onclick='chooseUserById("+ city_members[current_city][i].id +")'>"+
 								"<i class='icon-user'></i>"+city_members[current_city][i].name+
 							"</a>"+
 						     "</li>";
