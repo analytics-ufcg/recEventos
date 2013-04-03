@@ -623,8 +623,8 @@
 
 					var event_marker = new google.maps.Marker({position : new google.maps.LatLng(events[i].lat, events[i].lon),
 								map : map,
-								icon : status_icon,
-								shadow : status_icon_shadow,
+								icon : image,
+								shadow : shadow,
 								draggable : true,
 								zIndex : 200	});
 					event_markers.push({ 'marker' : event_marker, 'event' : events[i] });
@@ -1028,13 +1028,25 @@
 
 			var status_icon = determineIcon(event_status);
 			var status_icon_shadow = determineIconShadow(event_status);
+
+			var image = new google.maps.MarkerImage(status_icon,
+				new google.maps.Size(24.0, 32.0),
+				new google.maps.Point(0, 0),
+				new google.maps.Point(12.0, 16.0)
+			);
+			var shadow = new google.maps.MarkerImage(status_icon_shadow,
+				new google.maps.Size(41.0, 32.0),
+				new google.maps.Point(0, 0),
+				new google.maps.Point(12.0, 16.0)
+			);
+
 			var event_details = showEventDetails(current_user, all_user_events_and_recommendations[i], event_status);
 			var status_zIndex = determineZIndex(event_status);
 
 			var event_marker = new google.maps.Marker({position : new google.maps.LatLng(all_user_events_and_recommendations[i].lat, all_user_events_and_recommendations[i].lon),
 						map : map,
-						icon : status_icon,
-						shadow : status_icon_shadow,
+						icon : image,
+						shadow : shadow,
 						draggable : true,
 						zIndex : status_zIndex	});
 			event_markers.push({ 'marker' : event_marker, 'event' : all_user_events_and_recommendations[i] });
