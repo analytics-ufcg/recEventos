@@ -933,24 +933,12 @@
 					}
 					seen[events_source[i].id] = true;
 
-/*					// This for below is being done only because rec_events.csv doesn't have event time nor created time
-					for ( var k=0; k<city_events[current_city].length; k++ ){
-						if ( city_events[current_city][k].id == events_source[i].id ){
-							events_source[i].time = city_events[current_city][k].time;
-							events_source[i].time_long = city_events[current_city][k].time_long;
-							events_source[i].created = city_events[current_city][k].created;
-							events_source[i].created_long = city_events[current_city][k].created_long;
-							break;
-						}
-					}*/
-
-
 					if ( events_source[i].time_long < p_time ){
 						//already happened, Color 1
 						var entry = events_source[i];
 						events_source[i]['status'] = 'already_happened';
 						all_user_events_and_recommendations.push(events_source[i]);
-						recommended_stats['alread_happened'] += 1;
+						recommended_stats['already_happened'] += 1;
 					}
 					else if ( events_source[i].created_long > p_time ){
 						//will happen yet, Color 1
@@ -1003,17 +991,6 @@
 							continue;
 						}
 						seen[events_source[j].id] = true;
-
-/*						// Again, this for below is being done only because rec_events.csv doesn't have event time nor created time
-						for ( var k=0; k<city_events[current_city].length; k++ ){
-							if ( city_events[current_city][k].id == events_source[j].id ){
-								events_source[j].time = city_events[current_city][k].time;
-								events_source[j].time_long = city_events[current_city][k].time_long;
-								events_source[j].created = city_events[current_city][k].created;
-								events_source[j].created_long = city_events[current_city][k].created_long;
-								break;
-							}
-						}*/
 
 						//was recommended, but user didn't go to this event, Color 4
 						var entry = events_source[j];
