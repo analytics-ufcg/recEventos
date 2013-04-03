@@ -93,10 +93,10 @@
 		</div>
 	</div>
 
-	<div id="event_details" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="event_details_label" aria-hidden="true">
+	<div id="event_details" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="details_label" aria-hidden="true">
 		<div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
-			<h3 id="event_details_label">Event Details</h3>
+			<h3 id="details_label">Event Details</h3>
 		</div>
 		<div id="event_details_body" class="modal-body">
 			<img src="static/ajax-loader.gif"></img>
@@ -739,6 +739,8 @@
 	function showEventDetails(user, event, status){
 		function doShowDetails(){
 
+			$("#details_label").html('Event Details');
+
 			$("#event_details_body").html("<img src='static/ajax-loader.gif'></img>");
 			$("#event_details").modal('show');
 
@@ -772,6 +774,8 @@
 
 	function showUserDetails(user){
 		function doShowDetails(){
+
+			$("#details_label").html('User Details');
 
 			$("#event_details_body").html("<img src='static/ajax-loader.gif'></img>");
 			$("#event_details").modal('show');
