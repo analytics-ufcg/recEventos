@@ -568,7 +568,19 @@
 					var status_icon = determineIcon(event_status);
 					var status_icon_shadow = determineIconShadow(event_status);
 					var event_details = showEventDetails(user, events[i], event_status);
-					
+
+					var image = new google.maps.MarkerImage(status_icon,
+						new google.maps.Size(24.0, 32.0),
+						new google.maps.Point(0, 0),
+						new google.maps.Point(12.0, 16.0)
+					);
+					var shadow = new google.maps.MarkerImage(status_icon_shadow,
+						new google.maps.Size(41.0, 32.0),
+						new google.maps.Point(0, 0),
+						new google.maps.Point(12.0, 16.0)
+					);
+
+
 					var event_marker = new google.maps.Marker({position : new google.maps.LatLng(events[i].lat, events[i].lon),
 								map : map,
 								title : events[i].name + " at " + events[i].venue_name + ", " + events[i].venue_city,
@@ -827,7 +839,7 @@
 		}
 
 		$("#filters_button").removeClass("disabled");
-		$('#filter_tooltip').tooltip({animation : true, delay : 100});
+		$('#filter_tooltip').tooltip({animation : true, delay : 300});
 		$('#filter_tooltip').css('display', '');
 		$('#disable_tooltip').css('display', 'none');
 		
