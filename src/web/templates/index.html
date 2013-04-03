@@ -492,6 +492,8 @@
 		}
 	}
 
+	var click_listeners = {}
+
 	function chooseUser(user, scroll){
 
 		function doChooseAndPinEvents(){
@@ -501,14 +503,16 @@
 				user_markers[id_to_user_marker[current_user.id]].marker.setIcon('static/user-pin.png');
 				user_markers[id_to_user_marker[current_user.id]].marker.setZIndex(0);
 				var chooseUserClosure = chooseUser(current_user, true);
-				google.maps.event.addListener(user_markers[id_to_user_marker[current_user.id]].marker, 'click', chooseUserClosure);
+				google.maps.event.removeListener(click_listeners[current_user.id]);
+				click_listeners[current_user.id] = google.maps.event.addListener(user_markers[id_to_user_marker[current_user.id]].marker, 'click', chooseUserClosure);
 			}
 
 			$("#user-list-item_"+user.id).addClass("active");
 			user_markers[id_to_user_marker[user.id]].marker.setIcon('static/chosen-user-pin.png');
 			user_markers[id_to_user_marker[user.id]].marker.setZIndex(100);
 			var showUserDetailsClosure = showUserDetails(user);
-			google.maps.event.addListener(user_markers[id_to_user_marker[user.id]].marker, 'click', showUserDetailsClosure);
+			google.maps.event.removeListener(click_listeners[user.id]);
+			click_listeners[user.id] = google.maps.event.addListener(user_markers[id_to_user_marker[user.id]].marker, 'click', showUserDetailsClosure);
 
 
 			current_user = user;
@@ -556,7 +560,7 @@
 			user_markers.push({ 'marker' : user_marker, 'user' : users[i] });
 			id_to_user_marker[users[i].id] = i;
 			var chooseUserClosure = chooseUser(users[i], true);
-			google.maps.event.addListener(user_marker, 'click', chooseUserClosure);
+			click_listeners[users[i].id] = google.maps.event.addListener(user_marker, 'click', chooseUserClosure);
 
 			var showTooltipClosure = showTooltip(users[i].name, 'top');
 			google.maps.event.addListener(user_marker, 'mouseover', showTooltipClosure);
@@ -1041,7 +1045,6 @@
 						draggable : true,
 						zIndex : status_zIndex	});
 			event_markers.push({ 'marker' : event_marker, 'event' : all_user_events_and_recommendations[i] });
-			google.maps.event.addListener(event_marker, 'click', event_details);
 
 			var showTooltipClosure = showTooltip(all_user_events_and_recommendations[i].name, 'top');
 			google.maps.event.addListener(event_marker, 'mouseover', showTooltipClosure);
