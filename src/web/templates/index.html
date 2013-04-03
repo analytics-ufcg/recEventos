@@ -745,8 +745,8 @@
 			var content = "<h4>"+event.name+"</h4>";
 
 			content += "<blockquote class='pull-right'>";
-			content += "<p><i class='icon-calendar'></i> When: <span class='span5 uneditable-input' style='margin-left:auto; margin-right:auto;'><strong class='text-info'>"+event.time+"</strong></span></p>";
-			content += "<p><i class='icon-map-marker'></i> Where: <span class='span5 uneditable-input' style='margin-left:auto; margin-right:auto;'><strong class='text-info'>"+event.venue_name+", "+event.venue_city+"</strong></span></p>";
+			content += "<p><i class='icon-calendar'></i> When: <span class='span5 uneditable-input' style='margin-left:auto; margin-right:auto; cursor:pointer;'><strong class='text-info'>"+event.time+"</strong></span></p>";
+			content += "<p><i class='icon-map-marker'></i> Where: <span class='span5 uneditable-input' style='margin-left:auto; margin-right:auto; cursor:pointer;'><strong class='text-info'>"+event.venue_name+", "+event.venue_city+"</strong></span></p>";
 
 			if ( status != 'no_algorithm' && status != 'already_happened' && status != 'will_still_happen' ){
 			content += "<p><small><i class='icon-user'></i> <em>"+user.name+"</em> / <strong>"+$.trim($('#algs_button').text())+"</strong> status: ";
