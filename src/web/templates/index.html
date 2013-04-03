@@ -73,8 +73,8 @@
 										<button id='hit_btn' type="button" class="btn btn-large active" onclick="toggle(0); setRecommender(recommender, current_user);"><i class="icon-ok"></i> <strong class="text-success">Rec Events Hits</strong></button>
 										<button id='error_btn' type="button" class="btn btn-large active" onclick="toggle(2); setRecommender(recommender, current_user);"><i class="icon-remove"></i> <strong class='text-error'>Rec Events Errors</strong></button>
 										<button id='miss_btn' type="button" class="btn btn-large active" onclick="toggle(1); setRecommender(recommender, current_user);"><i class="icon-warning-sign"></i> <strong class='text-warning'>Attended Events Misses</strong></button>
-										<button id='past_btn' type="button" class="btn btn-large active" onclick="toggle(3); setRecommender(recommender, current_user);"><i class="icon-circle-arrow-left"></i> <strong class='muted'>Past Attended Events</strong></button>
-										<button id='future_btn' type="button" class="btn btn-large active" onclick="toggle(4); setRecommender(recommender, current_user);"><i class="icon-circle-arrow-right"></i> <strong class='muted'>Future Attended Events</strong></button>
+										<button id='past_btn' type="button" class="btn btn-large" onclick="toggle(3); setRecommender(recommender, current_user);"><i class="icon-circle-arrow-left"></i> <strong class='muted'>Past Attended Events</strong></button>
+										<button id='future_btn' type="button" class="btn btn-large" onclick="toggle(4); setRecommender(recommender, current_user);"><i class="icon-circle-arrow-right"></i> <strong class='muted'>Future Attended Events</strong></button>
 									</div>
 								</li>
 							</ul>
@@ -134,8 +134,8 @@
     var hits_enabled = true;
     var misses_enabled = true;
     var dismisses_enabled = true;
-    var past_enabled = true;
-    var future_enabled = true;
+    var past_enabled = false;
+    var future_enabled = false;
 
     var toggleControl = true;
 
