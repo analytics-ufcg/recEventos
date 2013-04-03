@@ -10,6 +10,8 @@
 
 <body style="height:90%;">
 
+	<div id='tooltip_enabler' data-toggle='tooltip' style='position:absolute; z-index:100;'></div>
+
 	<div class="span3" style="margin-left:5px;">
 		<ul class="nav nav-list" style="height: 48%;">
 			<li class="nav-header label label-info" style="margin-top:5px;">Cities</li>
@@ -219,25 +221,10 @@
 	directionsDisplay.setMap(map);
     }
 
-    function calcRoute(r) {
-
-        var waypts = [];
-
-        start = new google.maps.LatLng(r.src[0], r.src[1]);
-        end = new google.maps.LatLng(r.dst[0], r.dst[1]);
-        var request = {
-            origin:start,
-            destination:end,
-            waypoints:waypts,
-            optimizeWaypoints:true,
-            travelMode:google.maps.DirectionsTravelMode.DRIVING
-        };
-        directionsService.route(request, function (response, status) {
-            if (status == google.maps.DirectionsStatus.OK) {
-                directionsDisplay.setDirections(response);
-                var route = response.routes[0];
-            }
-        });
+	var decoder = document.createElement('textarea');
+	function decodeString(encoded){
+		decoder.innerHTML = encoded;
+		return decoder.value;
 	}
 
 	function start(){
@@ -259,9 +246,9 @@
 			'id' : "{{event.id}}", 
 			'lat' : {{event.lat}}, 
 			'lon' : {{event.lon}}, 
-			'name' : "{{event.name}}", 
-			'venue_name' : "{{event.venue_name}}", 
-			'venue_city' : "{{event.venue_city}}", 
+			'name' : decodeString("{{event.name}}"), 
+			'venue_name' : decodeString("{{event.venue_name}}"), 
+			'venue_city' : decodeString("{{event.venue_city}}"),
 			'time' : "{{event.time}}", 
 			'created' : "{{event.created}}",
 			'time_long' : {{event.time_long}},
@@ -275,10 +262,10 @@
 			'id' : "{{rec_event.id}}", 
 			'lat' : {{rec_event.lat}}, 
 			'lon' : {{rec_event.lon}}, 
-			'name' : "{{rec_event.name}}", 
-			'venue_name' : "{{rec_event.venue_name}}", 
-			'venue_city' : "{{rec_event.venue_city}}",			
-			'time' : "{{rec_event.time}}", 
+			'name' : decodeString("{{rec_event.name}}"),
+			'venue_name' : decodeString("{{rec_event.venue_name}}"),
+			'venue_city' : decodeString("{{rec_event.venue_city}}"),
+			'time' : "{{rec_event.time}}",
 			'created' : "{{rec_event.created}}",
 			'time_long' : {{rec_event.time_long}},
 			'created_long' : {{rec_event.created_long}}
@@ -293,9 +280,9 @@
 			'id' : "{{user.id}}", 
 			'lat' : {{user.lat}}, 
 			'lon' : {{user.lon}}, 
-			'name' : "{{user.name}}", 
+			'name' : decodeString("{{user.name}}"),
 			'events' : "{{user.events}}".split(","), 
-			'city' : "{{user.city}}", 
+			'city' : decodeString("{{user.city}}"), 
 			'p_time' : "{{user.p_time}}", 
 			'rec_distance' : "{{user.rec_distance}}".split(",")
 		});
@@ -313,6 +300,43 @@
 		}
 
 		$("#user-list").html(user_list);
+	}
+
+	var mouseX, mouseY;
+	$(document).mousemove(function(e) {
+		mouseX = e.pageX;
+		mouseY = e.pageY;
+	});
+
+	var outside = true;
+
+	function showTooltip(text, placement){
+
+		function returnContext(){
+
+			outside = false;
+			console.log("about to show tooltip");
+			console.log("tooltip will be positioned at: "+mouseX+", "+mouseY);
+
+			$("#tooltip_enabler").css('top', mouseY);
+			$("#tooltip_enabler").css('left', mouseX);
+			$("#tooltip_enabler").tooltip({title : text, trigger : 'manual', placement : placement});
+			setTimeout(function(){
+				if ( outside == false ){
+					$("#tooltip_enabler").tooltip('show');
+				}
+			}, 600);
+		}
+		return returnContext;
+	}
+
+	function hideTooltip(id){
+		function r(){
+			console.log("about to hide tooltip!");
+			$(id).tooltip('destroy');
+			outside = true;
+		}
+		return r;
 	}
 
 	function changeCity(city){
@@ -362,9 +386,9 @@
 						'id' : data.events[i].id, 
 						'lat' : data.events[i].lat, 
 						'lon' : data.events[i].lon, 
-						'name' : data.events[i].name, 
-						'venue_name' : data.events[i].venue_name, 
-						'venue_city' : data.events[i].venue_city, 
+						'name' : decodeString(data.events[i].name), 
+						'venue_name' : decodeString(data.events[i].venue_name),
+						'venue_city' : decodeString(data.events[i].venue_city),
 						'time' : data.events[i].time, 
 						'created' : data.events[i].created,
 						'time_long' : data.events[i].time_long,
@@ -378,9 +402,9 @@
 						'id' : data.rec_events[i].id, 
 						'lat' : data.rec_events[i].lat, 
 						'lon' : data.rec_events[i].lon, 
-						'name' : data.rec_events[i].name, 
-						'venue_name' : data.rec_events[i].venue_name, 
-						'venue_city' : data.rec_events[i].venue_city
+						'name' : decodeString(data.rec_events[i].name), 
+						'venue_name' : decodeString(data.rec_events[i].venue_name), 
+						'venue_city' : decodeString(data.rec_events[i].venue_city)
 				       	});
 				};
 
@@ -391,9 +415,9 @@
 						'id' : data.users[i].id, 
 						'lat' : data.users[i].lat, 
 						'lon' : data.users[i].lon, 
-						'name' : data.users[i].name, 
+						'name' : decodeString(data.users[i].name), 
 						'events' : data.users[i].events.split(","), 
-						'city' : data.users[i].city, 
+						'city' : decodeString(data.users[i].city), 
 						'p_time' : data.users[i].p_time, 
 						'rec_distance' : data.users[i].rec_distance.split(",")
 				       	});
@@ -478,7 +502,6 @@
 				$("#user-list-item_"+current_user.id).removeClass("active");
 				user_markers[id_to_user_marker[current_user.id]].marker.setIcon('static/user-pin.png');
 				user_markers[id_to_user_marker[current_user.id]].marker.setZIndex(0);
-				google.maps.event.clearInstanceListeners(user_markers[id_to_user_marker[current_user.id]].marker);
 				var chooseUserClosure = chooseUser(current_user, true);
 				google.maps.event.addListener(user_markers[id_to_user_marker[current_user.id]].marker, 'click', chooseUserClosure);
 			}
@@ -486,7 +509,6 @@
 			$("#user-list-item_"+user.id).addClass("active");
 			user_markers[id_to_user_marker[user.id]].marker.setIcon('static/chosen-user-pin.png');
 			user_markers[id_to_user_marker[user.id]].marker.setZIndex(100);
-			google.maps.event.clearInstanceListeners(user_markers[id_to_user_marker[user.id]].marker);
 			var showUserDetailsClosure = showUserDetails(user);
 			google.maps.event.addListener(user_markers[id_to_user_marker[user.id]].marker, 'click', showUserDetailsClosure);
 
@@ -529,7 +551,6 @@
 
 			var user_marker = new google.maps.Marker({position : new google.maps.LatLng(users[i].lat, users[i].lon),
 						map : map,
-						title : users[i].name,
 						icon : 'static/user-pin.png',
 						shadow: 'static/shadow-user-pin.png',
 						draggable : true,
@@ -539,8 +560,11 @@
 			var chooseUserClosure = chooseUser(users[i], true);
 			google.maps.event.addListener(user_marker, 'click', chooseUserClosure);
 
-			var user_details = showUserDetails(users[i]);
-			google.maps.event.addListener(user_marker, 'dblclick', user_details);
+			var showTooltipClosure = showTooltip(users[i].name, 'top');
+			google.maps.event.addListener(user_marker, 'mouseover', showTooltipClosure);
+
+			var hideTooltipClosure = hideTooltip('#tooltip_enabler');
+			google.maps.event.addListener(user_marker, 'mouseout', hideTooltipClosure);
 			close_users.push(users[i]);
 		}
 	}
@@ -590,13 +614,20 @@
 
 					var event_marker = new google.maps.Marker({position : new google.maps.LatLng(events[i].lat, events[i].lon),
 								map : map,
-								title : events[i].name + " at " + events[i].venue_name + ", " + events[i].venue_city,
 								icon : status_icon,
 								shadow : status_icon_shadow,
 								draggable : true,
 								zIndex : 200	});
 					event_markers.push({ 'marker' : event_marker, 'event' : events[i] });
 					google.maps.event.addListener(event_marker, 'click', event_details);
+
+
+					var showTooltipClosure = showTooltip(events[i].name, 'top');
+					google.maps.event.addListener(event_marker, 'mouseover', showTooltipClosure);
+
+					var hideTooltipClosure = hideTooltip('#tooltip_enabler');
+					google.maps.event.addListener(event_marker, 'mouseout', hideTooltipClosure);
+
 					close_events.push(events[i]);
 
 					break;
@@ -771,14 +802,15 @@
 			}
 
 			content += "<table class='table table-striped table-bordered table-hover'>";
-			content += "<tr><td><strong>Name</strong></td><td><strong>Venue</strong></td><td><strong>Time</strong></td><td><strong>Status</strong></td></tr>";
 
 			var evv = null;
 			if ( recommender != 'none' ){
+				content += "<tr><td><strong>Name</strong></td><td><strong>Venue</strong></td><td><strong>Time</strong></td><td><strong>Status</strong></td></tr>";
 				evv = all_user_events_and_recommendations;
 				evv.sort(sortbyLatLng);
 			}
 			else {
+				content += "<tr><td><strong>Name</strong></td><td><strong>Venue</strong></td><td><strong>Time</strong></td></tr>";
 				evv = city_events[current_city];
 				evv.sort(sortbyLatLng);
 			}
@@ -791,8 +823,7 @@
 						if ( user.events[j] == evv[i].id ){
 							var status = "no_algorithm";
 							var status_color = getColor(status);
-							var status_msg = determineStatusMsg(status);
-							content += "<tr class='"+status_color+"'><td>" + evv[i].name + "</td><td>@" + evv[i].venue_name + "</td><td>" + evv[i].time + "</td><td>"+status_msg+"</td></tr>";
+							content += "<tr class='"+status_color+"'><td>" + evv[i].name + "</td><td>@" + evv[i].venue_name + "</td><td>" + evv[i].time + "</td></tr>";
 							break;
 						}
 					}
@@ -846,7 +877,7 @@
 		}
 
 		$("#filters_button").removeClass("disabled");
-		$('#filter_tooltip').tooltip({animation : true, delay : 300});
+		$('#filter_tooltip').tooltip({animation : true, delay : 600});
 		$('#filter_tooltip').css('display', '');
 		$('#disable_tooltip').css('display', 'none');
 		
@@ -1007,13 +1038,19 @@
 
 			var event_marker = new google.maps.Marker({position : new google.maps.LatLng(all_user_events_and_recommendations[i].lat, all_user_events_and_recommendations[i].lon),
 						map : map,
-						title : all_user_events_and_recommendations[i].name + " at " + all_user_events_and_recommendations[i].venue_name + ", " + all_user_events_and_recommendations[i].venue_city,
 						icon : status_icon,
 						shadow : status_icon_shadow,
 						draggable : true,
 						zIndex : status_zIndex	});
 			event_markers.push({ 'marker' : event_marker, 'event' : all_user_events_and_recommendations[i] });
 			google.maps.event.addListener(event_marker, 'click', event_details);
+
+			var showTooltipClosure = showTooltip(all_user_events_and_recommendations[i].name, 'top');
+			google.maps.event.addListener(event_marker, 'mouseover', showTooltipClosure);
+
+			var hideTooltipClosure = hideTooltip('#tooltip_enabler');
+			google.maps.event.addListener(event_marker, 'mouseout', hideTooltipClosure);
+
 		}
 
 	}
