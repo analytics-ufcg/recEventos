@@ -44,14 +44,21 @@ def read_events_and_members(city):
 
 	print "Loaded "+str(len(rec_events))+" recommended events from ", city
 
+	user_names = {}
 	users = []
 	with open(os.path.join("src", "web", "files", city, "members.csv"), 'r') as source:
 		csv_reader = csv.reader(source)
 		csv_reader.next()
 		for user in csv_reader:
 			#user[0] - id; user[3] - name; user[2] - longitude; user[1] - latitude
+			if not user[3] in user_names:
+				user_names[user[3]] = 0
+			user_names[user[3]] += 1
+			suffix = ""
+			if ( user_names[user[3]] > 1 ):
+				suffix = "_" + str(user_names[user[3]])
 			user_info = { 'id' : user[0].strip(),
-					'name' : filter(lambda x: x in string.printable, user[3]).strip().encode('utf8').replace("\\", ""),
+					'name' : filter(lambda x: x in string.printable, user[3] + suffix).strip().encode('utf8').replace("\\", ""),
 					'lon' : user[2].strip(),
 					'lat' : user[1].strip(),
 					'city' : filter(lambda x: x in string.printable, user[4]).strip().encode('utf8').replace("\\", ""),

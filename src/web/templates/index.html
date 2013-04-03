@@ -804,6 +804,11 @@
 		removeEventMarkers();
 
 		var events_source = city_events[current_city];
+
+		for (i in city_rec_events[current_city]){
+			events_source.push(city_rec_events[current_city][i]);
+		}
+
 		var user_events = current_user.events;
 		events_source.sort(sortbyLatLng);
 
@@ -815,9 +820,16 @@
 
 		recommended_stats = { 'already_happened' : 0, 'will_still_happen' : 0, 'recommendation_hit' : 0, 'recommendation_miss' : 0, 'recommendation_error' : 0, 'total_relevant' : 0 };
 
+		seen = {};
+
 		for ( var i=0; i<events_source.length; i++ ){
 			for ( var j=0; j<user_events.length; j++ ){
 				if ( user_events[j] == events_source[i].id ){
+
+					if ( seen[events_source[i].id] ){
+						continue;
+					}
+					seen[events_source[i].id] = true;
 
 /*					// This for below is being done only because rec_events.csv doesn't have event time nor created time
 					for ( var k=0; k<city_events[current_city].length; k++ ){
@@ -885,6 +897,10 @@
 				for ( var j=0; j<events_source.length; j++ ){
 					if ( recommended_to_user[i] == events_source[j].id ){
 
+						if ( seen[events_source[j].id] ){
+							continue;
+						}
+						seen[events_source[j].id] = true;
 
 /*						// Again, this for below is being done only because rec_events.csv doesn't have event time nor created time
 						for ( var k=0; k<city_events[current_city].length; k++ ){
