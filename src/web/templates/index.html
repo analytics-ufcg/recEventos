@@ -478,11 +478,18 @@
 				$("#user-list-item_"+current_user.id).removeClass("active");
 				user_markers[id_to_user_marker[current_user.id]].marker.setIcon('static/user-pin.png');
 				user_markers[id_to_user_marker[current_user.id]].marker.setZIndex(0);
+				google.maps.event.clearInstanceListeners(user_markers[id_to_user_marker[current_user.id]].marker);
+				var chooseUserClosure = chooseUser(current_user, true);
+				google.maps.event.addListener(user_markers[id_to_user_marker[current_user.id]].marker, 'click', chooseUserClosure);
 			}
 
 			$("#user-list-item_"+user.id).addClass("active");
 			user_markers[id_to_user_marker[user.id]].marker.setIcon('static/chosen-user-pin.png');
 			user_markers[id_to_user_marker[user.id]].marker.setZIndex(100);
+			google.maps.event.clearInstanceListeners(user_markers[id_to_user_marker[user.id]].marker);
+			var showUserDetailsClosure = showUserDetails(user);
+			google.maps.event.addListener(user_markers[id_to_user_marker[user.id]].marker, 'click', showUserDetailsClosure);
+
 
 			current_user = user;
 
