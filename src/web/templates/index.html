@@ -49,7 +49,7 @@
 					<div class="span3">
 						<span class="label label-inverse">Recommendation technique</span>
 						<div class="dropdown">
-							<a id="algs_button" class="dropdown-toggle btn btn-large btn-inverse btn-block" data-toggle="dropdown" type="button" href="javascript:void(0)"><i class="icon-remove icon-white"></i>None</a>
+							<a id="algs_button" class="dropdown-toggle btn btn-large btn-inverse btn-block disable disabled" data-toggle="dropdown" type="button" href="javascript:void(0)"><i class="icon-remove icon-white"></i>None</a>
 							<ul class="dropdown-menu text-right" role="menu" style='visibility:hidden;'>
 								<li>
 									<div class='btn-group btn-group-vertical' data-toggle='buttons-radio' style='visibility:visible;'>
@@ -238,6 +238,7 @@
 
 		google.maps.event.addListener(map, 'tilesloaded', function(){
 			$("#loading_message").css("display", "none");
+			$("#algs_button").removeClass("disabled");
 		});
 
 		$("#user-list").html("<img src='static/ajax-loader-enhanced.gif'></img>");
