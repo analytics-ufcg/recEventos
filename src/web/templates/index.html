@@ -45,7 +45,7 @@
 						<button id="cities_button" class="btn btn-large btn-inverse btn-block disabled" type="button">Loading...</button>
 					</div>
 					<div class="span3">
-						<span class="label label-inverse">Current technique</span>
+						<span class="label label-inverse">Recommendation technique</span>
 						<div class="dropdown">
 							<a id="algs_button" class="dropdown-toggle btn btn-large btn-inverse btn-block" data-toggle="dropdown" type="button" href="#"><i class="icon-remove icon-white"></i> None</a>
 							<ul class="dropdown-menu text-right" role="menu">
@@ -59,17 +59,17 @@
 						</div>
 					</div>
 					<div class="span2">
-						<span class="label label-inverse">Filter by</span>
+						<span class="label label-inverse">Filter</span>
 						<div class="dropdown">
-							<a id="filters_button" class="dropdown-toggle btn btn-large btn-inverse btn-block disabled" data-toggle="dropdown" type="button" href="#"><i class="icon-filter icon-white"></i> Toggle</a>
+							<a id="filters_button" class="dropdown-toggle btn btn-large btn-inverse btn-block disabled" data-toggle="dropdown" type="button" href="#"><i class="icon-filter icon-white"></i> Toggles</a>
 							<ul class="dropdown-menu text-right" role="menu" style="visibility:hidden;">
 								<li>
 									<div class="btn-group btn-group-vertical" data-toggle="buttons-checkbox" style="visibility:visible;">
-										<button type="button" class="btn btn-inverse btn-large active" onclick="toggle(0); setRecommender(recommender, current_user);"><i class="icon-ok icon-white"></i> Hits</button>
-										<button type="button" class="btn btn-inverse btn-large active" onclick="toggle(1); setRecommender(recommender, current_user);"><i class="icon-warning-sign icon-white"></i> Misses</button>
-										<button type="button" class="btn btn-inverse btn-large active" onclick="toggle(2); setRecommender(recommender, current_user);"><i class="icon-remove icon-white"></i> Wrongs</button>
-										<button type="button" class="btn btn-inverse btn-large active" onclick="toggle(3); setRecommender(recommender, current_user);"><i class="icon-circle-arrow-left icon-white"></i> Past Events</button>
-										<button type="button" class="btn btn-inverse btn-large active" onclick="toggle(4); setRecommender(recommender, current_user);"><i class="icon-circle-arrow-right icon-white"></i> Future Events</button>
+										<button type="button" class="btn btn-large active" onclick="toggle(0); setRecommender(recommender, current_user);"><i class="icon-ok"></i> <strong class="text-success">Rec Events Hits</strong></button>
+										<button type="button" class="btn btn-large active" onclick="toggle(2); setRecommender(recommender, current_user);"><i class="icon-remove"></i> <strong class='text-error'>Rec Events Errors</strong></button>
+										<button type="button" class="btn btn-large active" onclick="toggle(1); setRecommender(recommender, current_user);"><i class="icon-warning-sign"></i> <strong class='text-warning'>Attended Events Misses</strong></button>
+										<button type="button" class="btn btn-large active" onclick="toggle(3); setRecommender(recommender, current_user);"><i class="icon-circle-arrow-left"></i> <strong class='muted'>Past Attended Events</strong></button>
+										<button type="button" class="btn btn-large active" onclick="toggle(4); setRecommender(recommender, current_user);"><i class="icon-circle-arrow-right"></i> <strong class='muted'>Future Attended Events</strong></button>
 									</div>
 								</li>
 							</ul>
