@@ -1046,6 +1046,8 @@
 						zIndex : status_zIndex	});
 			event_markers.push({ 'marker' : event_marker, 'event' : all_user_events_and_recommendations[i] });
 
+			google.maps.event.addListener(event_marker, 'click', event_details);
+
 			var showTooltipClosure = showTooltip(all_user_events_and_recommendations[i].name, 'top');
 			google.maps.event.addListener(event_marker, 'mouseover', showTooltipClosure);
 
