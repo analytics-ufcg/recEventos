@@ -47,14 +47,17 @@
 					<div class="span3">
 						<span class="label label-inverse">Recommendation technique</span>
 						<div class="dropdown">
-							<a id="algs_button" class="dropdown-toggle btn btn-large btn-inverse btn-block" data-toggle="dropdown" type="button" href="#"><i class="icon-remove icon-white"></i> None</a>
-							<ul class="dropdown-menu text-right" role="menu">
-								<li><a tabindex="-1" href="#" onclick="setRecommender('none', current_user);"><i class="icon-remove"></i> None</a></li>
-								<li class="divider"></li>
-								<li><a tabindex="-1" href="#" onclick="setRecommender('distance', current_user);"><i class="icon-map-marker"></i> Location Based</a></li>
-								<li><a tabindex="-1" href="#" onclick=""><i class="icon-comment"></i> Popularity Based</a></li>
-								<li><a tabindex="-1" href="#" onclick=""><i class="icon-list-alt"></i> Category Based</a></li>
-								<li><a tabindex="-1" href="#" onclick=""><i class="icon-asterisk"></i> Weighted Combination of the others</a></li>
+							<a id="algs_button" class="dropdown-toggle btn btn-large btn-inverse btn-block" data-toggle="dropdown" type="button" href="#"><i class="icon-remove icon-white"></i>None</a>
+							<ul class="dropdown-menu text-right" role="menu" style='visibility:hidden;'>
+								<li>
+									<div class='btn-group btn-group-vertical' data-toggle='buttons-radio' style='visibility:visible;'>
+										<button type='button' class='btn btn-large active' onclick="setRecommender('none', current_user);"><i class="icon-remove"></i> <strong class='muted'>None</strong></button>
+										<button type='button' class='btn btn-large' onclick="setRecommender('distance', current_user);"><i class="icon-map-marker"></i> <strong class='muted'>Location Based</strong></button>
+										<button type='button' class='btn btn-large' onclick=""><i class="icon-comment"></i> <strong class='muted'>Popularity Based</strong></button>
+										<button type='button' class='btn btn-large' onclick=""><i class="icon-list-alt"></i> <strong class='muted'>Category Based</strong></button>
+										<button type='button' class='btn btn-large' onclick=""><i class="icon-asterisk"></i> <strong class='muted'>Weighted Combination of the others</strong></button>
+									</div>
+								</li>
 							</ul>
 						</div>
 					</div>
