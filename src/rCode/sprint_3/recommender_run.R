@@ -42,12 +42,12 @@ source("src/rCode/sprint_3/recommender_functions.R")
 # =============================================================================
 # Function definitions
 # =============================================================================
-RecommendPerPartition <- function(partition, k, rec.fun){
+RecommendPerPartition <- function(partition, k.events, rec.fun){
   member.id <- partition$member_id
   p.time <- partition$partition_time
   
   # Call the recommender function
-  rec.events <- rec.fun(member.id, k, p.time)
+  rec.events <- rec.fun(member.id, k.events, p.time)
   
   return(cbind(data.frame(p_time = p.time), t(rec.events)))
 }
@@ -70,7 +70,7 @@ if (length(partition.files) <= 0){
 
 # Number of recommended events
 k <- 5
-algorithms <- c("Distance") # c("Distance", "Popularity", "Topic", "Weighted")
+algorithms <- c("Topic") # c("Distance", "Popularity", "Topic", "Weighted")
 
 rec.environment <- CreateRecEnvironment()
 
@@ -90,7 +90,7 @@ for (rec.fun.name in algorithms){
     print(noquote(paste("   Started running at: ", Sys.time(), sep = "")))
     
     rec.events.df <- ddply(idata.frame(partitions), .(member_id, partition),
-                           RecommendPerPartition, k, .parallel = T, .progress = "text",
+                           RecommendPerPartition, k, .parallel = F, .progress = "text",
                            rec.fun)
     rec.events.df$algorithm <- rep(rec.fun.name, nrow(rec.events.df))
     

@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 # SOFTWARE.
 #
-# Author: Elias Paulino and Augusto Queiroz
+# Author: Elias Paulino, Augusto Queiroz and Rodolfo Moraes
 #
 # File: 
 #   * Description: 
@@ -49,11 +49,21 @@ CreateRecEnvironment <- function(){
   setkey(member.events, "member_id")
   members <- subset(members, id %in% unique(member.events$member_id))
   
+  cat("  Reading the member.topics...\n")
+  member.topics <- data.table(ReadAllCSVs("data_csv/", "member_topics"))
+  setkey(member.topics, "member_id")
+  member.topics <- subset(member.topics, member_id %in% unique(members$id))
+  
   cat("  Reading the events...\n")
-  events <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="events")[,c("id", "created", "time", "venue_id")])
+  events <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="events")[,c("id", "created", "time", "venue_id", "group_id")])
   setkey(events, "venue_id")
   setkey(member.events, "event_id")
   events <- subset(events, id %in% unique(member.events$event_id))
+  
+  cat("  Reading the group.topics...\n")
+  group.topics <- data.table(ReadAllCSVs("data_csv/", "group_topics"))
+  setkey(group.topics, "group_id")
+  group.topics <- subset(group.topics, group_id %in% events$group_id)
   
   cat("  Reading the venues...\n")
   venues <- data.table(read.csv("data_csv/venues.csv",sep = ",")[,c("id", "lat", "lon")])
@@ -68,7 +78,7 @@ CreateRecEnvironment <- function(){
   # Just to order and make the subset in the distance algorithm faster
   setkey(events.with.location, "created")
   
-  rm(member.events, venues, events)
+  rm(venues, events)
   
   environment()
 }
@@ -76,12 +86,148 @@ CreateRecEnvironment <- function(){
 RecEvents.Distance <- function(member.id, k.events, p.time){
   
   member <- subset(members, id == member.id)
-
+  
   candidate.events <- subset(events.with.location, created <= p.time & time >= p.time)
   
   candidate.events$dist <- geodDist(candidate.events$lat, candidate.events$lon, 
                                     member$lat, member$lon)
   setkey(candidate.events, "dist")  # Now it is ordered by dist
+  
+  # We assume that the k.events will never be larger than all events.with.location
+  return(candidate.events[1:k.events, id])
+}
 
-  return(candidate.events[1:min(k.events, nrow(candidate.events)), id])
+RecEvents.Popularity <- function(member.id, k.events, p.time){
+  
+  # ---------------------------------------------------------------------------
+  # Distance Algorithm
+  # ---------------------------------------------------------------------------
+  member <- subset(members, id == member.id)
+  
+  candidate.events.dist <- subset(events.with.location, created <= p.time & time >= p.time)
+  
+  candidate.events.dist$dist <- geodDist(candidate.events.dist$lat, candidate.events.dist$lon, 
+                                         member$lat, member$lon)
+  setkey(candidate.events.dist, "dist")  # Now it is ordered by dist
+  
+  candidate.events.dist <- rename(candidate.events.dist, replace=c("id" = "event_id"))
+  
+  # ---------------------------------------------------------------------------
+  # Popularity Algorithm (using only the events with distance <= 15 km )
+  # ---------------------------------------------------------------------------
+  candidate.events.pop <- subset(candidate.events.dist, dist <= 15)
+  
+  # Measure the candidate event's popularity until this moment (p.time < rsvp_time)
+  count.events.pop <-  count(subset(member.events, 
+                                    event_id %in% candidate.events.pop$event_id & rsvp_time < p.time), 
+                             "event_id")
+  
+  candidate.events.pop <- merge(candidate.events.pop, count.events.pop, by = "event_id", all.x = T)
+  
+  if(nrow(candidate.events.pop) >= k.events){
+    # Replace the NAs frequencies with 0
+    set(candidate.events.pop, which(is.na(candidate.events.pop[["freq"]])),"freq", as.integer(0))
+    
+    # Sort the events by frequency!
+    candidate.events.pop <- candidate.events.pop[order(freq, decreasing=T)]
+    
+    # Select the k most popular events
+    events.result <- candidate.events.pop[1:k.events,]$event_id
+    
+  }else{
+    # RANDOM choice from the candidate.events.dist (to recommend all k events)
+    
+    # Exclude from candidate.events.dist the candidate.events.pop event_id's (avoid id repetition)
+    candidate.events.dist <- subset(candidate.events.dist, ! event_id %in% candidate.events.pop$event_id)
+    
+    # Select the random indexes from candidate.events.dist
+    random.indexes <- sample(seq_len(nrow(candidate.events.dist)), k.events - nrow(candidate.events.pop))
+    
+    # Combine the selected candidate.events.pop ids with the random candidate.events.dist ids
+    events.result <- c(candidate.events.pop$event_id, candidate.events.dist$event_id[random.indexes])
+  }
+  
+  return(events.result)
+}
+
+RecEvents.Topic <- function(member.id, k.events, p.time){
+  
+  # ---------------------------------------------------------------------------
+  # Distance Algorithm
+  # ---------------------------------------------------------------------------
+  member <- subset(members, id == member.id)
+  
+  candidate.events.dist <- subset(events.with.location, created <= p.time & time >= p.time)
+  
+  candidate.events.dist$dist <- geodDist(candidate.events.dist$lat, candidate.events.dist$lon, 
+                                         member$lat, member$lon)
+  setkey(candidate.events.dist, "dist")  # Now it is ordered by dist
+  
+  candidate.events.dist <- rename(candidate.events.dist, replace=c("id" = "event_id"))
+  
+  # ---------------------------------------------------------------------------
+  # Topic Algorithm (using only the events with distance <= 15 km )
+  # ---------------------------------------------------------------------------
+  candidate.events.topic <- subset(candidate.events.dist, dist <= 15)
+  
+  # Select the topics of the member
+  m.topics <- subset(member.topics, member_id == member$id)
+  
+  random.choice <- F
+  
+  if (nrow(candidate.events.topic) >= k.events){
+    if(nrow(m.topics) > 0){
+      
+      # Select the groups with at least one topic of the member
+      g.topics <- merge(m.topics, group.topics, by = "topic_id")
+      g.topics$member_id <- NULL
+      
+      # Measure the intersection between the topics of a group and the topics of the member
+      m.g.topics.intersection <- count(g.topics, "group_id")  
+      # Measure the union between the topics of a group and the topics of the member
+      m.g.topics.union <- count(group.topics, "group_id")  
+      m.g.topics.union <- subset(m.g.topics.union, group_id %in% g.topics$group_id)
+      m.g.topics.union$freq <- m.g.topics.union$freq + nrow(m.topics)
+      m.g.topics.union$freq <- m.g.topics.union$freq - m.g.topics.intersection$freq
+      # Finally, calculate the jaccard similarity between the sets
+      m.g.jaccard <- m.g.topics.union
+      m.g.jaccard$freq <- m.g.topics.intersection$freq / m.g.topics.union$freq
+      
+      # Select the candidate.events.topic that are in one of the groups of m.g.jaccard
+      # That means, these events have at least one topic in common with the member
+      candidate.events.topic <- merge(candidate.events.topic, m.g.jaccard, by = "group_id")
+      
+      if(nrow(candidate.events.topic) >= k.events){
+        # Sort the events by frequency!
+        candidate.events.topic <- candidate.events.topic[order(freq, decreasing=T)]
+        
+        # Select the k most popular events
+        events.result <- candidate.events.topic[1:k.events,]$event_id
+      }else{
+        random.choice <- T
+      }
+    }else {
+      # Partially RANDOM choice, the k.events are sampled from the candidate.events.topic
+      events.result <- candidate.events.topic$event_id[sample(1:nrow(candidate.events.topic), 
+                                                              k.events)]
+    }
+  }else{
+    random.choice <- T
+  }
+  
+  if(random.choice){
+    # RANDOM choice from the candidate.events.dist to complete the k.events
+    # All candidate.events.topic are added + the sampled events from candidate.events.dist
+    
+    # Exclude from candidate.events.dist the candidate.events.pop event_id's (avoid id repetition)
+    candidate.events.dist <- subset(candidate.events.dist, ! event_id %in% candidate.events.topic$event_id)
+    
+    # Select the random indexes from candidate.events.dist
+    random.indexes <- sample(seq_len(nrow(candidate.events.dist)), k.events - nrow(candidate.events.topic))
+    
+    # Combine the selected candidate.events.pop ids with the random candidate.events.dist ids
+    events.result <- c(candidate.events.topic$event_id, candidate.events.dist$event_id[random.indexes])
+  }
+  
+  return(events.result)
 }
