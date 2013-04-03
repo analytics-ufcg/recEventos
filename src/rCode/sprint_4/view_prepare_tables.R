@@ -175,8 +175,6 @@ d_ply(members, .(member_city), function(memb.df){
                                                 function(recs){paste(recs, collapse = ",")}), 
                                          collapse = ","), ",")[[1]])
   rec.event.df <- subset(events.with.venue, event_id %in% rec.event.ids)
-  rec.event.df$event_created <- NULL
-  rec.event.df$event_time <- NULL
   
   # Persist the result
   write.csv(memb.df, paste(view.dir, city, "/members.csv", sep = ""), row.names = F)
