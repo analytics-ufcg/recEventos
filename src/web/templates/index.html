@@ -880,7 +880,7 @@
 			for ( var j=0; j<user_events.length; j++ ){
 				if ( user_events[j] == events_source[i].id ){
 
-					if ( seen[events_source[i].id] ){
+					if ( seen[events_source[i].id] || events_source[i].time == undefined ){
 						continue;
 					}
 					seen[events_source[i].id] = true;
@@ -951,7 +951,7 @@
 				for ( var j=0; j<events_source.length; j++ ){
 					if ( recommended_to_user[i] == events_source[j].id ){
 
-						if ( seen[events_source[j].id] ){
+						if ( seen[events_source[j].id] || events_source[j].time == undefined ){
 							continue;
 						}
 						seen[events_source[j].id] = true;
