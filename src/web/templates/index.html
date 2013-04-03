@@ -742,45 +742,28 @@
 			$("#event_details_body").html("<img src='static/ajax-loader.gif'></img>");
 			$("#event_details").modal('show');
 
-			var content = "<p class='text-center'><span class='lead'>"+user.name+"</span> <span class='muted'>from "+user.city+": </span></p>";
+			var content = "<h4>"+event.name+"</h4>";
 
-			if ( status != "recommendation_error" ){
-				content += "<p class='lead'>went to this event <strong>"+event.name+"</strong>,</p>";
-			}
-			else{
-				content += "<p class='lead'>DID NOT go to this event <strong>"+event.name+"</strong>,</p>";
-			}
-			content += "<p><small>which happened at <em>"+event.venue_name+"</em>, <em>"+event.venue_city+"</em> on <em>"+event.time+"</em>.</small></p>";
-			content += "<p><small>By the way, this event was created on <em>"+event.created+"</em>.</small></p>";
+			content += "<blockquote class='pull-right'>";
+			content += "<p><i class='icon-calendar'></i> When: <span class='span5 uneditable-input' style='margin-left:auto; margin-right:auto;'><strong class='text-info'>"+event.time+"</strong></span></p>";
+			content += "<p><i class='icon-map-marker'></i> Where: <span class='span5 uneditable-input' style='margin-left:auto; margin-right:auto;'><strong class='text-info'>"+event.venue_name+", "+event.venue_city+"</strong></span></p>";
 
+			if ( status != 'no_algorithm' && status != 'already_happened' && status != 'will_still_happen' ){
+			content += "<p><small><i class='icon-user'></i> <em>"+user.name+"</em> /// <strong>"+$.trim($('#algs_button').text())+"</strong> status: ";
+			}
 			if ( status == "recommendation_hit" ){
-				content += "<small>This event was recommended by our "+$.trim($("#algs_button").text())+" recommender and</small>";
-				content += "<p class='lead'>it was a <span class='label label-success'>hit!!</span></p>";
-				content += "<small>This means that the user accepted the recommendation and went to this event.</small>";
+				content += "<span class='label label-success'>Rec Event Hit</span></p>";
 			}
 			else if ( status == "recommendation_miss" ){
-				content += "<small>This event was NOT recommended by our "+$.trim($("#algs_button").text())+" recommender so,</small>";
-				content += "<p class='lead'>it was a <span class='label label-warning'>miss!!</span></p>";
-				content += "<small>This means that the user went to this event, yet our recommender failed to recommend this.</small>";
+				content += "<span class='label label-warning'>Attended Miss</span></p>";
 			}
 			else if ( status == "recommendation_error" ){
-				content += "<small>This event was recommended by our "+$.trim($("#algs_button").text())+" recommender and</small>";
-				content += "<p class='lead'>it was an <span class='label label-important'>error!!</span></p>";
-				content += "<small>This means that the recommendation was a bad one, thus the user didn't accept it!!</small>";
+				content += "<span class='label label-important'>Rec Event Error</span></p>";
 			}
 			else if ( status == "already_happened" ){
-				content += "<small>This event was NOT recommended by our "+$.trim($("#algs_button").text())+" recommender.</small>";
-				content += "<p class='lead'>In fact, it <span class='label'>already happened</span>, so it can't be recommended (obviously!).</p>";
-				content += "<small>On the other hand, this event was used by our recommender to figure out which events to recommend to the user.</small>";
+				content += "<span class='label label-info'>Irrelevant</span></p>";
 			}
-			else if ( status == "will_still_happen" ){
-				content += "<small>This event was NOT recommended by our "+$.trim($("#algs_button").text())+" recommender.</small>";
-				content += "<p class='lead'>In fact, it <span class='label label-inverse'>didn't happen yet</span>; It wasn't even created yet(!?)...</p>";
-				content += "<small>What this means is that, by the time the recommender algorithm run, these events weren't yet created, so naturally, they couldn't be recommended yet... But at a later point in time, the user DID go to this event.</small>";
-			}
-			else{
-			content += "<small>Hey, to see how our recommenders behaved in which concerns this particular user and event, <span class='label label-info'>please pick one algorithm/technique first</span>, among the ones available...</small>";
-			}
+			content += "</blockquote>";
 
 			$("#event_details_body").html(content);
 		}
