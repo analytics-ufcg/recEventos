@@ -91,7 +91,8 @@ RecEvents.Distance <- function(member.id, k.events, p.time){
   
   candidate.events$dist <- geodDist(candidate.events$lat, candidate.events$lon, 
                                     member$lat, member$lon)
-  setkey(candidate.events, "dist")  # Now it is ordered by dist
+  # Now it is ordered by dist
+  candidate.events.dist <- candidate.events.dist[order(dist, decreasing=F)]
   
   # We assume that the k.events will never be larger than all events.with.location
   return(candidate.events[1:k.events, id])
@@ -108,7 +109,8 @@ RecEvents.Popularity <- function(member.id, k.events, p.time){
   
   candidate.events.dist$dist <- geodDist(candidate.events.dist$lat, candidate.events.dist$lon, 
                                          member$lat, member$lon)
-  setkey(candidate.events.dist, "dist")  # Now it is ordered by dist
+  # Now it is ordered by dist
+  candidate.events.dist <- candidate.events.dist[order(dist, decreasing=F)]
   
   candidate.events.dist <- rename(candidate.events.dist, replace=c("id" = "event_id"))
   
@@ -161,7 +163,8 @@ RecEvents.Topic <- function(member.id, k.events, p.time){
   
   candidate.events.dist$dist <- geodDist(candidate.events.dist$lat, candidate.events.dist$lon, 
                                          member$lat, member$lon)
-  setkey(candidate.events.dist, "dist")  # Now it is ordered by dist
+  # Now it is ordered by dist
+  candidate.events.dist <- candidate.events.dist[order(dist, decreasing=F)]
   
   candidate.events.dist <- rename(candidate.events.dist, replace=c("id" = "event_id"))
   
@@ -228,6 +231,165 @@ RecEvents.Topic <- function(member.id, k.events, p.time){
     # Combine the selected candidate.events.pop ids with the random candidate.events.dist ids
     events.result <- c(candidate.events.topic$event_id, candidate.events.dist$event_id[random.indexes])
   }
+  
+  return(events.result)
+}
+
+RecEvents.Weighted <- function(member.id, k.events, p.time){
+  
+  # ---------------------------------------------------------------------------
+  # Distance Algorithm
+  # ---------------------------------------------------------------------------
+  member <- subset(members, id == member.id)
+  
+  candidate.events.dist <- subset(events.with.location, created <= p.time & time >= p.time)
+
+  candidate.events.dist$dist <- geodDist(candidate.events.dist$lat, candidate.events.dist$lon, 
+                                         member$lat, member$lon)
+
+  # Remove the useless columns from candidate.events.dist
+  candidate.events.dist$created <- NULL
+  candidate.events.dist$time <- NULL
+  candidate.events.dist$lat <- NULL
+  candidate.events.dist$lon <- NULL
+  
+  # Rename the id with event_id
+  candidate.events.dist <- rename(candidate.events.dist, replace=c("id" = "event_id"))
+  
+  # ---------------------------------------------------------------------------
+  # Popularity Algorithm (using only the events with distance <= 15 km )
+  # ---------------------------------------------------------------------------
+  candidate.events.pop <- subset(candidate.events.dist, dist <= 15, event_id)
+  
+  # Measure the candidate event's popularity until this moment (p.time < rsvp_time)
+  count.events.pop <-  count(subset(member.events, 
+                                    event_id %in% candidate.events.pop$event_id & rsvp_time < p.time), 
+                             "event_id")
+  
+  if(nrow(count.events.pop) > 0){
+    # Select the candidate.events.pop with at least 1 rsvp
+    candidate.events.pop <- merge(candidate.events.pop, count.events.pop, by = "event_id")
+    # Rename freq to popularity
+    candidate.events.pop <- rename(candidate.events.pop, replace = c("freq" = "popularity"))
+  }else{
+    if (nrow(candidate.events.pop) > 0){
+      # Set NA in all popularities, this means that they have no popularity
+      # This will be changed before the weighting phase
+      candidate.events.pop$popularity <- NA
+    }else{
+      # Empty candidate.events.pop
+      candidate.events.pop <- data.table(event_id = character(), popularity = numeric())
+    }
+  }
+  
+  # ---------------------------------------------------------------------------
+  # Topic Algorithm (using only the events with distance <= 15 km )
+  # ---------------------------------------------------------------------------
+  candidate.events.topic <- subset(candidate.events.dist, dist <= 15, c(event_id, group_id))
+  
+  # Select the topics of the member
+  m.topics <- subset(member.topics, member_id == member$id)
+  
+  if (nrow(candidate.events.topic) > 0){
+    if(nrow(m.topics) > 0){
+      
+      # Select the groups with at least one topic of the member
+      g.topics <- subset(group.topics, topic_id %in% m.topics$topic_id)
+
+      ##### JACCARD SIMILARITY calculus #####
+      # Measure the intersection between the topics of a group and the topics of the member
+      m.g.topics.intersection <- count(g.topics, "group_id")  
+      # Measure the union between the topics of a group and the topics of the member
+      m.g.topics.union <- count(group.topics, "group_id")  
+      m.g.topics.union <- subset(m.g.topics.union, group_id %in% g.topics$group_id)
+      m.g.topics.union$freq <- m.g.topics.union$freq + nrow(m.topics)
+      m.g.topics.union$freq <- m.g.topics.union$freq - m.g.topics.intersection$freq
+      # Finally, calculate the jaccard similarity between the sets
+      m.g.jaccard <- data.table(group_id = m.g.topics.union$group_id, 
+                                topic_similarity = m.g.topics.intersection$freq / m.g.topics.union$freq)
+      
+      # Select the candidate.events.topic that are in one of the groups of m.g.jaccard
+      # That means, these events have at least one topic in common with the member
+      candidate.events.topic <- merge(candidate.events.topic, m.g.jaccard, by = "group_id")
+      candidate.events.topic$group_id <- NULL
+    }
+    else {
+      # Set NA in all similarities, this means that they have no similarity with the member
+      # This will be changed before the weighting phase
+      candidate.events.topic$topic_similarity <- NA
+    }
+  }else{
+    # Empty candidate.events.topic
+    candidate.events.topic <- data.table(event_id = character(), topic_similarity = numeric())
+  }
+
+  # ---------------------------------------------------------------------------
+  # NORMALIZATION phase
+  # ---------------------------------------------------------------------------
+  
+  # Normalize the DISTANCE based events
+  max.dist <- max(candidate.events.dist$dist)
+  min.dist <- min(candidate.events.dist$dist)
+  candidate.events.dist$dist <- (candidate.events.dist$dist - min.dist)/(max.dist - min.dist)
+  
+  # Changing from distance to proximity
+  candidate.events.dist$dist <- 1 - candidate.events.dist$dist
+  
+  # Rename it
+  candidate.events.dist <- rename(candidate.events.dist, replace=c("dist" = "proximity"))
+  
+  # Normalize the POPULARITY based events
+  
+  if (nrow(candidate.events.pop) > 0){
+    # Fake popularities creation
+    if (sum(is.na(candidate.events.pop[["popularity"]])) > 0){
+      candidate.events.pop$popularity <- runif(nrow(candidate.events.pop), 0, 1)
+    }
+    max.pop <- max(candidate.events.pop$popularity)
+    min.pop <- min(candidate.events.pop$popularity)
+    candidate.events.pop$popularity <- (candidate.events.pop$popularity - min.pop)/(max.pop - min.pop)
+  }
+  
+  ## Normalize the TOPIC based events
+  if (nrow(candidate.events.topic) > 0){
+    # Fake popularities creation
+    if (sum(is.na(candidate.events.topic[["topic_similarity"]])) > 0){
+      candidate.events.topic$topic_similarity <- runif(nrow(candidate.events.topic), 0, 1)
+    }
+    max.topic <- max(candidate.events.topic$topic_similarity)
+    min.topic <- min(candidate.events.topic$topic_similarity)
+    candidate.events.topic$topic_similarity <- (candidate.events.topic$topic_similarity - min.topic)/(max.topic - min.topic)
+  }
+  
+  # ---------------------------------------------------------------------------
+  # Weighting phase
+  # ---------------------------------------------------------------------------
+  # Merge them all
+  events.result <- merge(candidate.events.dist, candidate.events.pop, by = "event_id", all = T)
+  events.result <- merge(events.result, candidate.events.topic, by = "event_id", all = T)
+  
+  # Apply the weights
+  alfa <- 0.5
+  beta <- 0.3
+
+  # Set the NA values to 0 score (that means, the algorithms that dont know what 
+  # to recommend should add nothing to the score)
+  set(events.result, which(is.na(events.result[["proximity"]])), "proximity", 0)
+  set(events.result, which(is.na(events.result[["popularity"]])), "popularity", 0)
+  set(events.result, which(is.na(events.result[["topic_similarity"]])), "topic_similarity", 0)
+  
+  events.result$proximity <- (1 - alfa - beta) * events.result$proximity
+  events.result$popularity <- alfa * events.result$popularity
+  events.result$topic_similarity <- beta * events.result$topic_similarity
+  
+  # Calculate the final score (just summing them by row) 
+  events.result$score <- rowSums(events.result[, 3:5, with = F], na.rm = T)
+  
+  # Sort decreasingly
+  events.result <- events.result[order(events.result$score, decreasing = T)]
+  
+  # Select the k best events
+  events.result <- events.result$event_id[1:k.events]
   
   return(events.result)
 }
