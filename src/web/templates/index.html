@@ -561,24 +561,24 @@
 
 	function determineIcon(status){
 		if ( status == "no_algorithm" ){
-			return 'static/unclassified-event-pin.png';
+			return 'static/base-pin.png';
 		}
 		else if ( status == "already_happened" || status == "will_still_happen"	){
-			return 'static/unclassified-event-pin.png';
+			return 'static/base-pin.png';
 		}
 		else if ( status == "recommendation_hit" ){
-			return 'static/new-recommendation_hit-event-pin.png';
+			return 'static/hit-pin.png';
 		}
 		else if ( status == "recommendation_miss" ){
-			return 'static/new-recommendation_miss-event-pin.png';
+			return 'static/miss-pin.png';
 		}
 		else if ( status == "recommendation_error" ){
-			return 'static/new-recommendation_error-event-pin.png';
+			return 'static/error-pin.png';
 		}
 	}
 
 	function determineIconShadow(status){
-		return 'static/shadow-unclassified-event-pin.png';
+		return 'static/shadow-pin.png';
 /*		if ( status == "no_algorithm" ){
 			return 'static/shadow-unclassified-event-pin.png';
 		}
@@ -679,7 +679,7 @@
 			}
 			else if ( status == "recommendation_error" ){
 				content += "<small>This event was recommended by our "+$.trim($("#algs_button").text())+" recommender and</small>";
-				content += "<p class='lead'>it was <span class='label label-important'>an error!!</span></p>";
+				content += "<p class='lead'>it was an <span class='label label-important'>error!!</span></p>";
 				content += "<small>This means that the recommendation was a bad one, thus the user didn't accept it!!</small>";
 			}
 			else if ( status == "already_happened" ){
@@ -716,9 +716,9 @@
 
 				content += "<p>have the following stats from our "+$.trim($('#algs_button').text())+" recommender: </p>";
 
-				content += "<p><span class='label label-success'>Rec Hits:</span> " + recommended_stats['recommendation_hit'] + " (" + ((recommended_stats['recommendation_hit'] / recommended_stats['total_relevant'])*100).toFixed(1) + "%)   ";
+				content += "<p><span class='label label-success'>Rec Hits:</span> " + recommended_stats['recommendation_hit'] + " (" + ((recommended_stats['recommendation_hit'] / recommended_stats['total_relevant'])*100).toFixed(1) + "%)  <span style='visibility:hidden;' title='I know its a hack'>Hack</span>";
 
-				content += "<span class='label label-important'>Rec Errors:</span> " + recommended_stats['recommendation_error'] + " (" + ((recommended_stats['recommendation_error'] / recommended_stats['total_relevant'])*100).toFixed(1) + "%)   ";
+				content += "<span class='label label-important'>Rec Errors:</span> " + recommended_stats['recommendation_error'] + " (" + ((recommended_stats['recommendation_error'] / recommended_stats['total_relevant'])*100).toFixed(1) + "%)  <span style='visibility:hidden' title='I know its a hack'>Hack</span>";
 
 				content += "<span class='label label-warning'>Attended Misses:</span> " + recommended_stats['recommendation_miss'] + " (" + ((recommended_stats['recommendation_miss'] / recommended_stats['total_relevant'])*100).toFixed(1) + "%)</p>";
 
