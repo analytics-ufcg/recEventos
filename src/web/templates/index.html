@@ -123,7 +123,7 @@
 
     var recommender = 'none';
 
-    var recommended_stats = { 'already_happened' : 0, 'will_still_happen' : 0, 'recommendation_hit' : 0, 'recommendation_miss' : 0, 'recommendation_wrong' : 0, 'total_relevant' : 0 };
+    var recommended_stats = { 'already_happened' : 0, 'will_still_happen' : 0, 'recommendation_hit' : 0, 'recommendation_miss' : 0, 'recommendation_error' : 0, 'total_relevant' : 0 };
     var all_user_events_and_recommendations = null;
 
     var hits_enabled = true;
@@ -557,21 +557,22 @@
 			return 'static/unclassified-event-pin.png';
 		}
 		else if ( status == "already_happened" || status == "will_still_happen"	){
-			return 'static/disconsidered-event-pin.png';
+			return 'static/unclassified-event-pin.png';
 		}
 		else if ( status == "recommendation_hit" ){
-			return 'static/recommendation_hit-event-pin.png';
+			return 'static/new-recommendation_hit-event-pin.png';
 		}
 		else if ( status == "recommendation_miss" ){
-			return 'static/recommendation_miss-event-pin.png';
+			return 'static/new-recommendation_miss-event-pin.png';
 		}
-		else if ( status == "recommendation_wrong" ){
-			return 'static/recommendation_wrong-event-pin.png';
+		else if ( status == "recommendation_error" ){
+			return 'static/new-recommendation_error-event-pin.png';
 		}
 	}
 
 	function determineIconShadow(status){
-		if ( status == "no_algorithm" ){
+		return 'static/shadow-unclassified-event-pin.png';
+/*		if ( status == "no_algorithm" ){
 			return 'static/shadow-unclassified-event-pin.png';
 		}
 		else if ( status == "already_happened" || status == "will_still_happen"	){
@@ -583,9 +584,9 @@
 		else if ( status == "recommendation_miss" ){
 			return 'static/shadow-recommendation_miss-event-pin.png';
 		}
-		else if ( status == "recommendation_wrong" ){
-			return 'static/shadow-recommendation_wrong-event-pin.png';
-		}
+		else if ( status == "recommendation_error" ){
+			return 'static/shadow-recommendation_error-event-pin.png';
+		}*/
 	}
 
 	function getColor(status){
@@ -593,7 +594,7 @@
 			return '';
 		}
 		else if ( status == "already_happened" || status == "will_still_happen"	){
-			return 'info';
+			return '';
 		}
 		else if ( status == "recommendation_hit" ){
 			return "success";
@@ -601,7 +602,7 @@
 		else if ( status == "recommendation_miss" ){
 			return 'warning';
 		}
-		else if ( status == "recommendation_wrong" ){
+		else if ( status == "recommendation_error" ){
 			return 'error';
 		}
 	}
@@ -619,7 +620,7 @@
 		else if ( status == "recommendation_miss" ){
 			return 'miss';
 		}
-		else if ( status == "recommendation_wrong" ){
+		else if ( status == "recommendation_error" ){
 			return 'dismiss';
 		}
 	}
@@ -637,7 +638,7 @@
 		else if ( status == "recommendation_miss" ){
 			return 300;
 		}
-		else if ( status == "recommendation_wrong" ){
+		else if ( status == "recommendation_error" ){
 			return 400;
 		}
 	}
@@ -650,7 +651,7 @@
 
 			var content = "<p class='text-center'><span class='lead'>"+user.name+"</span> <span class='muted'>from "+user.city+": </span></p>";
 
-			if ( status != "recommendation_wrong" ){
+			if ( status != "recommendation_error" ){
 				content += "<p class='lead'>went to this event <strong>"+event.name+"</strong>,</p>";
 			}
 			else{
@@ -669,7 +670,7 @@
 				content += "<p class='lead'>it was a <span class='label label-warning'>miss!!</span></p>";
 				content += "<small>This means that the user went to this event, yet our recommender failed to recommend this.</small>";
 			}
-			else if ( status == "recommendation_wrong" ){
+			else if ( status == "recommendation_error" ){
 				content += "<small>This event was recommended by our "+$.trim($("#algs_button").text())+" recommender and</small>";
 				content += "<p class='lead'>it was <span class='label label-important'>dismissed!!</span></p>";
 				content += "<small>This means that the recommendation was a bad one, thus the user didn't accept it!!</small>";
@@ -712,7 +713,7 @@
 
 				content += "<span class='label label-warning'>Misses:</span> " + recommended_stats['recommendation_miss'] + " (" + ((recommended_stats['recommendation_miss'] / recommended_stats['total_relevant'])*100).toFixed(1) + "%) ";
 
-				content += "<span class='label label-important'>Wrongs:</span> " + recommended_stats['recommendation_wrong'] + " (" + ((recommended_stats['recommendation_wrong'] / recommended_stats['total_relevant'])*100).toFixed(1) + "%) </p>";
+				content += "<span class='label label-important'>Errors:</span> " + recommended_stats['recommendation_error'] + " (" + ((recommended_stats['recommendation_error'] / recommended_stats['total_relevant'])*100).toFixed(1) + "%) </p>";
 
 				content += "<small>Following are these events:</small>";
 
@@ -799,7 +800,7 @@
 
 		removeEventMarkers();
 
-		var events_source = city_rec_events[current_city];
+		var events_source = city_events[current_city];
 		var user_events = current_user.events;
 		events_source.sort(sortbyLatLng);
 
@@ -809,13 +810,13 @@
 
 		var recommended_to_user = current_user['rec_'+rec];
 
-		recommended_stats = { 'already_happened' : 0, 'will_still_happen' : 0, 'recommendation_hit' : 0, 'recommendation_miss' : 0, 'recommendation_wrong' : 0, 'total_relevant' : 0 };
+		recommended_stats = { 'already_happened' : 0, 'will_still_happen' : 0, 'recommendation_hit' : 0, 'recommendation_miss' : 0, 'recommendation_error' : 0, 'total_relevant' : 0 };
 
 		for ( var i=0; i<events_source.length; i++ ){
 			for ( var j=0; j<user_events.length; j++ ){
 				if ( user_events[j] == events_source[i].id ){
 
-					/* This for below is being done only because rec_events.csv doesn't have event time nor created time*/
+/*					// This for below is being done only because rec_events.csv doesn't have event time nor created time
 					for ( var k=0; k<city_events[current_city].length; k++ ){
 						if ( city_events[current_city][k].id == events_source[i].id ){
 							events_source[i].time = city_events[current_city][k].time;
@@ -824,7 +825,7 @@
 							events_source[i].created_long = city_events[current_city][k].created_long;
 							break;
 						}
-					}
+					}*/
 
 
 					if ( events_source[i].time_long < p_time ){
@@ -882,7 +883,7 @@
 					if ( recommended_to_user[i] == events_source[j].id ){
 
 
-						/* Again, this for below is being done only because rec_events.csv doesn't have event time nor created time*/
+/*						// Again, this for below is being done only because rec_events.csv doesn't have event time nor created time
 						for ( var k=0; k<city_events[current_city].length; k++ ){
 							if ( city_events[current_city][k].id == events_source[j].id ){
 								events_source[j].time = city_events[current_city][k].time;
@@ -891,13 +892,13 @@
 								events_source[j].created_long = city_events[current_city][k].created_long;
 								break;
 							}
-						}
+						}*/
 
 						//was recommended, but user didn't go to this event, Color 4
 						var entry = events_source[j];
-						events_source[j]['status'] = 'recommendation_wrong';
+						events_source[j]['status'] = 'recommendation_error';
 						all_user_events_and_recommendations.push(events_source[j]);
-						recommended_stats['recommendation_wrong'] += 1;
+						recommended_stats['recommendation_error'] += 1;
 						recommended_stats['total_relevant'] += 1;
 						break;
 					}
@@ -922,7 +923,7 @@
 			else if ( event_status == 'recommendation_miss' && !misses_enabled ){
 				continue;
 			}
-			else if ( event_status == 'recommendation_wrong' && !dismisses_enabled ){
+			else if ( event_status == 'recommendation_error' && !dismisses_enabled ){
 				continue;
 			}
 
@@ -941,7 +942,6 @@
 			event_markers.push({ 'marker' : event_marker, 'event' : all_user_events_and_recommendations[i] });
 			google.maps.event.addListener(event_marker, 'click', event_details);
 		}
-		
 
 	}
 
