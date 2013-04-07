@@ -53,12 +53,24 @@ rec.events.distance$partition <- NULL
 rec.events.distance$algorithm <- NULL
 rec.events.distance <- rec.events.distance[order(rec.events.distance$member_id),]
 
-# TODO (Augusto): Replicate the code above, changing the algorithm
-# cat("Read the recommendation files: Distance Algorithm...\n")
-# rec.events.distance <- ReadAllCSVs("data_output/recommendations/", "rec_events_distance")
-# rec.events.distance$partition <- NULL
-# rec.events.distance$algorithm <- NULL
-# rec.events.distance <- rec.events.distance[order(rec.events.distance$member_id),]
+cat("Read the recommendation files: Popularity Algorithm...\n")
+rec.events.pop <- ReadAllCSVs("data_output/recommendations/", "rec_events_popularity")
+rec.events.pop$partition <- NULL
+rec.events.pop$algorithm <- NULL
+rec.events.pop <- rec.events.pop[order(rec.events.pop$member_id),]
+
+cat("Read the recommendation files: Popularity Algorithm...\n")
+rec.events.topic <- ReadAllCSVs("data_output/recommendations/", "rec_events_topic")
+rec.events.topic$partition <- NULL
+rec.events.topic$algorithm <- NULL
+rec.events.topic <- rec.events.topic[order(rec.events.topic$member_id),]
+
+cat("Read the recommendation files: Popularity Algorithm...\n")
+rec.events.weighted <- ReadAllCSVs("data_output/recommendations/", "rec_events_weighted")
+rec.events.weighted$partition <- NULL
+rec.events.weighted$algorithm <- NULL
+rec.events.weighted <- rec.events.weighted[order(rec.events.weighted$member_id),]
+
 
 # ------------------------------------------------------------------------------
 # Visualization Constraint: The member_city should always be in venues_city, but
@@ -121,21 +133,36 @@ members <- merge(members, member.partitions, by = "member_id")
 rm(events, member.all.events, member.partitions)
 
 # Selecting the Recommended Events per Member
+cat("Collapsing the recommended event per algorithm...\n")
 member.rec.events <- rec.events.distance[,c("member_id", "p_time")]
 
+cat("  Distance...\n")
 rec.events.distance$p_time <- NULL
 member.rec.events$rec_events_distance <- ddply(rec.events.distance, .(member_id), function(m.rec.events){
   data.frame(events = paste(m.rec.events[,2:(ncol(m.rec.events))], collapse = ","))
 }, .progress = "text")$events
 
-# TODO (Augusto): Replicate the code above, changing the algorithm
-# rec.events.distance$p_time <- NULL
-# member.rec.events$rec_events_distance <- ddply(rec.events.distance, .(member_id), function(m.rec.events){
-#   data.frame(events = paste(m.rec.events[,2:(ncol(m.rec.events))], collapse = ","))
-# }, .progress = "text")$events
+cat("  Popularity...\n")
+rec.events.pop$p_time <- NULL
+member.rec.events$rec_events_pop <- ddply(rec.events.pop, .(member_id), function(m.rec.events){
+  data.frame(events = paste(m.rec.events[,2:(ncol(m.rec.events))], collapse = ","))
+}, .progress = "text")$events
+
+cat("  Topic...\n")
+rec.events.topic$p_time <- NULL
+member.rec.events$rec_events_topic <- ddply(rec.events.topic, .(member_id), function(m.rec.events){
+  data.frame(events = paste(m.rec.events[,2:(ncol(m.rec.events))], collapse = ","))
+}, .progress = "text")$events
+
+cat("  Weighted...\n")
+rec.events.weighted$p_time <- NULL
+member.rec.events$rec_events_weighted <- ddply(rec.events.weighted, .(member_id), function(m.rec.events){
+  data.frame(events = paste(m.rec.events[,2:(ncol(m.rec.events))], collapse = ","))
+}, .progress = "text")$events
+
 
 # Merging the Rec_Event with the MEMBERs
-cat("Merging the REC_EVENTs of the MEMBERs with its data...\n")
+cat("Merging the REC_EVENTs of all algorithms with the MEMBERs data...\n")
 members <- merge(members, member.rec.events, by = "member_id")
 
 rm(member.rec.events)
@@ -170,10 +197,8 @@ d_ply(members, .(member_city), function(memb.df){
   event.df <- subset(events.with.venue, event_id %in% event.ids)
   
   # Select rec events
-  # TODO (Augusto): change the indices below, after the algorithms vvv
-  rec.event.ids <- unique(strsplit(paste(sapply(memb.df[,ncol(memb.df)], 
-                                                function(recs){paste(recs, collapse = ",")}), 
-                                         collapse = ","), ",")[[1]])
+  rec.event.ids <- unique(strsplit(paste(sapply(memb.df[,(ncol(memb.df) - 3) : ncol(memb.df)], 
+                                                function(recs){paste(recs, collapse = ",")}), collapse = ","), ",")[[1]])
   rec.event.df <- subset(events.with.venue, event_id %in% rec.event.ids)
   
   # Persist the result
