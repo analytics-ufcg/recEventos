@@ -47,7 +47,7 @@ attach(CreateRecEnvironment())
 
 # The member_events is the unique that is always the same
 member.events <- ReadAllCSVs("data_output/partitions/", "member_events")
-algorithms <- c("distance") # c("distance", "popularity", "topic", "weighted")
+algorithms <- c("weighted") # c("distance", "popularity", "topic", "weighted")
 
 for (alg in algorithms){
   cat("Evaluating the", alg, "algorithm...\n")

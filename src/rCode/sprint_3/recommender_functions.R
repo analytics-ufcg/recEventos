@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 # SOFTWARE.
 #
-# Author: Elias Paulino, Augusto Queiroz and Rodolfo Moraes
+# Author: Elias Paulino, Rodolfo Moraes and Augusto Queiroz
 #
 # File: 
 #   * Description: 
