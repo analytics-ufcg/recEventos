@@ -19,7 +19,6 @@ member.events <- ReadAllCSVs(dir="data_output/partitions/", obj_name="member_eve
 cat("Delete the rsvp.time in the Member Events\n")
 member.events$rsvp_time <- NULL
 
-
 # Read and select the EVENTs
 cat("Read and select the events\n")
 events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[, c("id", "name", "created", "time", "venue_id")]
