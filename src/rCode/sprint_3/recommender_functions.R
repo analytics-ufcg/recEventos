@@ -1,31 +1,19 @@
 # =============================================================================
-# Copyright (C) 2013 Augusto Queiroz, Elias Paulino, Rodolfo Moraes, 
-#                    Ricardo Araujo e Leandro Balby
+#   recommender_functions.R - Recommendation algorithms functions
+#   Copyright (C) 2013  Elias Paulino, Rodolfo Moraes and Augusto Queiroz
 # 
-# Permission is hereby granted, free of charge, to any person obtaining a copy 
-# of this software and associated documentation files (the "Software"), to deal 
-# in the Software without restriction, including without limitation the rights 
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-# copies of the Software, and to permit persons to whom the Software is 
-# furnished to do so, subject to the following conditions:
-#     
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
 # 
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
-# SOFTWARE.
-#
-# Author: Elias Paulino, Rodolfo Moraes and Augusto Queiroz
-#
-# File: 
-#   * Description: 
-#   * Inputs: 
-#   * Outputs: 
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+# 
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =============================================================================
 
 # =============================================================================
@@ -56,6 +44,7 @@ CreateRecEnvironment <- function(){
   
   cat("  Reading the events...\n")
   events <- data.table(ReadAllCSVs(dir="data_csv/", obj_name="events")[,c("id", "created", "time", "venue_id", "group_id")])
+  events <- rename(events, replace=c("id" = "event_id"))
   setkey(events, "venue_id")
   setkey(member.events, "event_id")
   events <- subset(events, id %in% unique(member.events$event_id))
@@ -67,7 +56,7 @@ CreateRecEnvironment <- function(){
   
   cat("  Reading the venues...\n")
   venues <- data.table(read.csv("data_csv/venues.csv",sep = ",")[,c("id", "lat", "lon")])
-  setnames(venues, old=1, new="venue_id")
+  events <- rename(events, replace=c("id" = "venue_id"))
   setkey(venues, "venue_id")
   
   cat("  Filtering the events with location...\n")
@@ -95,7 +84,7 @@ RecEvents.Distance <- function(member.id, k.events, p.time){
   candidate.events.dist <- candidate.events.dist[order(dist, decreasing=F)]
   
   # We assume that the k.events will never be larger than all events.with.location
-  return(candidate.events[1:k.events, id])
+  return(candidate.events[1:k.events, event_id])
 }
 
 RecEvents.Popularity <- function(member.id, k.events, p.time){
@@ -111,8 +100,6 @@ RecEvents.Popularity <- function(member.id, k.events, p.time){
                                          member$lat, member$lon)
   # Now it is ordered by dist
   candidate.events.dist <- candidate.events.dist[order(dist, decreasing=F)]
-  
-  candidate.events.dist <- rename(candidate.events.dist, replace=c("id" = "event_id"))
   
   # ---------------------------------------------------------------------------
   # Popularity Algorithm (using only the events with distance <= 15 km )
@@ -165,8 +152,6 @@ RecEvents.Topic <- function(member.id, k.events, p.time){
                                          member$lat, member$lon)
   # Now it is ordered by dist
   candidate.events.dist <- candidate.events.dist[order(dist, decreasing=F)]
-  
-  candidate.events.dist <- rename(candidate.events.dist, replace=c("id" = "event_id"))
   
   # ---------------------------------------------------------------------------
   # Topic Algorithm (using only the events with distance <= 15 km )
@@ -252,9 +237,6 @@ RecEvents.Weighted <- function(member.id, k.events, p.time){
   candidate.events.dist$time <- NULL
   candidate.events.dist$lat <- NULL
   candidate.events.dist$lon <- NULL
-  
-  # Rename the id with event_id
-  candidate.events.dist <- rename(candidate.events.dist, replace=c("id" = "event_id"))
   
   # ---------------------------------------------------------------------------
   # Popularity Algorithm (using only the events with distance <= 15 km )
