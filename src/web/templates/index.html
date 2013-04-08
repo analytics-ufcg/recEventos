@@ -916,7 +916,7 @@
 			for ( var j=0; j<user_events.length; j++ ){
 				if ( user_events[j] == events_source[i].id ){
 
-					if ( seen[events_source[i].id] || events_source[i].time == undefined ){
+					if ( seen[events_source[i].id] ){
 						continue;
 					}
 					seen[events_source[i].id] = true;
