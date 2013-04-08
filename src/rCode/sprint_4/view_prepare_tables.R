@@ -23,7 +23,6 @@ member.events$rsvp_time <- NULL
 # Read and select the EVENTs
 cat("Read and select the events\n")
 events <- ReadAllCSVs(dir="data_csv/", obj_name="events")[, c("id", "name", "created", "time", "venue_id")]
-# events <- events[events$id %in% unique(member.events$event_id),]
 colnames(events) <- c("event_id", "event_name", "event_created", "event_time", "venue_id")
 
 
