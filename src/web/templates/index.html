@@ -4,44 +4,101 @@
 <title>RecEventos</title>
 <link rel="stylesheet" type="text/css" href="static/bootstrap/css/bootstrap.min.css">
 <link rel="stylesheet" type="text/css" href="static/style.css">
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
 <script src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
 </head>
 
 <body style="height:90%;">
 
-	<div class="row">
-		<div class="container" style="margin-left:auto; margin-right:auto;">
-			<div class="span8">
-				<blockquote class="pull-right" >
-					<h1> RecEventos</h1>
-					<small>Events recommendation &copy FRH-Analytics <cite title="Universidade Federal de Campina Grande">UFCG</cite>/<cite title="Hewlett-Packard">HP</cite></small>
-				</blockquote>
-			</div>
-			<div class="span2 dropdown" style="height:10%;">
-				<button id="cities_button" style="padding-top:50px; margin-top:2px;" class="btn btn-large btn-success btn-block dropdown-toggle" data-toggle="dropdown" type="button">Menlo Park</button>
-				<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu">
+	<div id='tooltip_enabler' data-toggle='tooltip' style='position:absolute; z-index:100; cursor:pointer;'></div>
+
+	<div class="span3" style="margin-left:5px;">
+		<ul class="nav nav-list" style="height: 48%;">
+			<li class="nav-header label label-info" style="margin-top:5px;">Cities</li>
+			<li class="divider"></li>
+			<li>
+				<ul id="cities-list" class="well nav nav-list" style="height: 87%; overflow-y:scroll;">
 					{% for city in cities %}
-						<li><a tabindex="-1" href="#" onclick="changeCity('{{city}}')">{{city}}</a></li>
+					{% if city == "Arlington" %}
+					<li id="city_{{city|replace(' ','_')}}" class="active"><a href="javascript:void(0)" onclick="changeCity('{{city}}')"><i class="icon-home"></i>{{city}}</a></li>
+					{% else %}
+					<li id="city_{{city|replace(' ','_')}}"><a href="javascript:void(0)" onclick="changeCity('{{city}}')"><i class="icon-home"></i>{{city}}</a></li>
+					{% endif %}
 					{% endfor %}
 				</ul>
-				<!-- <button id="venues_button" style="padding-top:10px; margin-top:2px;" class="btn btn-small btn-danger btn-block disabled" type="button">Venues</button>
-				<button id="users_button" style="padding-bottom:10px; margin-bottom:2px;" class="btn btn-small btn-success btn-block disabled" type="button" onclick="" >Users</button> -->
+			</li>
+		</ul>
+		<ul class="nav nav-list" style="height: 45%; margin-top:50px;">
+			<li id="user-list-header" class="nav-header label label-info">Loading users...</li>
+			<li class="divider"></li>
+			<li>
+				<ul id="user-list" class="well nav nav-list" style="height: 87%; overflow-y:scroll;">
+					<img src='static/ajax-loader-enhanced.gif'></img>
+				</ul>
+			</li>
+		</ul>
+	</div>
+	<div class="span12" style="width:80%;">
+		<div class="row">
+			<div style="padding-top:10px; margin-top:2px;">
+				<div class="row span9">
+					<div class="span3">
+						<span class="label label-inverse">Current city</span>
+						<button id="cities_button" class="btn btn-large btn-inverse btn-block disabled" type="button">Loading...</button>
+					</div>
+					<div class="span3">
+						<span class="label label-inverse">Recommendation technique</span>
+						<div class="dropdown">
+							<a id="algs_button" class="dropdown-toggle btn btn-large btn-inverse btn-block disable disabled" data-toggle="dropdown" type="button" href="javascript:void(0)"><i class="icon-remove icon-white"></i>None</a>
+							<ul class="dropdown-menu text-right" role="menu" style='visibility:hidden;'>
+								<li>
+									<div class='btn-group btn-group-vertical' data-toggle='buttons-radio' style='visibility:visible;'>
+										<button type='button' class='btn btn-large active' onclick="setRecommender('none', current_user);"><i class="icon-remove"></i> <strong class='muted'>None</strong></button>
+										<button type='button' class='btn btn-large' onclick="setRecommender('distance', current_user);"><i class="icon-map-marker"></i> <strong class='muted'>Location Based</strong></button>
+										<button type='button' class='btn btn-large' onclick="setRecommender('popularity', current_user);"><i class="icon-comment"></i> <strong class='muted'>Popularity Based</strong></button>
+										<button type='button' class='btn btn-large' onclick="setRecommender('topics', current_user);"><i class="icon-list-alt"></i> <strong class='muted'>Category Based</strong></button>
+										<button type='button' class='btn btn-large' onclick="setRecommender('weighted', current_user);"><i class="icon-asterisk"></i> <strong class='muted'>Weighted Combination</strong></button>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</div>
+					<div class="span2">
+						<span class="label label-inverse">Filter</span>
+						<div class="dropdown">
+							<a id="filters_button" class="dropdown-toggle btn btn-large btn-inverse btn-block disabled" ondblclick='toggleAll(); setRecommender(recommender, current_user);' data-toggle="dropdown" type="button" href="javascript:void(0)"><i class="icon-filter icon-white"></i><span id='filter_tooltip' data-toggle='tooltip' data-placement='bottom' title='Double click to toggle all filters at the same time' style='display:none;' > Toogles</span><span id='disable_tooltip'> Toogles</span></a>
+							<ul class="dropdown-menu text-right" role="menu" style="visibility:hidden;">
+								<li>
+									<div class="btn-group btn-group-vertical" data-toggle="buttons-checkbox" style="visibility:visible;">
+										<button id='hit_btn' type="button" class="btn btn-large active" onclick="toggle(0); setRecommender(recommender, current_user);"><i class="icon-ok"></i> <strong class="text-success">Rec Events Hits</strong></button>
+										<button id='error_btn' type="button" class="btn btn-large active" onclick="toggle(2); setRecommender(recommender, current_user);"><i class="icon-remove"></i> <strong class='text-error'>Rec Events Errors</strong></button>
+										<button id='miss_btn' type="button" class="btn btn-large active" onclick="toggle(1); setRecommender(recommender, current_user);"><i class="icon-warning-sign"></i> <strong class='text-warning'>Attended Events Misses</strong></button>
+										<button id='past_btn' type="button" class="btn btn-large active" onclick="toggle(3); setRecommender(recommender, current_user);"><i class="icon-circle-arrow-left"></i> <strong class='muted'>Past Attended Events</strong></button>
+										<button id='future_btn' type="button" class="btn btn-large active" onclick="toggle(4); setRecommender(recommender, current_user);"><i class="icon-circle-arrow-right"></i> <strong class='muted'>Future Attended Events</strong></button>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+				<div class="span4" style="margin-bottom:35px; cursor:pointer;">
+						<h1 id='project_name' class='random_tooltip' data-toggle='tooltip' data-placement='bottom' title='By: Guilherme Santos, Augusto Queiroz, Elias Paulino e Rodolfo Moraes'> RecEventos</h1>
+						<small class="muted"><span class='random_tooltip' data-toggle='tooltip' title="Events recommendation, only enhanced!">RecEventos</span> &copy2013 FRH-Analytics <span class='random_tooltip' data-toggle='tooltip' title="Universidade Federal de Campina Grande">UFCG</span>/<span class='random_tooltip' data-toggle='tooltip' title="Hewlett-Packard">HP</span></small>
+				</div>
 			</div>
 		</div>
-	</div>
-	<div class="row" style="height:90%;">
-<!--		<div class="container"> -->
-			<div id="map_canvas" style="height:90%;"></div>
-<!--		</div> -->
+		<div class="row">
+			<div id="loading_message" class="alert alert-info"><strong>Welcome!</strong> Loading map...</div>
+			<div id="map_canvas" style="height:86%; width:100%;"></div>
+		</div>
 	</div>
 
-
-	<div id="venue_events" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="venue_events_label" aria-hidden="true">
+	<div id="event_details" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="details_label" aria-hidden="true">
 		<div class="modal-header">
 			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
-			<h3 id="venue_events_label">Venue Events</h3>
+			<h3 id="details_label">Event Details</h3>
 		</div>
-		<div id="venue_events_body" class="modal-body">
+		<div id="event_details_body" class="modal-body">
 			<img src="static/ajax-loader.gif"></img>
 		</div>
 		<div class="modal-footer">
@@ -49,145 +106,367 @@
 		</div>
 	</div>
 
-	<div id="loading" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
-		<div id="loading_modal_body" class="modal-body">
-			<h2>Loading...</h2>
-			<img src="static/ajax-loader.gif"></img>
-		</div>
-	</div>
-
     </body>
 	<script src="static/jquery-1.9.1.min.js" language="javascript" type="text/javascript"></script>
 	<script src="static/bootstrap/js/bootstrap.js" language="javascript" type="text/javascript"></script>
 	<script language="javascript">
-
-
+	
     var directionDisplay;
     var directionsService = new google.maps.DirectionsService();
     var map;
 
-    var venue_markers = new Array();
+    var event_markers = new Array();
     var user_markers = new Array();
+    var id_to_user_marker = {};
+    var user_event_markers = new Array();
 
     var current_city = null;
-    var city_venues = {};
+    var current_user = null;
+    var city_events = {};
     var city_members = {};
-    var events = {};
+    var city_rec_events = {};
+
+    var recommender = 'none';
+
+    var recommended_stats = { 'already_happened' : 0, 'will_still_happen' : 0, 'recommendation_hit' : 0, 'recommendation_miss' : 0, 'recommendation_error' : 0, 'total_relevant' : 0 };
+    var all_user_events_and_recommendations = null;
+
+    var hits_enabled = true;
+    var misses_enabled = true;
+    var dismisses_enabled = true;
+    var past_enabled = true;
+    var future_enabled = true;
+
+    var toggleControl = true;
+
+    function toggleAll(){
+
+		toggleControl = !toggleControl;
+		hits_enabled = toggleControl;
+		misses_enabled = toggleControl;
+		dismisses_enabled = toggleControl;
+		past_enabled = toggleControl;
+		future_enabled = toggleControl;
+
+		if ( toggleControl ){
+			$('#hit_btn').addClass('active');
+			$('#error_btn').addClass('active');	
+			$('#miss_btn').addClass('active');
+			$('#past_btn').addClass('active');
+			$('#future_btn').addClass('active');
+		}
+		else{
+			$('#hit_btn').removeClass('active');
+			$('#error_btn').removeClass('active');	
+			$('#miss_btn').removeClass('active');
+			$('#past_btn').removeClass('active');
+			$('#future_btn').removeClass('active');
+		}
+    }
+
+    function toggle(type){
+	if ( type == 0 ){
+		hits_enabled = !hits_enabled;
+	}
+	else if ( type == 1 ){
+		misses_enabled = !misses_enabled;
+	}
+	else if ( type == 2 ){
+		dismisses_enabled = !dismisses_enabled;
+	}
+	else if ( type == 3 ){
+		past_enabled = !past_enabled;
+	}
+	else if ( type == 4 ){
+		future_enabled = !future_enabled;
+	}
+    }
 
     function mapinitialize() {
-	console.log("will initialize map");
     	directionsDisplay = new google.maps.DirectionsRenderer();
-       	var cg = new google.maps.LatLng(-7.242598, -35.892334);
+	var cg = new google.maps.LatLng(-7.242598, -35.892334);
+	
+	var styles = [
+	  {
+	    stylers: [
+	      { hue: "#00ffe6" },
+	      { saturation: -20 }
+	    ]
+	  },{
+	    featureType: "road",
+	    elementType: "geometry",
+	    stylers: [
+	      { lightness: 100 },
+	      { visibility: "simplified" }
+	    ]
+	  },{
+	    featureType: "road",
+	    elementType: "labels",
+	    stylers: [
+	      { visibility: "off" }
+	    ]
+	  }
+	];
+
         var myOptions = {
             zoom:11,
             mapTypeId:google.maps.MapTypeId.ROADMAP,
-            center:cg
+	    center:cg,
+	    styles:styles,
+	    disableDefaultUI:true,
+	    scaleControl:true,
+	    zoomControl:true
         }
         map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
 	directionsDisplay.setMap(map);
-	console.log("map initialized. new map: " + map);
     }
 
-    function calcRoute(r) {
-
-        var waypts = [];
-
-        start = new google.maps.LatLng(r.src[0], r.src[1]);
-        end = new google.maps.LatLng(r.dst[0], r.dst[1]);
-        var request = {
-            origin:start,
-            destination:end,
-            waypoints:waypts,
-            optimizeWaypoints:true,
-            travelMode:google.maps.DirectionsTravelMode.DRIVING
-        };
-        directionsService.route(request, function (response, status) {
-            if (status == google.maps.DirectionsStatus.OK) {
-                directionsDisplay.setDirections(response);
-                var route = response.routes[0];
-            }
-        });
+	var decoder = document.createElement('textarea');
+	function decodeString(encoded){
+		decoder.innerHTML = encoded;
+		return decoder.value;
 	}
 
 	function start(){
 		mapinitialize();
 
-		current_city = "Menlo Park";
-		$("#cities_button").html("Menlo Park");
+		$('.random_tooltip').tooltip({animation : true, delay : 600});
 
-		city_venues[current_city] = [];
-		{% for venue in venues %}
-		city_venues[current_city].push({ 'id' : "{{venue.id}}", 'lat' : {{venue.lat}}, 'lon' : {{venue.lon}}, 'name' : "{{venue.name}}", 'events' : "{{venue.events}}".split(","), 'city' : "{{venue.city}}" });
+		$("#user-list-header").html("Users at Arlington");
+		current_city = "Arlington";
+		$("#cities_button").html("<i class='icon-home icon-white'></i> Arlington");
+
+		google.maps.event.addListener(map, 'tilesloaded', function(){
+			$("#loading_message").css("display", "none");
+			$("#algs_button").removeClass("disabled");
+		});
+
+		$("#user-list").html("<img src='static/ajax-loader-enhanced.gif'></img>");
+
+		city_events[current_city] = [];
+		{% for event in events %}
+		city_events[current_city].push({ 
+			'id' : "{{event.id}}", 
+			'lat' : {{event.lat}}, 
+			'lon' : {{event.lon}}, 
+			'name' : decodeString("{{event.name}}"), 
+			'venue_name' : decodeString("{{event.venue_name}}"), 
+			'venue_city' : decodeString("{{event.venue_city}}"),
+			'time' : "{{event.time}}", 
+			'created' : "{{event.created}}",
+			'time_long' : {{event.time_long}},
+			'created_long' : {{event.created_long}}
+		});
 		{% endfor %}
+
+		city_rec_events[current_city] = [];
+		{% for rec_event in rec_events %}
+		city_rec_events[current_city].push({ 
+			'id' : "{{rec_event.id}}", 
+			'lat' : {{rec_event.lat}}, 
+			'lon' : {{rec_event.lon}}, 
+			'name' : decodeString("{{rec_event.name}}"),
+			'venue_name' : decodeString("{{rec_event.venue_name}}"),
+			'venue_city' : decodeString("{{rec_event.venue_city}}"),
+			'time' : "{{rec_event.time}}",
+			'created' : "{{rec_event.created}}",
+			'time_long' : {{rec_event.time_long}},
+			'created_long' : {{rec_event.created_long}}
+		});
+		{% endfor %}
+
+		var user_list = "";
 
 		city_members[current_city] = [];
 		{% for user in users %}
-		city_members[current_city].push({ 'id' : "{{user.id}}", 'lat' : {{user.lat}}, 'lon' : {{user.lon}}, 'name' : "{{user.name}}", 'events' : "{{user.events}}".split(","), 'city' : "{{user.city}}" });
+		city_members[current_city].push({ 
+			'id' : "{{user.id}}", 
+			'lat' : {{user.lat}}, 
+			'lon' : {{user.lon}}, 
+			'name' : decodeString("{{user.name}}"),
+			'events' : "{{user.events}}".split(","), 
+			'city' : decodeString("{{user.city}}"), 
+			'p_time' : "{{user.p_time}}", 
+			'rec_distance' : "{{user.rec_distance}}".split(","),
+			'rec_popularity' : "{{user.rec_popularity}}".split(","),
+			'rec_topics' : "{{user.rec_topics}}".split(","),
+			'rec_weighted' : "{{user.rec_weighted}}".split(",")
+		});
+		user_list += "<li id='user-list-item_{{user.id}}'>"+
+				"<a  name='user-list-item_{{user.id}}' href='javascript:void(0)' onclick='chooseUserById({{user.id}})'>"+
+					"<i class='icon-user'></i>"+
+					"{{user.name}}"+
+				"</a>"+
+			     "</li>";
 		{% endfor %}
 
-		{% for event in events %}
-		events["{{event.id}}"] = { 'id' : "{{event.id}}", 'name' : "{{event.name}}", 'venue_id' : "{{event.venue_id}}", 'time' : "{{event.time}}" };
-		{% endfor %}
-
-		pinVenuesInMap(null, null, null);
 		pinUsersInMap();
-		if ( venue_markers.length != 0 ){
-			map.panTo(venue_markers[Math.floor((Math.random()*venue_markers.length))].getPosition());
+		if ( user_markers.length != 0 ){
+			map.panTo(user_markers[Math.floor((Math.random()*user_markers.length))].marker.getPosition());
 		}
-//		$('#users_button').removeClass("disabled").attr("onclick", "showUsersView();");
+
+		$("#user-list").html(user_list);
+	}
+
+	var mouseX, mouseY;
+	$(document).mousemove(function(e) {
+		mouseX = e.pageX;
+		mouseY = e.pageY;
+	});
+
+	var outside = true;
+
+	function showTooltip(text, placement){
+
+		function returnContext(){
+
+			outside = false;
+			$("#tooltip_enabler").css('top', mouseY);
+			$("#tooltip_enabler").css('left', mouseX);
+			$("#tooltip_enabler").tooltip({title : text, trigger : 'manual', placement : placement});
+			setTimeout(function(){
+				if ( outside == false ){
+					$("#tooltip_enabler").tooltip('show');
+				}
+			}, 600);
+		}
+		return returnContext;
+	}
+
+	function hideTooltip(id){
+		function r(){
+			$(id).tooltip('destroy');
+			outside = true;
+		}
+		return r;
 	}
 
 	function changeCity(city){
 
+		$("#user-list-header").html("Loading users...");
+		$("#user-list").html("<img src='static/ajax-loader-enhanced.gif'></img>");
+
+		$("#city_"+city.replace(" ", "_")).addClass("active");
+		if ( current_city != null && current_city != "" && current_city != city ){
+			$("#city_"+current_city.replace(" ", "_")).removeClass("active");
+		}
+
+		$("#loading_message").html("<strong>Be patient!</strong> Loading city data...");
+		$("#loading_message").css("display", "");
+
 		current_city = city;
-		$("#cities_button").html(city);
-		if ( city_venues[current_city] ){
+		$("#cities_button").html("Loading...");
+		if ( city_events[current_city] ){
 			removeAllMarkers();
-			pinVenuesInMap(null, null, null);
 			pinUsersInMap();
-			if ( venue_markers.length != 0 ){
-				map.panTo(venue_markers[Math.floor((Math.random()*venue_markers.length))].getPosition());
+			if ( user_markers.length != 0 ){
+				map.panTo(user_markers[Math.floor((Math.random()*user_markers.length))].marker.getPosition());
 			}
+			var user_list = "";
+			for ( i in city_members[current_city] ){
+				user_list += "<li id='user-list-item_" + city_members[current_city][i].id + "'>"+
+						"<a  name='user-list-item_" + city_members[current_city][i].id + "' href='javascript:void(0)' onclick='chooseUserById("+ city_members[current_city][i].id +")'>"+
+							"<i class='icon-user'></i>"+
+							city_members[current_city][i].name+
+						"</a>"+
+					     "</li>";
+			}
+			$("#user-list").html(user_list);
+			$("#cities_button").html("<i class='icon-home icon-white'></i> "+city);
+			current_user = null;
+			$("#user-list-header").html("Users at "+city);
+			$("#loading_message").css("display", "none");
 		}
 		else{
 			$.get("load_city/"+city.replace(" ", "_"), function(data){
 
 				data = JSON.parse(data);
 
-				city_venues[current_city] = [];
-				for ( var i=0; i<data.venues.length; i++){
-					city_venues[current_city].push({ 'id' : data.venues[i].id, 'lat' : data.venues[i].lat, 'lon' : data.venues[i].lon, 'name' : data.venues[i].name, 'events' : data.venues[i].events.split(","), 'city' : data.venues[i].city });
+				city_events[current_city] = [];
+				for ( var i=0; i<data.events.length; i++){
+					city_events[current_city].push({ 
+						'id' : data.events[i].id, 
+						'lat' : data.events[i].lat, 
+						'lon' : data.events[i].lon, 
+						'name' : decodeString(data.events[i].name), 
+						'venue_name' : decodeString(data.events[i].venue_name),
+						'venue_city' : decodeString(data.events[i].venue_city),
+						'time' : data.events[i].time, 
+						'created' : data.events[i].created,
+						'time_long' : data.events[i].time_long,
+						'created_long' : data.events[i].created_long
+				       	});
 				};
 
+				city_rec_events[current_city] = [];
+				for ( var i=0; i<data.rec_events.length; i++){
+					city_rec_events[current_city].push({ 
+						'id' : data.rec_events[i].id, 
+						'lat' : data.rec_events[i].lat, 
+						'lon' : data.rec_events[i].lon, 
+						'name' : decodeString(data.rec_events[i].name), 
+						'venue_name' : decodeString(data.rec_events[i].venue_name), 
+						'venue_city' : decodeString(data.rec_events[i].venue_city)
+				       	});
+				};
+
+				var user_list = "";
 				city_members[current_city] = [];
 				for ( var i=0; i<data.users.length; i++){
-					city_members[current_city].push(data.users[i]);
+					city_members[current_city].push({ 
+						'id' : data.users[i].id, 
+						'lat' : data.users[i].lat, 
+						'lon' : data.users[i].lon, 
+						'name' : decodeString(data.users[i].name), 
+						'events' : data.users[i].events.split(","), 
+						'city' : decodeString(data.users[i].city), 
+						'p_time' : data.users[i].p_time, 
+						'rec_distance' : data.users[i].rec_distance.split(","),
+						'rec_popularity' : data.users[i].rec_popularity.split(","),
+						'rec_topics' : data.users[i].rec_topics.split(","),
+						'rec_weighted' : data.users[i].rec_weighted.split(",")
+					});
+					user_list += "<li id=\"user-list-item_" + city_members[current_city][i].id + "\" >"+
+							"<a  name=\"user-list-item_" + city_members[current_city][i].id + "\" "+
+							"href='javascript:void(0)'  onclick='chooseUserById("+ city_members[current_city][i].id +")'>"+
+								"<i class='icon-user'></i>"+city_members[current_city][i].name+
+							"</a>"+
+						     "</li>";
 				};
 
 				removeAllMarkers();
-				pinVenuesInMap(null, null, null);
 				pinUsersInMap();
-				if ( venue_markers.length != 0 ){
-					map.panTo(venue_markers[Math.floor((Math.random()*venue_markers.length))].getPosition());
+				if ( user_markers.length != 0 ){
+					map.panTo(user_markers[Math.floor((Math.random()*user_markers.length))].marker.getPosition());
 				}
+				$("#user-list").html(user_list);
+				$("#cities_button").html("<i class='icon-home icon-white'></i> "+city);
+				current_user = null;
+				$("#user-list-header").html("Users at "+city);
+				$("#loading_message").css("display", "none");
 			});
 		}
 
 	}
 
-	function removeVenueMarkers(){
-		for (i in venue_markers){
-			venue_markers[i].setMap(null);
+	function removeEventMarkers(){
+		for (i in event_markers){
+			event_markers[i].marker.setMap(null);
 		}
-		venue_markers.length = 0;
+		event_markers.length = 0;
+	}
+
+	function removeUserMarkers(){
+		for (i in user_markers ){
+			user_markers[i].marker.setMap(null);
+		}
+		user_markers.length = 0;
+		id_to_user_marker = {};
 	}
 
 	function removeAllMarkers(){
-		removeVenueMarkers();
-		for (i in user_markers ){
-			user_markers[i].setMap(null);
-		}
-		user_markers.length = 0;
+		removeEventMarkers();
+		removeUserMarkers();
 	}
 
 	function sortbyLatLng(a, b){
@@ -210,45 +489,61 @@
 		}
 	}
 
-	function pinVenuesInMap(venues, in_respect_to_user, events_user_have){
-
-		if ( venues == null ){
-			venues = city_venues[current_city];
-		}
-
-		venues.sort(sortbyLatLng);
-		console.log("About to pin "+venues.length+" venues in map!");
-
-		var c_lat = -1, c_long = -1;
-		var close_venues = new Array();
-
-		for (var i=0; i<venues.length; i++ ){
-
-			if ( c_lat != -1 && c_long != -1 ){
-				if (Math.abs(c_lat - venues[i].lat) > 0.000001 && Math.abs(c_long - venues[i].lon) > 0.000001){
-					close_venues = new Array();
-				}
+	function chooseUserById(user_id){
+		for ( i in city_members[current_city] ){
+			if ( city_members[current_city][i].id == user_id ){
+				var doIt = chooseUser(city_members[current_city][i], false);
+				doIt();
+				break;
 			}
-			c_long = parseFloat(venues[i].lon);
-			c_lat = parseFloat(venues[i].lat);
-
-			var venue_marker = new google.maps.Marker({position : new google.maps.LatLng(venues[i].lat, venues[i].lon),
-						map : map,
-						title : venues[i].name,
-						icon : 'static/venue-marker.png' });
-			venue_markers.push(venue_marker);
-			var showVenueEventClosure = showVenueEvents(close_venues, in_respect_to_user, events_user_have);
-			google.maps.event.addListener(venue_marker, 'click', showVenueEventClosure);
-
-			close_venues.push(venues[i]);
 		}
+	}
+
+	var click_listeners = {}
+
+	function chooseUser(user, scroll){
+
+		function doChooseAndPinEvents(){
+
+			if ( current_user != null && current_user.id != user.id ){
+				$("#user-list-item_"+current_user.id).removeClass("active");
+				user_markers[id_to_user_marker[current_user.id]].marker.setIcon('static/user-pin.png');
+				user_markers[id_to_user_marker[current_user.id]].marker.setZIndex(0);
+				var chooseUserClosure = chooseUser(current_user, true);
+				google.maps.event.removeListener(click_listeners[current_user.id]);
+				click_listeners[current_user.id] = google.maps.event.addListener(user_markers[id_to_user_marker[current_user.id]].marker, 'click', chooseUserClosure);
+			}
+
+			$("#user-list-item_"+user.id).addClass("active");
+			user_markers[id_to_user_marker[user.id]].marker.setIcon('static/chosen-user-pin.png');
+			user_markers[id_to_user_marker[user.id]].marker.setZIndex(100);
+			var showUserDetailsClosure = showUserDetails(user);
+			google.maps.event.removeListener(click_listeners[user.id]);
+			click_listeners[user.id] = google.maps.event.addListener(user_markers[id_to_user_marker[user.id]].marker, 'click', showUserDetailsClosure);
+
+
+			current_user = user;
+
+			if ( scroll == true ){
+				window.location = "#user-list-item_"+user.id;
+			}
+
+			if ( recommender != 'none' ){
+				setRecommender(recommender, current_user);
+				return;
+			}
+			else{
+				pinUserEventsInMap(user);
+			}
+
+		}
+		return doChooseAndPinEvents;
 	}
 
 	function pinUsersInMap(){
 
 		var users = city_members[current_city];
 		users.sort(sortbyLatLng);
-		console.log("About to pin "+users.length+" users in map!");
 
 		var c_lat = -1, c_long = -1;
 		var close_users = new Array();
@@ -265,45 +560,500 @@
 
 			var user_marker = new google.maps.Marker({position : new google.maps.LatLng(users[i].lat, users[i].lon),
 						map : map,
-						title : users[i].name,
-						icon : 'static/user-marker.png' });
-			user_markers.push(user_marker);
-//			var showUserEventClosure = showUserEvents(users[i].id);
-//			google.maps.event.addListener(user_marker, 'click', showUserEventClosure);
+						icon : 'static/user-pin.png',
+						shadow: 'static/shadow-user-pin.png',
+						draggable : true,
+						zIndex : 0	});
+			user_markers.push({ 'marker' : user_marker, 'user' : users[i] });
+			id_to_user_marker[users[i].id] = i;
+			var chooseUserClosure = chooseUser(users[i], true);
+			click_listeners[users[i].id] = google.maps.event.addListener(user_marker, 'click', chooseUserClosure);
+
+			var showTooltipClosure = showTooltip(users[i].name, 'top');
+			google.maps.event.addListener(user_marker, 'mouseover', showTooltipClosure);
+
+			var hideTooltipClosure = hideTooltip('#tooltip_enabler');
+			google.maps.event.addListener(user_marker, 'mouseout', hideTooltipClosure);
 			close_users.push(users[i]);
 		}
 	}
 
-	function showVenueEvents(close_venues, in_respect_to_user, events_user_have){
-		function showModal(){
+	function pinUserEventsInMap(user){
 
-			$("#venue_events_body").html("<img src='static/ajax-loader.gif'></img>");
+		removeEventMarkers();
 
-			var content = "";
-			for (var i=0; i<close_venues.length; i++){
-				console.log("close venues: "+JSON.stringify(close_venues));
-				content += "<blockquote> <h4><strong>"+close_venues[i].name+"</strong></h4>";
-				var event_ids = close_venues[i].events;
-				if ( event_ids.length == 0 ){
-					content += "This venue has no events...";
-				}
-				else{
-					content += "<table class='table table-hover table-condensed'>";
-					for ( var j=0; j<event_ids.length; j++ ){
-						content += "<tr> <td> " + events[event_ids[j]].name + "</td> <td> " + events[event_ids[j]].time + "</td> </tr>";
+		var events = city_events[current_city];
+		var user_events = user.events;
+		events.sort(sortbyLatLng);
+
+		var c_lat = -1, c_long = -1;
+		var close_events = new Array();
+
+		for (var i=0; i<events.length; i++ ){
+
+			for (var j=0; j<user_events.length; j++ ){
+				if ( user_events[j] == events[i].id ){
+
+
+					if ( c_lat != -1 && c_long != -1 ){
+						if (Math.abs(c_lat - events[i].lat) > 0.000001 && Math.abs(c_long - events[i].lon) > 0.000001){
+							close_events = new Array();
+						}
 					}
-					content += "</table>";
-				}
-				content += "</blockquote>";
-			}
+					c_long = parseFloat(events[i].lon);
+					c_lat = parseFloat(events[i].lat);
 
-			$("#venue_events_body").html(content);
-			$("#venue_events").modal('show');
+
+					var event_status ="no_algorithm";
+					var status_icon = determineIcon(event_status);
+					var status_icon_shadow = determineIconShadow(event_status);
+					var event_details = showEventDetails(user, events[i], event_status);
+
+					var image = new google.maps.MarkerImage(status_icon,
+						new google.maps.Size(24.0, 32.0),
+						new google.maps.Point(0, 0),
+						new google.maps.Point(12.0, 16.0)
+					);
+					var shadow = new google.maps.MarkerImage(status_icon_shadow,
+						new google.maps.Size(41.0, 32.0),
+						new google.maps.Point(0, 0),
+						new google.maps.Point(12.0, 16.0)
+					);
+
+
+					var event_marker = new google.maps.Marker({position : new google.maps.LatLng(events[i].lat, events[i].lon),
+								map : map,
+								icon : image,
+								shadow : shadow,
+								draggable : true,
+								zIndex : 200	});
+					event_markers.push({ 'marker' : event_marker, 'event' : events[i] });
+					google.maps.event.addListener(event_marker, 'click', event_details);
+
+
+					var showTooltipClosure = showTooltip(events[i].name, 'top');
+					google.maps.event.addListener(event_marker, 'mouseover', showTooltipClosure);
+
+					var hideTooltipClosure = hideTooltip('#tooltip_enabler');
+					google.maps.event.addListener(event_marker, 'mouseout', hideTooltipClosure);
+
+					close_events.push(events[i]);
+
+					break;
+				}
+			}
 		}
-		return showModal;
 	}
 
-	$(document).ready(start());
+	function determineIcon(status){
+		if ( status == "no_algorithm" ){
+			return 'static/base-pin.png';
+		}
+		else if ( status == "already_happened" || status == "will_still_happen"	){
+			return 'static/base-pin.png';
+		}
+		else if ( status == "recommendation_hit" ){
+			return 'static/hit-pin.png';
+		}
+		else if ( status == "recommendation_miss" ){
+			return 'static/miss-pin.png';
+		}
+		else if ( status == "recommendation_error" ){
+			return 'static/error-pin.png';
+		}
+	}
 
+	function determineIconShadow(status){
+		return 'static/shadow-pin.png';
+/*		if ( status == "no_algorithm" ){
+			return 'static/shadow-unclassified-event-pin.png';
+		}
+		else if ( status == "already_happened" || status == "will_still_happen"	){
+			return 'static/shadow-disconsidered-event-pin.png';
+		}
+		else if ( status == "recommendation_hit" ){
+			return 'static/shadow-recommendation_hit-event-pin.png';
+		}
+		else if ( status == "recommendation_miss" ){
+			return 'static/shadow-recommendation_miss-event-pin.png';
+		}
+		else if ( status == "recommendation_error" ){
+			return 'static/shadow-recommendation_error-event-pin.png';
+		}*/
+	}
+
+	function getColor(status){
+		if ( status == "no_algorithm" ){
+			return '';
+		}
+		else if ( status == "already_happened" || status == "will_still_happen"	){
+			return '';
+		}
+		else if ( status == "recommendation_hit" ){
+			return "success";
+		}
+		else if ( status == "recommendation_miss" ){
+			return 'warning';
+		}
+		else if ( status == "recommendation_error" ){
+			return 'error';
+		}
+	}
+
+	function determineStatusMsg(status){
+		if ( status == "no_algorithm" ){
+			return 'unclassified';
+		}
+		else if ( status == "already_happened" || status == "will_still_happen"	){
+			return 'irrelevant';
+		}
+		else if ( status == "recommendation_hit" ){
+			return "rec hit";
+		}
+		else if ( status == "recommendation_miss" ){
+			return 'attended miss';
+		}
+		else if ( status == "recommendation_error" ){
+			return 'rec error';
+		}
+	}
+
+	function determineZIndex(status){
+		if ( status == "no_algorithm" ){
+			return 200;
+		}
+		else if ( status == "already_happened" || status == "will_still_happen"	){
+			return 200;
+		}
+		else if ( status == "recommendation_hit" ){
+			return 500;
+		}
+		else if ( status == "recommendation_miss" ){
+			return 300;
+		}
+		else if ( status == "recommendation_error" ){
+			return 400;
+		}
+	}
+
+	function showEventDetails(user, event, status){
+		function doShowDetails(){
+
+			$("#details_label").html('Event Details');
+
+			$("#event_details_body").html("<img src='static/ajax-loader.gif'></img>");
+			$("#event_details").modal('show');
+
+			var content = "<h4>"+event.name+"</h4>";
+
+			content += "<blockquote class='pull-right'>";
+			content += "<p><i class='icon-calendar'></i> When: <span class='span5 uneditable-input' style='margin-left:auto; margin-right:auto; cursor:pointer;'><strong class='text-info'>"+event.time+"</strong></span></p>";
+			content += "<p><i class='icon-map-marker'></i> Where: <span class='span5 uneditable-input' style='margin-left:auto; margin-right:auto; cursor:pointer;'><strong class='text-info'>"+event.venue_name+", "+event.venue_city+"</strong></span></p>";
+
+			if ( status != 'no_algorithm' && status != 'already_happened' && status != 'will_still_happen' ){
+			content += "<p><small><i class='icon-user'></i> <em>"+user.name+"</em> / <strong>"+$.trim($('#algs_button').text())+"</strong> status: ";
+			}
+			if ( status == "recommendation_hit" ){
+				content += "<span class='label label-success'>Rec Event Hit</span></p>";
+			}
+			else if ( status == "recommendation_miss" ){
+				content += "<span class='label label-warning'>Attended Miss</span></p>";
+			}
+			else if ( status == "recommendation_error" ){
+				content += "<span class='label label-important'>Rec Event Error</span></p>";
+			}
+			else if ( status == "already_happened" ){
+				content += "<span class='label label-info'>Irrelevant</span></p>";
+			}
+			content += "</blockquote>";
+
+			$("#event_details_body").html(content);
+		}
+		return doShowDetails;
+	}
+
+	function showUserDetails(user){
+		function doShowDetails(){
+
+			$("#details_label").html('User Details');
+
+			$("#event_details_body").html("<img src='static/ajax-loader.gif'></img>");
+			$("#event_details").modal('show');
+
+			var content = "<p class='text-center'><span class='lead'>"+user.name+"</span> <span class='muted'>from "+user.city+"</span></p>";
+
+			if ( recommender == 'none' ){
+				content += "<small>has gone to the following events:</small>";
+			}
+			else{
+
+				content += "<p>have the following stats from our "+$.trim($('#algs_button').text())+" recommender: </p>";
+
+				content += "<p><span class='label label-success'>Rec Hits:</span> " + recommended_stats['recommendation_hit'] + " (" + ((recommended_stats['recommendation_hit'] / recommended_stats['total_relevant'])*100).toFixed(1) + "%)  <span style='visibility:hidden;' title='I know its a hack'>Hack</span>";
+
+				content += "<span class='label label-important'>Rec Errors:</span> " + recommended_stats['recommendation_error'] + " (" + ((recommended_stats['recommendation_error'] / recommended_stats['total_relevant'])*100).toFixed(1) + "%)  <span style='visibility:hidden' title='I know its a hack'>Hack</span>";
+
+				content += "<span class='label label-warning'>Attended Misses:</span> " + recommended_stats['recommendation_miss'] + " (" + ((recommended_stats['recommendation_miss'] / recommended_stats['total_relevant'])*100).toFixed(1) + "%)</p>";
+
+			}
+
+			content += "<table class='table table-striped table-bordered table-hover'>";
+
+			var evv = null;
+			if ( recommender != 'none' ){
+				content += "<tr><td><strong>Name</strong></td><td><strong>Venue</strong></td><td><strong>Time</strong></td><td><strong>Status</strong></td></tr>";
+				evv = all_user_events_and_recommendations;
+				evv.sort(sortbyLatLng);
+			}
+			else {
+				content += "<tr><td><strong>Name</strong></td><td><strong>Venue</strong></td><td><strong>Time</strong></td></tr>";
+				evv = city_events[current_city];
+				evv.sort(sortbyLatLng);
+			}
+
+			for (var i=0; i<evv.length; i++ ){
+
+				if ( recommender == 'none' ){
+
+					for (var j=0; j<user.events.length; j++ ){
+						if ( user.events[j] == evv[i].id ){
+							var status = "no_algorithm";
+							var status_color = getColor(status);
+							content += "<tr class='"+status_color+"'><td>" + evv[i].name + "</td><td>@" + evv[i].venue_name + "</td><td>" + evv[i].time + "</td></tr>";
+							break;
+						}
+					}
+
+				}
+				else {
+
+					if ( evv[i].status == "already_happened" || evv[i].status == "will_still_happen" ){
+						continue;
+					}
+					var status = evv[i].status;
+					var status_color = getColor(status);
+					var status_msg = determineStatusMsg(status);
+					content += "<tr class='"+status_color+"'><td>" + evv[i].name + "</td><td>@" + evv[i].venue_name + "</td><td>" + evv[i].time + "</td><td>"+status_msg+"</td></tr>";
+				}
+			};
+
+			content += "</table>";
+			$("#event_details_body").html(content);
+
+		}
+		return doShowDetails;
+	}
+
+	function setRecommender(rec, user){
+
+		if ( rec == 'none' ){
+			$("#algs_button").html("<i class='icon-remove icon-white'></i> None");
+			$("#filters_button").addClass("disabled");
+			$('#filter_tooltip').tooltip('destroy');
+			$('#filter_tooltip').css('display', 'none');
+			$('#disable_tooltip').css('display', '');
+		}
+		else if ( rec == 'distance' ){
+			$("#algs_button").html("<i class='icon-map-marker icon-white'></i> Location Based");
+		}
+		else if ( rec == 'popularity' ){
+			$("#algs_button").html("<i class='icon-comment icon-white'></i> Popularity Based");
+		}
+		else if ( rec == 'topics' ){
+			$("#algs_button").html("<i class='icon-list-alt icon-white'></i> Category Based");
+		}
+		else if ( rec == 'weighted' ){
+			$("#algs_button").html("<i class='icon-asterisk icon-white'></i> Weighted Combination");
+		}
+		else{
+			return;
+		}
+
+		recommender = rec;
+
+		if ( current_user == null ){
+			return;
+		}
+
+		if ( rec == 'none' ){
+			var c = chooseUser(current_user, true);
+			c();
+			return;
+		}
+
+		$("#filters_button").removeClass("disabled");
+		$('#filter_tooltip').tooltip({animation : true, delay : 600});
+		$('#filter_tooltip').css('display', '');
+		$('#disable_tooltip').css('display', 'none');
+		
+		pinUserRecommendationsInMap(rec);
+	}
+
+	function pinUserRecommendationsInMap(rec){
+
+		removeEventMarkers();
+
+		var events_source = city_events[current_city];
+
+		for (i in city_rec_events[current_city]){
+			events_source.push(city_rec_events[current_city][i]);
+		}
+
+		var user_events = current_user.events;
+		events_source.sort(sortbyLatLng);
+
+		all_user_events_and_recommendations = [];
+
+		var p_time = current_user.p_time;	
+
+		var recommended_to_user = current_user['rec_'+rec];
+
+		recommended_stats = { 'already_happened' : 0, 'will_still_happen' : 0, 'recommendation_hit' : 0, 'recommendation_miss' : 0, 'recommendation_error' : 0, 'total_relevant' : 0 };
+
+		seen = {};
+
+		for ( var i=0; i<events_source.length; i++ ){
+			for ( var j=0; j<user_events.length; j++ ){
+				if ( user_events[j] == events_source[i].id ){
+
+					if ( seen[events_source[i].id] || events_source[i].time == undefined ){
+						continue;
+					}
+					seen[events_source[i].id] = true;
+
+					if ( events_source[i].time_long < p_time ){
+						//already happened, Color 1
+						var entry = events_source[i];
+						events_source[i]['status'] = 'already_happened';
+						all_user_events_and_recommendations.push(events_source[i]);
+						recommended_stats['already_happened'] += 1;
+					}
+					else if ( events_source[i].created_long > p_time ){
+						//will happen yet, Color 1
+						var entry = events_source[i];
+						events_source[i]['status'] = 'will_still_happen';
+						all_user_events_and_recommendations.push(events_source[i]);
+						recommended_stats['will_still_happen'] += 1;
+					}
+					else{
+						var hit = false;
+						for ( var k=0; k<recommended_to_user.length; k++ ){
+							if ( recommended_to_user[k] == user_events[j] ){
+								//was recommended and accepted, Color 2
+								hit = true;
+								var entry = events_source[i];
+								events_source[i]['status'] = 'recommendation_hit';
+								all_user_events_and_recommendations.push(events_source[i]);
+								recommended_stats['recommendation_hit'] += 1;
+								recommended_stats['total_relevant'] += 1;
+								break;
+							}
+						}
+						if ( hit == false ){
+							//was not recommended, but user went to this event, Color 3
+							var entry = events_source[i];
+							events_source[i]['status'] = 'recommendation_miss';
+							all_user_events_and_recommendations.push(events_source[i]);
+							recommended_stats['recommendation_miss'] += 1;
+							recommended_stats['total_relevant'] += 1;
+						}
+					}
+					break;
+				}
+			}
+		}
+
+		for ( var i=0; i<recommended_to_user.length; i++ ){
+			var found = false;
+			for ( var j=0; j<user_events.length; j++ ){
+				if ( user_events[j] == recommended_to_user[i] ){
+					found = true;
+					break;
+				}
+			}
+			if ( !found ){
+				for ( var j=0; j<events_source.length; j++ ){
+					if ( recommended_to_user[i] == events_source[j].id ){
+
+						if ( seen[events_source[j].id] || events_source[j].time == undefined ){
+							continue;
+						}
+						seen[events_source[j].id] = true;
+
+						//was recommended, but user didn't go to this event, Color 4
+						var entry = events_source[j];
+						events_source[j]['status'] = 'recommendation_error';
+						all_user_events_and_recommendations.push(events_source[j]);
+						recommended_stats['recommendation_error'] += 1;
+						recommended_stats['total_relevant'] += 1;
+						break;
+					}
+				}
+			}
+		}
+
+
+		for ( var i=0; i<all_user_events_and_recommendations.length; i++ ){
+
+			var event_status = all_user_events_and_recommendations[i].status;
+
+			if ( event_status == 'already_happened' && !past_enabled ){
+				continue;
+			}
+			else if ( event_status == 'will_still_happen' && !future_enabled ){
+				continue;
+			}
+			else if ( event_status == 'recommendation_hit' && !hits_enabled ){
+				continue;
+			}
+			else if ( event_status == 'recommendation_miss' && !misses_enabled ){
+				continue;
+			}
+			else if ( event_status == 'recommendation_error' && !dismisses_enabled ){
+				continue;
+			}
+
+			var status_icon = determineIcon(event_status);
+			var status_icon_shadow = determineIconShadow(event_status);
+
+			var image = new google.maps.MarkerImage(status_icon,
+				new google.maps.Size(24.0, 32.0),
+				new google.maps.Point(0, 0),
+				new google.maps.Point(12.0, 16.0)
+			);
+			var shadow = new google.maps.MarkerImage(status_icon_shadow,
+				new google.maps.Size(41.0, 32.0),
+				new google.maps.Point(0, 0),
+				new google.maps.Point(12.0, 16.0)
+			);
+
+			var event_details = showEventDetails(current_user, all_user_events_and_recommendations[i], event_status);
+			var status_zIndex = determineZIndex(event_status);
+
+			var event_marker = new google.maps.Marker({position : new google.maps.LatLng(all_user_events_and_recommendations[i].lat, all_user_events_and_recommendations[i].lon),
+						map : map,
+						icon : image,
+						shadow : shadow,
+						draggable : true,
+						zIndex : status_zIndex	});
+			event_markers.push({ 'marker' : event_marker, 'event' : all_user_events_and_recommendations[i] });
+
+			google.maps.event.addListener(event_marker, 'click', event_details);
+
+			var showTooltipClosure = showTooltip(all_user_events_and_recommendations[i].name, 'top');
+			google.maps.event.addListener(event_marker, 'mouseover', showTooltipClosure);
+
+			var hideTooltipClosure = hideTooltip('#tooltip_enabler');
+			google.maps.event.addListener(event_marker, 'mouseout', hideTooltipClosure);
+
+		}
+
+	}
+
+	$(document).ready(function(){
+		start();	
+	});
+	
+	
 	</script>
 </html>

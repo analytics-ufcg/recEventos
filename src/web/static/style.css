@@ -1,1 +1,25 @@
 body { font-family: sans-serif; background: #DEDBDB; text-align: center; }
+
+.random_tooltip{
+	transition: color 1s;
+	-moz-transition: color 1s;
+	-webkit-transition: color 1s;
+	-o-transition: color 1s;
+}
+
+
+.random_tooltip:hover {
+	color:#0088cc;
+}
+
+#project_name{
+	transition: text-shadow 1s;
+	-moz-transition: text-shadow 1s;
+	-webkit-transition: text-shadow 1s;
+	-o-transition: text-shadow 1s;
+}
+
+#project_name:hover {
+	text-shadow: 0px 0px 10px black;
+}
+
