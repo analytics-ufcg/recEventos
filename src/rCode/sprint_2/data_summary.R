@@ -1,6 +1,6 @@
 # =============================================================================
 #   data_summary.R
-#   Copyright (C) 2013  Augusto Queiroz
+#   Copyright (C) 2013  Elias Paulino e Augusto Queiroz
 # 
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
