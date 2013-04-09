@@ -1,3 +1,21 @@
+/*
+   ApiKeysManager.java
+   Copyright (C) 2013  Augusto Queiroz
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package javaCode.collection.util;
 
 import java.io.IOException;
@@ -59,7 +77,7 @@ public class ApiKeysManager {
 			Thread.sleep(callIntervalInMillis);
 		} catch (InterruptedException e) {
 			System.out
-					.println(">>> ATTENTION! The timer was interrupted before the expected time!");
+			.println(">>> ATTENTION! The timer was interrupted before the expected time!");
 			e.printStackTrace();
 		}
 	}
@@ -87,16 +105,16 @@ public class ApiKeysManager {
 
 				System.out.println();
 				System.out
-						.println(">>> ATTENTION! HTTP URL Connection error code: "
-								+ responseCode);
+				.println(">>> ATTENTION! HTTP URL Connection error code: "
+						+ responseCode);
 
 				if (responseCode == 400 || responseCode == 429) {
 					// Increment the throttled counter
 					throttledTimes++;
 
 					System.out
-							.println(">>> We should have been throttled! Throttling counter = "
-									+ throttledTimes);
+					.println(">>> We should have been throttled! Throttling counter = "
+							+ throttledTimes);
 
 					if (callIntervalInMillis <= MAX_CALL_INTERVAL) {
 
@@ -107,8 +125,8 @@ public class ApiKeysManager {
 								: callIntervalInMillis;
 
 						System.out
-								.println(">>> The new interval between calls is "
-										+ callIntervalInMillis + " ms");
+						.println(">>> The new interval between calls is "
+								+ callIntervalInMillis + " ms");
 					}
 				}
 
@@ -139,8 +157,8 @@ public class ApiKeysManager {
 								+ CALL_INTERVAL_CHANGE_TIME_IN_MINUTES
 								+ " minutes.");
 						System.out
-								.println(">>> The new interval between calls is "
-										+ callIntervalInMillis + " ms");
+						.println(">>> The new interval between calls is "
+								+ callIntervalInMillis + " ms");
 						System.out.println();
 					}
 
@@ -177,12 +195,12 @@ public class ApiKeysManager {
 	}
 
 	public static void main(String[] args) throws MalformedURLException,
-			IOException {
+	IOException {
 		MainCollection.readPropertiesFile();
 
 		URLConnection urlConn = new URL(URLManager.getEventsURLByMember(
 				"4c5f7a107b7624226a67794025897c", new Long(10341972), 0))
-				.openConnection();
+		.openConnection();
 
 		// URLConnection urlConn = new URL(
 		// "https://api.meetup.com/ew/events?key=7f422a3a6e6d253c7e62585b722a6&sign=true&page=20")
