@@ -20,18 +20,15 @@ package javaCode.collection.util;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import javaCode.collection.MainCollection;
 
 public class ApiKeysManager {
 
-	private static final int MIN_CALL_INTERVAL = 100;
+	private static final int MIN_CALL_INTERVAL = 400;
 	private static final int MAX_CALL_INTERVAL = 4000;
 	private static final int CALL_INTERVAL_CHANGE_TIME_IN_MINUTES = 10;
 	private static final int CALL_INTERVAL_DECREASE_STEP_IN_MILLIS = 100;
@@ -194,32 +191,32 @@ public class ApiKeysManager {
 
 	}
 
-	public static void main(String[] args) throws MalformedURLException,
-	IOException {
-		MainCollection.readPropertiesFile();
-
-		URLConnection urlConn = new URL(URLManager.getEventsURLByMember(
-				"4c5f7a107b7624226a67794025897c", new Long(10341972), 0))
-		.openConnection();
-
-		// URLConnection urlConn = new URL(
-		// "https://api.meetup.com/ew/events?key=7f422a3a6e6d253c7e62585b722a6&sign=true&page=20")
-		// .openConnection();
-
-		System.out.println(urlConn.getHeaderFields());
-		System.out.println(((HttpURLConnection) urlConn).getResponseCode());
-
-		// BufferedReader br = new BufferedReader(new
-		// InputStreamReader(urlConn.getInputStream()));
-		// System.out.println(br.readLine());
-
-		for (int i = 0; i < 2000; i++) {
-			getKey();
-			System.out.println();
-			if (!checkConnectionCondition(urlConn))
-				continue;
-
-			System.out.println();
-		}
-	}
+//	public static void main(String[] args) throws MalformedURLException,
+//	IOException {
+//		MainCollection.readPropertiesFile();
+//
+//		URLConnection urlConn = new URL(URLManager.getEventsURLByMember(
+//				"4c5f7a107b7624226a67794025897c", new Long(10341972), 0))
+//		.openConnection();
+//
+//		// URLConnection urlConn = new URL(
+//		// "https://api.meetup.com/ew/events?key=7f422a3a6e6d253c7e62585b722a6&sign=true&page=20")
+//		// .openConnection();
+//
+//		System.out.println(urlConn.getHeaderFields());
+//		System.out.println(((HttpURLConnection) urlConn).getResponseCode());
+//
+//		// BufferedReader br = new BufferedReader(new
+//		// InputStreamReader(urlConn.getInputStream()));
+//		// System.out.println(br.readLine());
+//
+//		for (int i = 0; i < 2000; i++) {
+//			getKey();
+//			System.out.println();
+//			if (!checkConnectionCondition(urlConn))
+//				continue;
+//
+//			System.out.println();
+//		}
+//	}
 }
