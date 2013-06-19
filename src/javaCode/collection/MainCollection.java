@@ -146,9 +146,7 @@ public class MainCollection {
 			// Checks if there is any more data to fetch
 			if (groupArray.length >= URLManager.PAGE_SIZE
 					&& offset < (URLManager.MAX_OFFSET * 200)) {
-				// The find groups has a different behavior for the offset (we
-				// have to sum the page size to get new objects)
-				offset += URLManager.PAGE_SIZE;
+				offset ++;
 			} else {
 				keepFetching = false;
 			}
