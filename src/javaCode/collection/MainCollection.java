@@ -422,7 +422,7 @@ public class MainCollection {
 
 		ObjectMapper mapper = new ObjectMapper();
 		String key = "";
-		final int groupsPerCall = 24;
+		final int groupsPerCall = 49;
 
 		// Foreach group do...
 		for (; groupIndex < groupIdsPerCity.size();) {
