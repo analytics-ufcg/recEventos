@@ -28,7 +28,7 @@ import java.util.Date;
 
 public class ApiKeysManager {
 
-	private static final int MIN_CALL_INTERVAL = 400;
+	private static final int MIN_CALL_INTERVAL = 200;
 	private static final int MAX_CALL_INTERVAL = 4000;
 	private static final int CALL_INTERVAL_CHANGE_TIME_IN_MINUTES = 10;
 	private static final int CALL_INTERVAL_DECREASE_STEP_IN_MILLIS = 100;
