@@ -17,7 +17,7 @@
  */
 
 package javaCode.collection;
- 
+
 import java.io.File;
 
 import java.io.FileNotFoundException;
@@ -146,7 +146,7 @@ public class MainCollection {
 			// Checks if there is any more data to fetch
 			if (groupArray.length >= URLManager.PAGE_SIZE
 					&& offset < (URLManager.MAX_OFFSET * 200)) {
-				offset ++;
+				offset++;
 			} else {
 				keepFetching = false;
 			}
@@ -308,14 +308,14 @@ public class MainCollection {
 		}
 
 		String key = "";
-		final int groupsPerCall = 24;
+		final int groupsPerCall = 25;
 
 		// Foreach group do...
 		for (; groupIndex < groupIdsPerCity.size();) {
-			int lastIndex = Math.min(groupIndex + groupsPerCall,
+			int lastIndex = Math.min(groupIndex + groupsPerCall - 1,
 					groupIdsPerCity.size() - 1);
 			List<Long> groupIds = groupIdsPerCity.subList(groupIndex,
-					(groupIndex == lastIndex) ? lastIndex + 1 : lastIndex);
+					lastIndex + 1);
 
 			println("        Groups (" + (groupIndex + 1) + " to "
 					+ (lastIndex + 1) + "/" + groupIdsPerCity.size() + ")");
@@ -422,14 +422,14 @@ public class MainCollection {
 
 		ObjectMapper mapper = new ObjectMapper();
 		String key = "";
-		final int groupsPerCall = 49;
+		final int groupsPerCall = 50;
 
 		// Foreach group do...
 		for (; groupIndex < groupIdsPerCity.size();) {
-			int lastIndex = Math.min(groupIndex + groupsPerCall,
+			int lastIndex = Math.min(groupIndex + groupsPerCall - 1,
 					groupIdsPerCity.size() - 1);
 			List<Long> groupIds = groupIdsPerCity.subList(groupIndex,
-					(groupIndex == lastIndex) ? lastIndex + 1 : lastIndex);
+					lastIndex + 1);
 
 			println("        Groups (" + (groupIndex + 1) + " to "
 					+ (lastIndex + 1) + "/" + groupIdsPerCity.size() + ")");
@@ -517,15 +517,13 @@ public class MainCollection {
 
 		ObjectMapper mapper = new ObjectMapper();
 		String key = "";
-		final int eventsPerCall = 49;
+		final int eventsPerCall = 50;
 
 		// Foreach member do...
 		for (; eventIndex < allEventsIds.size();) {
-			int lastIndex = Math.min(eventIndex + eventsPerCall,
+			int lastIndex = Math.min(eventIndex + eventsPerCall - 1,
 					(allEventsIds.size() - 1));
-
-			List<String> eventIds = allEventsIds.subList(eventIndex,
-					(eventIndex == lastIndex) ? lastIndex + 1 : lastIndex);
+			List<String> eventIds = allEventsIds.subList(eventIndex, lastIndex + 1);
 
 			println("        RSVPs (" + (eventIndex + 1) + " to "
 					+ (lastIndex + 1) + "/" + allEventsIds.size() + ")");

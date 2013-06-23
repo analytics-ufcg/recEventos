@@ -65,8 +65,8 @@ public class URLManager {
 				+ PAGE_SIZE + "&offset=" + offset + "&only=" + EVENT_ATTRIBUTES);
 	}
 
-	public static String getGroupsURLByGroupId(String key,
-			List<Long> groupIds, int offset) {
+	public static String getGroupsURLByGroupId(String key, List<Long> groupIds,
+			int offset) {
 		return ("https://api.meetup.com/2/groups?key="
 				+ key
 				+ "&group_id="
@@ -99,5 +99,5 @@ public class URLManager {
 						.replace(" ", "") + "&order=event&page=" + PAGE_SIZE
 				+ "&offset=" + offset + "&only=" + RSVP_ATTRIBUTES);
 	}
-
+	
 }
