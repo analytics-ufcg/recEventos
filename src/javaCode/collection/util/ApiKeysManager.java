@@ -20,11 +20,14 @@ package javaCode.collection.util;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URLConnection;
+import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import javaCode.collection.MainCollection;
 
 public class ApiKeysManager {
 
@@ -74,7 +77,7 @@ public class ApiKeysManager {
 			Thread.sleep(callIntervalInMillis);
 		} catch (InterruptedException e) {
 			System.out
-			.println(">>> ATTENTION! The timer was interrupted before the expected time!");
+					.println(">>> ATTENTION! The timer was interrupted before the expected time!");
 			e.printStackTrace();
 		}
 	}
@@ -92,75 +95,91 @@ public class ApiKeysManager {
 	}
 
 	public static boolean checkConnectionCondition(URLConnection urlConn)
-			throws IOException {
+			throws IOException, InterruptedException {
 
 		boolean result = true;
 
 		if (urlConn instanceof HttpURLConnection) {
-			int responseCode = ((HttpURLConnection) urlConn).getResponseCode();
-			if (responseCode != 200) {
-
+			int responseCode = 0;
+			try {
+				responseCode = ((HttpURLConnection) urlConn).getResponseCode();
+			} catch (SocketTimeoutException e) {
 				System.out.println();
-				System.out
-				.println(">>> ATTENTION! HTTP URL Connection error code: "
-						+ responseCode);
-
-				if (responseCode == 400 || responseCode == 429) {
-					// Increment the throttled counter
-					throttledTimes++;
-
-					System.out
-					.println(">>> We should have been throttled! Throttling counter = "
-							+ throttledTimes);
-
-					if (callIntervalInMillis <= MAX_CALL_INTERVAL) {
-
-						callIntervalInMillis += CALL_INTERVAL_INCREASE_STEP_IN_MILLIS
-								* throttledTimes;
-
-						callIntervalInMillis = (callIntervalInMillis > MAX_CALL_INTERVAL) ? MAX_CALL_INTERVAL
-								: callIntervalInMillis;
-
-						System.out
-						.println(">>> The new interval between calls is "
-								+ callIntervalInMillis + " ms");
-					}
-				}
-
+				System.out.println("                " + e.getMessage());
+				Thread.sleep(MainCollection.SLEEP_INTERVAL_BETWEEN_TRIALS);
+				return (false);
+			} catch (UnknownHostException ex) {
 				System.out.println();
-
-				// Update the while change variable
-				lastCallIntervalChange = Calendar.getInstance();
-
+				System.out.println("                Unknown host: " + ex.getMessage());
+				Thread.sleep(MainCollection.SLEEP_INTERVAL_BETWEEN_TRIALS);
 				result = false;
-			} else {
-				Calendar c = Calendar.getInstance();
-				long diffMillis = c.getTimeInMillis()
-						- lastCallIntervalChange.getTimeInMillis();
+			}
 
-				if (diffMillis >= CALL_INTERVAL_CHANGE_TIME_IN_MINUTES
-						* (60 * 1000)) {
+			if (result) {
+				if (responseCode != 200) {
 
-					if (callIntervalInMillis > MIN_CALL_INTERVAL) {
+					System.out.println();
+					System.out
+							.println(">>> ATTENTION! HTTP URL Connection error code: "
+									+ responseCode);
 
-						callIntervalInMillis -= CALL_INTERVAL_DECREASE_STEP_IN_MILLIS;
+					if (responseCode == 400 || responseCode == 429) {
+						// Increment the throttled counter
+						throttledTimes++;
 
-						callIntervalInMillis = (callIntervalInMillis < MIN_CALL_INTERVAL) ? MIN_CALL_INTERVAL
-								: callIntervalInMillis;
-
-						System.out.println();
-						System.out.println();
-						System.out.println(">>> Nice! No throttling in "
-								+ CALL_INTERVAL_CHANGE_TIME_IN_MINUTES
-								+ " minutes.");
 						System.out
-						.println(">>> The new interval between calls is "
-								+ callIntervalInMillis + " ms");
-						System.out.println();
+								.println(">>> We should have been throttled! Throttling counter = "
+										+ throttledTimes);
+
+						if (callIntervalInMillis <= MAX_CALL_INTERVAL) {
+
+							callIntervalInMillis += CALL_INTERVAL_INCREASE_STEP_IN_MILLIS
+									* throttledTimes;
+
+							callIntervalInMillis = (callIntervalInMillis > MAX_CALL_INTERVAL) ? MAX_CALL_INTERVAL
+									: callIntervalInMillis;
+
+							System.out
+									.println(">>> The new interval between calls is "
+											+ callIntervalInMillis + " ms");
+						}
 					}
+
+					System.out.println();
 
 					// Update the while change variable
-					lastCallIntervalChange = c;
+					lastCallIntervalChange = Calendar.getInstance();
+
+					result = false;
+				} else {
+					Calendar c = Calendar.getInstance();
+					long diffMillis = c.getTimeInMillis()
+							- lastCallIntervalChange.getTimeInMillis();
+
+					if (diffMillis >= CALL_INTERVAL_CHANGE_TIME_IN_MINUTES
+							* (60 * 1000)) {
+
+						if (callIntervalInMillis > MIN_CALL_INTERVAL) {
+
+							callIntervalInMillis -= CALL_INTERVAL_DECREASE_STEP_IN_MILLIS;
+
+							callIntervalInMillis = (callIntervalInMillis < MIN_CALL_INTERVAL) ? MIN_CALL_INTERVAL
+									: callIntervalInMillis;
+
+							System.out.println();
+							System.out.println();
+							System.out.println(">>> Nice! No throttling in "
+									+ CALL_INTERVAL_CHANGE_TIME_IN_MINUTES
+									+ " minutes.");
+							System.out
+									.println(">>> The new interval between calls is "
+											+ callIntervalInMillis + " ms");
+							System.out.println();
+						}
+
+						// Update the while change variable
+						lastCallIntervalChange = c;
+					}
 				}
 			}
 		}
@@ -191,32 +210,33 @@ public class ApiKeysManager {
 
 	}
 
-//	public static void main(String[] args) throws MalformedURLException,
-//	IOException {
-//		MainCollection.readPropertiesFile();
-//
-//		URLConnection urlConn = new URL(URLManager.getEventsURLByMember(
-//				"4c5f7a107b7624226a67794025897c", new Long(10341972), 0))
-//		.openConnection();
-//
-//		// URLConnection urlConn = new URL(
-//		// "https://api.meetup.com/ew/events?key=7f422a3a6e6d253c7e62585b722a6&sign=true&page=20")
-//		// .openConnection();
-//
-//		System.out.println(urlConn.getHeaderFields());
-//		System.out.println(((HttpURLConnection) urlConn).getResponseCode());
-//
-//		// BufferedReader br = new BufferedReader(new
-//		// InputStreamReader(urlConn.getInputStream()));
-//		// System.out.println(br.readLine());
-//
-//		for (int i = 0; i < 2000; i++) {
-//			getKey();
-//			System.out.println();
-//			if (!checkConnectionCondition(urlConn))
-//				continue;
-//
-//			System.out.println();
-//		}
-//	}
+	// public static void main(String[] args) throws MalformedURLException,
+	// IOException {
+	// MainCollection.readPropertiesFile();
+	//
+	// URLConnection urlConn = new URL(URLManager.getEventsURLByMember(
+	// "4c5f7a107b7624226a67794025897c", new Long(10341972), 0))
+	// .openConnection();
+	//
+	// // URLConnection urlConn = new URL(
+	// //
+	// "https://api.meetup.com/ew/events?key=7f422a3a6e6d253c7e62585b722a6&sign=true&page=20")
+	// // .openConnection();
+	//
+	// System.out.println(urlConn.getHeaderFields());
+	// System.out.println(((HttpURLConnection) urlConn).getResponseCode());
+	//
+	// // BufferedReader br = new BufferedReader(new
+	// // InputStreamReader(urlConn.getInputStream()));
+	// // System.out.println(br.readLine());
+	//
+	// for (int i = 0; i < 2000; i++) {
+	// getKey();
+	// System.out.println();
+	// if (!checkConnectionCondition(urlConn))
+	// continue;
+	//
+	// System.out.println();
+	// }
+	// }
 }

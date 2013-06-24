@@ -19,10 +19,11 @@
 package javaCode.collection;
 
 import java.io.File;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -65,8 +66,13 @@ public class MainCollection {
 	public static String[] cities;
 
 	public static URLConnection urlConn;
+	public final static int URL_CONNECTION_TIMEOUT = 10 * 1000; // IN MILIS
+	public final static int URL_READ_TIMEOUT = 10 * 1000; // IN MILIS
+	public final static int SLEEP_INTERVAL_BETWEEN_TRIALS = 5 * 1000; // IN
+																		// MILIS
 
-	private static void findGroupsByCity(int cityIndex) throws IOException {
+	private static void findGroupsByCity(int cityIndex) throws IOException,
+			InterruptedException {
 
 		// Set the initial offset
 		int offset = TraceManager.getOffset();
@@ -102,17 +108,33 @@ public class MainCollection {
 			key = ApiKeysManager.getKey();
 
 			// Parse the JSON object directly from the URL
-			println("Fetching URL...");
+			print("Fetching URL...");
 
-			urlConn = new URL(URLManager.getFindGroupsURLByCity(key, cityIndex,
-					offset)).openConnection();
+			Group[] groupArray;
+			try {
+				urlConn = new URL(URLManager.getFindGroupsURLByCity(key,
+						cityIndex, offset)).openConnection();
+				urlConn.setConnectTimeout(URL_CONNECTION_TIMEOUT);
+				urlConn.setReadTimeout(URL_READ_TIMEOUT);
 
-			if (!ApiKeysManager.checkConnectionCondition(urlConn))
+				if (!ApiKeysManager.checkConnectionCondition(urlConn))
+					continue;
+				else
+					println("");
+
+				groupArray = mapper.readValue(
+						new InputStreamReader(urlConn.getInputStream(),
+								IOManager.CHAR_SET), Group[].class);
+
+			} catch (SocketTimeoutException e) {
+				println("                " + e.getMessage());
+				Thread.sleep(SLEEP_INTERVAL_BETWEEN_TRIALS);
 				continue;
-
-			Group[] groupArray = mapper.readValue(
-					new InputStreamReader(urlConn.getInputStream(),
-							IOManager.CHAR_SET), Group[].class);
+			} catch (ConnectException ex) {
+				println("                " + ex.getMessage());
+				Thread.sleep(SLEEP_INTERVAL_BETWEEN_TRIALS);
+				continue;
+			}
 
 			ArrayList<Group> newGroups = new ArrayList<Group>();
 
@@ -156,7 +178,8 @@ public class MainCollection {
 		} while (keepFetching);
 	}
 
-	private static void getMembersByGroup(int cityIndex) throws IOException {
+	private static void getMembersByGroup(int cityIndex) throws IOException,
+			InterruptedException {
 
 		// Read the group id's per city already stored
 		TreeSet<Long> groupIdsPerCity;
@@ -203,18 +226,32 @@ public class MainCollection {
 				key = ApiKeysManager.getKey();
 
 				print("Fetching URL...");
+				Results<Member> memberResults;
+				try {
+					urlConn = new URL(URLManager.getMembersURLByGroup(key,
+							groupId, offset)).openConnection();
+					urlConn.setConnectTimeout(URL_CONNECTION_TIMEOUT);
+					urlConn.setReadTimeout(URL_READ_TIMEOUT);
 
-				urlConn = new URL(URLManager.getMembersURLByGroup(key, groupId,
-						offset)).openConnection();
+					if (!ApiKeysManager.checkConnectionCondition(urlConn))
+						continue;
 
-				if (!ApiKeysManager.checkConnectionCondition(urlConn))
+					memberResults = mapper.readValue(new InputStreamReader(
+							urlConn.getInputStream(), IOManager.CHAR_SET),
+							new TypeReference<Results<Member>>() {
+							});
+
+				} catch (SocketTimeoutException e) {
+					println("");
+					println("                " + e.getMessage());
+					Thread.sleep(SLEEP_INTERVAL_BETWEEN_TRIALS);
 					continue;
-
-				Results<Member> memberResults = mapper.readValue(
-						new InputStreamReader(urlConn.getInputStream(),
-								IOManager.CHAR_SET),
-						new TypeReference<Results<Member>>() {
-						});
+				} catch (ConnectException ex) {
+					println("");
+					println("                " + ex.getMessage());
+					Thread.sleep(SLEEP_INTERVAL_BETWEEN_TRIALS);
+					continue;
+				}
 
 				int totalObjects = memberResults.getMeta().getTotal_count();
 				println("("
@@ -277,7 +314,8 @@ public class MainCollection {
 		}
 	}
 
-	private static void getEventsByGroup(int cityIndex) throws IOException {
+	private static void getEventsByGroup(int cityIndex) throws IOException,
+			InterruptedException {
 
 		// Read the group id's per city already stored
 		ArrayList<Long> groupIdsPerCity;
@@ -327,18 +365,32 @@ public class MainCollection {
 
 				print("Fetching URL...");
 
-				// Parse the JSON object directly from the URL
-				urlConn = new URL(URLManager.getEventsURLByGroup(key, groupIds,
-						offset)).openConnection();
+				Results<Event> eventResults;
+				try {
+					// Parse the JSON object directly from the URL
+					urlConn = new URL(URLManager.getEventsURLByGroup(key,
+							groupIds, offset)).openConnection();
+					urlConn.setConnectTimeout(URL_CONNECTION_TIMEOUT);
+					urlConn.setReadTimeout(URL_READ_TIMEOUT);
 
-				if (!ApiKeysManager.checkConnectionCondition(urlConn))
+					if (!ApiKeysManager.checkConnectionCondition(urlConn))
+						continue;
+
+					eventResults = mapper.readValue(new InputStreamReader(
+							urlConn.getInputStream(), IOManager.CHAR_SET),
+							new TypeReference<Results<Event>>() {
+							});
+				} catch (SocketTimeoutException e) {
+					println("");
+					println("                " + e.getMessage());
+					Thread.sleep(SLEEP_INTERVAL_BETWEEN_TRIALS);
 					continue;
-
-				Results<Event> eventResults = mapper.readValue(
-						new InputStreamReader(urlConn.getInputStream(),
-								IOManager.CHAR_SET),
-						new TypeReference<Results<Event>>() {
-						});
+				} catch (ConnectException ex) {
+					println("");
+					println("                " + ex.getMessage());
+					Thread.sleep(SLEEP_INTERVAL_BETWEEN_TRIALS);
+					continue;
+				}
 
 				int totalObjects = eventResults.getMeta().getTotal_count();
 				println("("
@@ -401,8 +453,10 @@ public class MainCollection {
 	 * @throws JsonParseException
 	 * @throws JsonMappingException
 	 * @throws IOException
+	 * @throws InterruptedException
 	 */
-	private static void getGroupTopicsByGroup(int cityIndex) throws IOException {
+	private static void getGroupTopicsByGroup(int cityIndex)
+			throws IOException, InterruptedException {
 
 		// Read the group id's per city already stored
 		ArrayList<Long> groupIdsPerCity;
@@ -442,17 +496,32 @@ public class MainCollection {
 				// Read all the members of the group
 				print("Fetching URL...");
 
-				urlConn = new URL(URLManager.getGroupsURLByGroupId(key,
-						groupIds, offset)).openConnection();
+				Results<GroupTopics> groupTopicsResults;
+				try {
+					urlConn = new URL(URLManager.getGroupsURLByGroupId(key,
+							groupIds, offset)).openConnection();
+					urlConn.setConnectTimeout(URL_CONNECTION_TIMEOUT);
+					urlConn.setReadTimeout(URL_READ_TIMEOUT);
 
-				if (!ApiKeysManager.checkConnectionCondition(urlConn))
+					if (!ApiKeysManager.checkConnectionCondition(urlConn))
+						continue;
+
+					groupTopicsResults = mapper.readValue(
+							new InputStreamReader(urlConn.getInputStream(),
+									IOManager.CHAR_SET),
+							new TypeReference<Results<GroupTopics>>() {
+							});
+				} catch (SocketTimeoutException e) {
+					println("");
+					println("                " + e.getMessage());
+					Thread.sleep(SLEEP_INTERVAL_BETWEEN_TRIALS);
 					continue;
-
-				Results<GroupTopics> groupTopicsResults = mapper.readValue(
-						new InputStreamReader(urlConn.getInputStream(),
-								IOManager.CHAR_SET),
-						new TypeReference<Results<GroupTopics>>() {
-						});
+				} catch (ConnectException ex) {
+					println("");
+					println("                " + ex.getMessage());
+					Thread.sleep(SLEEP_INTERVAL_BETWEEN_TRIALS);
+					continue;
+				}
 
 				int totalObjects = groupTopicsResults.getMeta()
 						.getTotal_count();
@@ -498,7 +567,8 @@ public class MainCollection {
 		}
 	}
 
-	private static void getRSVPsByEvents(int cityIndex) throws IOException {
+	private static void getRSVPsByEvents(int cityIndex) throws IOException,
+			InterruptedException {
 
 		// Read all event id's
 		ArrayList<String> allEventsIds;
@@ -523,7 +593,8 @@ public class MainCollection {
 		for (; eventIndex < allEventsIds.size();) {
 			int lastIndex = Math.min(eventIndex + eventsPerCall - 1,
 					(allEventsIds.size() - 1));
-			List<String> eventIds = allEventsIds.subList(eventIndex, lastIndex + 1);
+			List<String> eventIds = allEventsIds.subList(eventIndex,
+					lastIndex + 1);
 
 			println("        RSVPs (" + (eventIndex + 1) + " to "
 					+ (lastIndex + 1) + "/" + allEventsIds.size() + ")");
@@ -532,19 +603,33 @@ public class MainCollection {
 			do {
 				// Check and stop for 1 hour at most, if needed
 				key = ApiKeysManager.getKey();
-
 				print("Fetching URL...");
-				urlConn = new URL(URLManager.getRSVPsURLByEvents(key, eventIds,
-						offset)).openConnection();
 
-				if (!ApiKeysManager.checkConnectionCondition(urlConn))
+				Results<RSVP> rsvpResults = null;
+				try {
+					urlConn = new URL(URLManager.getRSVPsURLByEvents(key,
+							eventIds, offset)).openConnection();
+					urlConn.setConnectTimeout(URL_CONNECTION_TIMEOUT);
+					urlConn.setReadTimeout(URL_READ_TIMEOUT);
+
+					if (!ApiKeysManager.checkConnectionCondition(urlConn))
+						continue;
+
+					rsvpResults = mapper.readValue(new InputStreamReader(
+							urlConn.getInputStream(), IOManager.CHAR_SET),
+							new TypeReference<Results<RSVP>>() {
+							});
+				} catch (SocketTimeoutException e) {
+					println("");
+					println("                " + e.getMessage());
+					Thread.sleep(SLEEP_INTERVAL_BETWEEN_TRIALS);
 					continue;
-
-				Results<RSVP> rsvpResults = mapper.readValue(
-						new InputStreamReader(urlConn.getInputStream(),
-								IOManager.CHAR_SET),
-						new TypeReference<Results<RSVP>>() {
-						});
+				} catch (ConnectException ex) {
+					println("");
+					println("                " + ex.getMessage());
+					Thread.sleep(SLEEP_INTERVAL_BETWEEN_TRIALS);
+					continue;
+				}
 
 				int totalObjects = rsvpResults.getMeta().getTotal_count();
 				println("("
@@ -621,7 +706,8 @@ public class MainCollection {
 		ApiKeysManager.setKeys(newKeys, keyNames);
 	}
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException,
+			InterruptedException {
 
 		// Set the API_KEY and CITIES from the properties.txt file
 		readPropertiesFile();
