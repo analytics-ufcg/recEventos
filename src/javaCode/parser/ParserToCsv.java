@@ -275,12 +275,12 @@ public class ParserToCsv {
 							memberTopicWriter.writeNext(new String[] {
 									memberData[0], topicData[0] });
 
-							// If the topic wasn't added in the object file, do
-							// it
-							if (!topicIds.contains(t.getId())) {
-								topicWriter.writeNext(topicData);
-								topicIds.add(t.getId());
+							if (topicIds.contains(t.getId())){
+								continue;
 							}
+
+							topicIds.add(t.getId());
+							topicWriter.writeNext(topicData);
 						}
 
 					}
@@ -432,11 +432,6 @@ public class ParserToCsv {
 
 					for (Topic topic : gTopics.getTopics()) {
 
-						if (topicIds.contains(gTopics.getId()))
-							continue;
-
-						topicIds.add(topic.getId());
-
 						String[] topicData = new String[2];
 
 						if ((new Long(topic.getId()) != null)) {
@@ -446,13 +441,18 @@ public class ParserToCsv {
 							topicData[1] = topic.getName();
 
 						}
-						topicWriter.writeNext(topicData);
 						groupTopicWriter
 								.writeNext(new String[] {
 										String.valueOf(gTopics.getId()),
 										topicData[0] });
-					}
 
+						if (topicIds.contains(topic.getId())){
+							continue;
+						}
+
+						topicIds.add(topic.getId());
+						topicWriter.writeNext(topicData);
+					}
 				}
 			}
 			sc.close();
