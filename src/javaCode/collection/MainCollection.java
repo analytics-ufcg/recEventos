@@ -57,7 +57,7 @@ public class MainCollection {
 	/*
 	 * List of RELATION between OBJECTs
 	 */
-	public static final String GROUP_TOPIC = "group_topic",
+	public static final String GROUP_TOPIC = "group-topic",
 			GROUP_MEMBER = "group_member";
 
 	/*
@@ -531,9 +531,9 @@ public class MainCollection {
 						+ (int) Math.ceil(totalObjects
 								/ (double) URLManager.PAGE_SIZE) + ")");
 
-				println("            Persisting data ("
+				print("            Persisting data ("
 						+ groupTopicsResults.getResults().size()
-						+ " groups(s)): DONE");
+						+ " groups(s)): ");
 
 				// Persist the new Topics (if it isn't empty)
 				if (!groupTopicsResults.getResults().get(0).getTopics()
@@ -541,7 +541,9 @@ public class MainCollection {
 					IOManager.appendJsonObjects(GROUP_TOPIC, groupTopicsResults
 							.getResults().toArray());
 				}// else clause {Ignores the repeated object}
-
+				
+				println("DONE");
+				
 				// Rewrite the trace file
 				TraceManager.writeTraceFile(cityIndex,
 						TraceManager.GROUPTOPICS_BYGROUP_INDEX, groupIndex, 0,
