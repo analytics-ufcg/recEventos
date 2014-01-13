@@ -39,16 +39,21 @@ public class MainParser {
 		 * CSV for RELATIONS
 		 */
 		System.out.println("Parsing Relations only...");
-		String[] relations = { MainCollection.GROUP_MEMBER };
+		String[] sourceRelations = { MainCollection.GROUP_MEMBER };
+		String[] outputRelations = { "group_users.csv" };
+		String[][] headers = { { "group_id", "user_id" } };
 
-		for (String relation : relations) {
-			System.out.println("    " + relation + "...");
+		for (int i = 0; i < sourceRelations.length; i++) {
+			String sourceRelation = sourceRelations[i];
+			String outputRelation = outputRelations[i];
+			String[] header = headers[i];
 
-			String[] headers = relation.split("_");
-			if (new File(dataDir + relation + "s").exists())
-				ParserToCsv.createCsvRelations(dataDir + relation + "s/"
-						+ relation + "_ids.txt", dataCsvDir + relation
-						+ "s.csv", headers[0] + "_id", headers[1] + "_id");
+			System.out.println("    " + sourceRelation + "...");
+
+			if (new File(dataDir + sourceRelation + "s").exists())
+				ParserToCsv.createCsvRelations(dataDir + sourceRelation + "s/"
+						+ sourceRelation + "_ids.txt", dataCsvDir
+						+ outputRelation, header[0], header[1]);
 		}
 
 		/*
@@ -62,14 +67,12 @@ public class MainParser {
 				MainCollection.GROUP)), dataCsvDir + MainCollection.GROUP
 				+ "s.csv", dataCsvDir + "categories.csv");
 
-		System.out
-				.println("    Members, Topics and relation: Member -> Topics...");
-		ParserToCsv.createCsvFromMemberWithTopics(new File(dataDir
+		System.out.println("    Users, Tags and relation: User -> Tags...");
+		ParserToCsv.createCsvFromUserWithTags(new File(dataDir
 				+ MainCollection.MEMBER + "s")
 				.listFiles(new JsonFilenameFilter(MainCollection.MEMBER)),
-				dataCsvDir + MainCollection.MEMBER + "s", dataCsvDir
-						+ MainCollection.TOPIC + "s.csv", dataCsvDir
-						+ "member_topics.csv");
+				dataCsvDir + "users", dataCsvDir + "tags.csv", dataCsvDir
+						+ "user_tags.csv");
 
 		System.out.println("    Event, Venues and relation: Group -> Event...");
 		ParserToCsv.createCsvFromEventWithVenueByGroup(new File(dataDir
@@ -78,13 +81,11 @@ public class MainParser {
 				dataCsvDir + MainCollection.EVENT + "s", dataCsvDir
 						+ "venues.csv", dataCsvDir + "group_events.csv");
 
-		System.out
-				.println("    Topics (again) and relation: Group -> Topics...");
-		ParserToCsv.createCsvFromGroupTopics(new File(dataDir
+		System.out.println("    Tags (again) and relation: Group -> Tags...");
+		ParserToCsv.createCsvFromGroupTags(new File(dataDir
 				+ MainCollection.GROUP_TOPIC + "s")
 				.listFiles(new JsonFilenameFilter(MainCollection.GROUP_TOPIC)),
-				dataCsvDir + MainCollection.TOPIC + "s.csv", dataCsvDir
-						+ "group_topics.csv");
+				dataCsvDir + "tags.csv", dataCsvDir + "group_tags.csv");
 
 		System.out.println("    RSVPs...");
 		ParserToCsv.createCsvFromRSVP(new File(dataDir + MainCollection.RSVP

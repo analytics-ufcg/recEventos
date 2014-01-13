@@ -44,12 +44,12 @@ public class ParserToCsv {
 	private static final char CSV_SEPARATOR = ',';
 	private static final String CHAR_SET = "UTF-8";
 
-	private static TreeSet<Long> memberIds = new TreeSet<Long>();
+	private static TreeSet<Long> userIds = new TreeSet<Long>();
 	private static TreeSet<String> eventIds = new TreeSet<String>();
 	private static TreeSet<Long> groupIds = new TreeSet<Long>();
 	private static TreeSet<Long> venueIds = new TreeSet<Long>();
 	private static TreeSet<Long> rsvpIds = new TreeSet<Long>();
-	private static TreeSet<Long> topicIds = new TreeSet<Long>();
+	private static TreeSet<Long> tagIds = new TreeSet<Long>();
 	private static TreeSet<Long> categoryIds = new TreeSet<Long>();
 
 	public static void createCsvRelations(String arquivoLeitura,
@@ -91,11 +91,12 @@ public class ParserToCsv {
 				new FileOutputStream(categoryCsvFilename), CHAR_SET),
 				CSV_SEPARATOR);
 
-		groupWriter.writeNext(new String[] { "id", "name", "urlname",
-				"created", "city", "country", "join_mode", "visibility", "lon",
-				"lat", "members", "category_id", "organizer_id" });
+		groupWriter.writeNext(new String[] { "group_id", "name", "urlname",
+				"created", "city", "country", "join_mode", "visibility",
+				"latitude", "longitude", "users", "category_id",
+				"organizer_id" });
 
-		categoryWriter.writeNext(new String[] { "id", "name", "shortname" });
+		categoryWriter.writeNext(new String[] { "category_id", "name", "shortname" });
 
 		for (File arquivo : groupJsonFiles) {
 
@@ -148,12 +149,12 @@ public class ParserToCsv {
 						groupData[7] = group.getVisibility();
 
 					}
-					if ((new Double(group.getLon()) != null)) {
-						groupData[8] = String.valueOf(group.getLon());
+					if ((new Double(group.getLat()) != null)) {
+						groupData[8] = String.valueOf(group.getLat());
 
 					}
-					if ((new Double(group.getLat()) != null)) {
-						groupData[9] = String.valueOf(group.getLat());
+					if ((new Double(group.getLon()) != null)) {
+						groupData[9] = String.valueOf(group.getLon());
 
 					}
 					if (group.getMembers() != null) {
@@ -176,7 +177,6 @@ public class ParserToCsv {
 					if (group.getOrganizer() != null) {
 						groupData[12] = String.valueOf(group.getOrganizer()
 								.getId());
-
 					}
 
 					groupWriter.writeNext(groupData);
@@ -188,36 +188,36 @@ public class ParserToCsv {
 		categoryWriter.close();
 	}
 
-	public static void createCsvFromMemberWithTopics(File[] memberJsonFiles,
-			String memberCsvFilename, String topicCsvFilename,
-			String memberTopicCsvFilename) throws IOException {
+	public static void createCsvFromUserWithTags(File[] userJsonFiles,
+			String userCsvFilename, String tagCsvFilename,
+			String userTagCsvFilename) throws IOException {
 
-		CSVWriter memberWriter = null;
-		CSVWriter topicWriter = new CSVWriter(new OutputStreamWriter(
-				new FileOutputStream(topicCsvFilename), CHAR_SET),
+		CSVWriter userWriter = null;
+		CSVWriter tagWriter = new CSVWriter(new OutputStreamWriter(
+				new FileOutputStream(tagCsvFilename), CHAR_SET),
 				CSV_SEPARATOR);
-		CSVWriter memberTopicWriter = new CSVWriter(new OutputStreamWriter(
-				new FileOutputStream(memberTopicCsvFilename), CHAR_SET),
+		CSVWriter userTagWriter = new CSVWriter(new OutputStreamWriter(
+				new FileOutputStream(userTagCsvFilename), CHAR_SET),
 				CSV_SEPARATOR);
 
-		topicWriter.writeNext(new String[] { "id", "name" });
-		memberTopicWriter.writeNext(new String[] { "member_id", "topic_id" });
+		tagWriter.writeNext(new String[] { "tag_id", "name" });
+		userTagWriter.writeNext(new String[] { "user_id", "tag_id" });
 
-		Arrays.sort(memberJsonFiles, new JsonFilenameComparator());
+		Arrays.sort(userJsonFiles, new JsonFilenameComparator());
 
 		int i = 0;
-		for (File f : memberJsonFiles) {
+		for (File f : userJsonFiles) {
 
 			if (i++ % 5 == 0) {
-				if (memberWriter != null) {
-					memberWriter.close();
+				if (userWriter != null) {
+					userWriter.close();
 				}
-				memberWriter = new CSVWriter(new OutputStreamWriter(
-						new FileOutputStream(memberCsvFilename + "_"
+				userWriter = new CSVWriter(new OutputStreamWriter(
+						new FileOutputStream(userCsvFilename + "_"
 								+ (((i - 1) / 5) + 1) + ".csv"), CHAR_SET),
 						CSV_SEPARATOR);
-				memberWriter.writeNext(new String[] { "id", "name", "city",
-						"country", "lon", "lat", "joined" });
+				userWriter.writeNext(new String[] { "user_id", "name", "city",
+						"country", "latitude", "longitude", "joined" });
 			}
 
 			Scanner sc = new Scanner(f, CHAR_SET);
@@ -225,62 +225,62 @@ public class ParserToCsv {
 			ObjectMapper mapper = new ObjectMapper();
 
 			while (sc.hasNext()) {
-				Member[] memberArray = mapper.readValue(sc.nextLine(),
+				Member[] userArray = mapper.readValue(sc.nextLine(),
 						Member[].class);
-				for (Member member : memberArray) {
+				for (Member user : userArray) {
 
-					if (memberIds.contains(member.getId()))
+					if (userIds.contains(user.getId()))
 						continue;
 
-					memberIds.add(member.getId());
+					userIds.add(user.getId());
 
-					String[] memberData = new String[7];
+					String[] userData = new String[7];
 
-					if ((new Long(member.getId()) != null)) {
-						memberData[0] = String.valueOf(member.getId());
-
-					}
-					if (member.getName() != null) {
-						memberData[1] = member.getName();
+					if ((new Long(user.getId()) != null)) {
+						userData[0] = String.valueOf(user.getId());
 
 					}
-					if (member.getCity() != null) {
-						memberData[2] = member.getCity();
+					if (user.getName() != null) {
+						userData[1] = user.getName();
 
 					}
-					if (member.getCountry() != null) {
-						memberData[3] = member.getCountry();
+					if (user.getCity() != null) {
+						userData[2] = user.getCity();
 
 					}
-					if ((new Double(member.getLon()) != null)) {
-						memberData[4] = String.valueOf(member.getLon());
+					if (user.getCountry() != null) {
+						userData[3] = user.getCountry();
 
 					}
-					if ((new Double(member.getLat()) != null)) {
-						memberData[5] = String.valueOf(member.getLat());
+					if ((new Double(user.getLat()) != null)) {
+						userData[4] = String.valueOf(user.getLat());
+						
+					}
+					if ((new Double(user.getLon()) != null)) {
+						userData[5] = String.valueOf(user.getLon());
 
 					}
-					if ((new Long(member.getJoined()) != null)) {
-						memberData[6] = String.valueOf(member.getJoined());
+					if ((new Long(user.getJoined()) != null)) {
+						userData[6] = String.valueOf(user.getJoined());
 
 					}
-					memberWriter.writeNext(memberData);
+					userWriter.writeNext(userData);
 
-					if (member.getTopics() != null) {
-						for (Topic t : member.getTopics()) {
+					if (user.getTopics() != null) {
+						for (Topic t : user.getTopics()) {
 
-							String[] topicData = checkAttributesTopic(t);
+							String[] tagData = checkAttributesTag(t);
 
-							// Add the relation: member_id -> topic_id
-							memberTopicWriter.writeNext(new String[] {
-									memberData[0], topicData[0] });
+							// Add the relation: user_id -> tag_id
+							userTagWriter.writeNext(new String[] {
+									userData[0], tagData[0] });
 
-							if (topicIds.contains(t.getId())){
+							if (tagIds.contains(t.getId())) {
 								continue;
 							}
 
-							topicIds.add(t.getId());
-							topicWriter.writeNext(topicData);
+							tagIds.add(t.getId());
+							tagWriter.writeNext(tagData);
 						}
 
 					}
@@ -288,9 +288,9 @@ public class ParserToCsv {
 			}
 			sc.close();
 		}
-		memberWriter.close();
-		topicWriter.close();
-		memberTopicWriter.close();
+		userWriter.close();
+		tagWriter.close();
+		userTagWriter.close();
 	}
 
 	public static void createCsvFromEventWithVenueByGroup(
@@ -306,7 +306,7 @@ public class ParserToCsv {
 				new FileOutputStream(groupEventCsvFilename), CHAR_SET),
 				CSV_SEPARATOR);
 
-		venueWriter.writeNext(new String[] { "id", "lon", "lat", "name",
+		venueWriter.writeNext(new String[] { "venue_id", "latitude", "longitude", "name",
 				"address_1", "address_2", "address_3", "city", "country",
 				"rating_count", "rating" });
 		groupEventWriter.writeNext(new String[] { "group_id", "event_id" });
@@ -325,7 +325,7 @@ public class ParserToCsv {
 								+ (((i - 1) / 5) + 1) + ".csv"), CHAR_SET),
 						CSV_SEPARATOR);
 
-				eventWriter.writeNext(new String[] { "id", "name", "created",
+				eventWriter.writeNext(new String[] { "event_id", "name", "created",
 						"time", "utc_offset", "status", "visibility",
 						"headCount", "rsvp_limit", "venue_id", "group_id" });
 			}
@@ -405,60 +405,60 @@ public class ParserToCsv {
 		groupEventWriter.close();
 	}
 
-	public static void createCsvFromGroupTopics(File[] groupTopicJsonFiles,
-			String topicCsvFilename, String groupTopicCsvFilename)
+	public static void createCsvFromGroupTags(File[] groupTagJsonFiles,
+			String tagCsvFilename, String groupTagCsvFilename)
 			throws IOException {
 
 		ObjectMapper mapper = new ObjectMapper();
-		CSVWriter topicWriter = new CSVWriter(new OutputStreamWriter(
-				new FileOutputStream(topicCsvFilename, true), CHAR_SET),
+		CSVWriter tagWriter = new CSVWriter(new OutputStreamWriter(
+				new FileOutputStream(tagCsvFilename, true), CHAR_SET),
 				CSV_SEPARATOR);
-		CSVWriter groupTopicWriter = new CSVWriter(new OutputStreamWriter(
-				new FileOutputStream(groupTopicCsvFilename), CHAR_SET),
+		CSVWriter groupTagWriter = new CSVWriter(new OutputStreamWriter(
+				new FileOutputStream(groupTagCsvFilename), CHAR_SET),
 				CSV_SEPARATOR);
 
-		groupTopicWriter.writeNext(new String[] { "group_id", "topic_id" });
+		groupTagWriter.writeNext(new String[] { "group_id", "tag_id" });
 
-		for (File arquivo : groupTopicJsonFiles) {
+		for (File arquivo : groupTagJsonFiles) {
 
 			Scanner sc = new Scanner(arquivo, CHAR_SET);
 
 			while (sc.hasNext()) {
 
-				GroupTopics[] groupTopicsArray = mapper.readValue(
+				GroupTopics[] groupTagsArray = mapper.readValue(
 						sc.nextLine(), GroupTopics[].class);
 
-				for (GroupTopics gTopics : groupTopicsArray) {
+				for (GroupTopics gTags : groupTagsArray) {
 
-					for (Topic topic : gTopics.getTopics()) {
+					for (Topic tag : gTags.getTopics()) {
 
-						String[] topicData = new String[2];
+						String[] tagData = new String[2];
 
-						if ((new Long(topic.getId()) != null)) {
-							topicData[0] = String.valueOf(topic.getId());
+						if ((new Long(tag.getId()) != null)) {
+							tagData[0] = String.valueOf(tag.getId());
 						}
-						if (topic.getName() != null) {
-							topicData[1] = topic.getName();
+						if (tag.getName() != null) {
+							tagData[1] = tag.getName();
 
 						}
-						groupTopicWriter
+						groupTagWriter
 								.writeNext(new String[] {
-										String.valueOf(gTopics.getId()),
-										topicData[0] });
+										String.valueOf(gTags.getId()),
+										tagData[0] });
 
-						if (topicIds.contains(topic.getId())){
+						if (tagIds.contains(tag.getId())) {
 							continue;
 						}
 
-						topicIds.add(topic.getId());
-						topicWriter.writeNext(topicData);
+						tagIds.add(tag.getId());
+						tagWriter.writeNext(tagData);
 					}
 				}
 			}
 			sc.close();
 		}
-		topicWriter.close();
-		groupTopicWriter.close();
+		tagWriter.close();
+		groupTagWriter.close();
 	}
 
 	public static void createCsvFromRSVP(File[] rsvpJsonFiles,
@@ -479,8 +479,8 @@ public class ParserToCsv {
 						new FileOutputStream(rsvpCsvFilename + "_"
 								+ (((i - 1) / 5) + 1) + ".csv"), CHAR_SET),
 						CSV_SEPARATOR);
-				rsvpWriter.writeNext(new String[] { "id", "created", "mtime",
-						"response", "member_id", "event_id" });
+				rsvpWriter.writeNext(new String[] { "rsvp_id", "created", "mtime",
+						"response", "user_id", "event_id" });
 			}
 
 			Scanner sc = new Scanner(file, CHAR_SET);
@@ -560,13 +560,13 @@ public class ParserToCsv {
 			venueArray[0] = String.valueOf(v.getId());
 
 		}
-		if ((new Double(v.getLon()) != null)) {
-			venueArray[1] = String.valueOf(v.getLon());
+		if ((new Double(v.getLat()) != null)) {
+			venueArray[1] = String.valueOf(v.getLat());
 
 		}
-		if ((new Double(v.getLat()) != null)) {
-			venueArray[2] = String.valueOf(v.getLat());
-
+		if ((new Double(v.getLon()) != null)) {
+			venueArray[2] = String.valueOf(v.getLon());
+			
 		}
 		if ((v.getName()) != null) {
 			venueArray[3] = v.getName();
@@ -605,19 +605,19 @@ public class ParserToCsv {
 
 	}
 
-	private static String[] checkAttributesTopic(Topic t) {
+	private static String[] checkAttributesTag(Topic t) {
 
-		String[] topicArray = new String[2];
+		String[] tagArray = new String[2];
 
 		if ((new Long(t.getId()) != null)) {
-			topicArray[0] = String.valueOf(t.getId());
+			tagArray[0] = String.valueOf(t.getId());
 
 		}
 		if (t.getName() != null) {
-			topicArray[1] = t.getName();
+			tagArray[1] = t.getName();
 
 		}
 
-		return topicArray;
+		return tagArray;
 	}
 }

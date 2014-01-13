@@ -62,7 +62,7 @@ public class Event {
 
 	public void setStatus(String status) {
 		this.status = status;
-	}
+	}	
 
 	public long getUtc_offset() {
 		return utc_offset;
